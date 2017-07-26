@@ -1,0 +1,22 @@
+<RCC>
+    <qresource prefix="/">
+        <file>files/keyWords.txt</file>
+        <file>files/keyWords2.txt</file>
+        <file>files/Makefile</file>
+        <file>files/sdBaseTPL.txt</file>
+        <file>stylesheets/simdsp-design.qss</file>
+        <file>files/sdSourceTPL.txt</file>
+        <file>files/sdHeaderTPL.txt</file>
+        <file>sdcore/sdfunctions.h</file>
+        <file>base/simdsp.cpp</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="play.png">files/icons/play.png</file>
+        <file alias="load_mat.png">files/icons/load_mat.png</file>
+        <file alias="stop.png">files/icons/stop.png</file>
+        <file alias="save_mat.png">files/icons/save_mat.png</file>
+        <file alias="builder.png">files/icons/builder.png</file>
+        <file alias="new_file.png">files/icons/new_file.png</file>
+        <file alias="save_file.png">files/icons/save.png</file>
+    </qresource>
+</RCC>

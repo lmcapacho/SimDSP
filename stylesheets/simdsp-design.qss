@@ -1,0 +1,68 @@
+QMainWindow {
+    background-color: #FFFFFF;
+}
+
+
+QMenuBar {
+    background-color: #131418;
+    color: #FFFFFF;
+}
+
+QMenuBar::item {
+    padding: 10px;
+}
+
+QMenuBar::item:selected {
+    color: #333333;
+}
+
+QMenuBar::item:pressed {
+    color: #888888;
+    background: transparent;
+}
+
+
+QToolBar {
+    background: #FFFFFF;
+
+}
+
+QToolButton {
+    color: #2A2A2A;
+    /*font-family: Ubuntu;*/
+}
+
+
+QTextEdit{
+    background-color: #FCFCFC;
+}
+
+QTextEdit#appOutput{
+    background-color: #FFFFFF;
+}
+
+
+/*QToolButton:hover {
+    background: #006565;
+    border: 1px;
+    border-color: white;
+}*/
+
+QTreeWidget{
+    background-color: #47484B;
+    color:	#FFFFFF;
+}
+
+QTabWidget {
+    background: #FFFFFF;
+}
+
+QStatusBar {
+    background-color: #1F1F1F;
+    color: #FAFAFA;
+}
+
+
+/*QPushButton {
+	color: blue;
+}*/

@@ -1,0 +1,12 @@
+#ifndef SIMDSPCORE_GLOBAL_H
+#define SIMDSPCORE_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(SIMDSPCORE_LIBRARY)
+#  define SIMDSPCORESHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define SIMDSPCORESHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // SIMDSPCORE_GLOBAL_H

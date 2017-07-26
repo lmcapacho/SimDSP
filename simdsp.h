@@ -1,0 +1,86 @@
+#ifndef SIMDSP_H
+#define SIMDSP_H
+
+#include <QMainWindow>
+#include <QFile>
+#include <QFileDialog>
+#include <QMessageBox>
+
+#include "sdcore.h"
+#include "sdsignal.h"
+#include "qcustomplot.h"
+#include "sdeditortab.h"
+#include "sdproject.h"
+#include "sdbuilder.h"
+#include "sdnewfile.h"
+#include "sdnewproject.h"
+#include "sdhelp.h"
+
+typedef void (*initFunction)(void);
+typedef void (*loopFunction)(void);
+typedef void (*setupFunction)(void);
+typedef void *(*getSDCoreFunction)(void);
+typedef void *(*closeSDCoreFunction)(void);
+
+namespace Ui {
+class SimDSP;
+}
+
+class SimDSP : public QMainWindow
+{
+    Q_OBJECT
+
+public:
+    explicit SimDSP(QWidget *parent = 0);
+    ~SimDSP();
+
+public slots:
+    // Files slots
+    void actionNewFile();
+    void actionSaveFile();
+
+    // Build slots
+    void actionRun();
+    void actionStop();
+    void actionLoad();
+    void actionSave();
+
+    // Project slots
+    void actionNewProject();
+    void actionOpenProject();
+    void actionSaveProject();
+    void actionBuild();
+
+    // Edit slots
+    void actionIncreaseFontSize();
+    void actionDecreaseFontSize();
+    void actionResetFontSize();
+    void actionFont();
+
+    // Help slots
+    void actionHelpContents();
+
+    void loop();
+
+private:
+    Ui::SimDSP *ui;
+
+    void initSimDSP();
+    void closeEvent(QCloseEvent *event);
+
+    QTemporaryDir tmpProjectPath;
+
+    SDProject *sdproject;
+    SDBuilder *sdbuilder;
+
+    QLibrary *codeLibrary;
+
+    QTimer *SimDSPTimer;
+    loopFunction dsp_loop;
+
+    SimDSPCore* sdcore;
+
+    bool isProjectPathTmp;
+};
+
+#endif // SIMDSP_H
