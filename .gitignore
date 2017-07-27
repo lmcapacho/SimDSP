@@ -1,3 +1,3 @@
 build/
-files/
+files/*
 *.user
