@@ -26,7 +26,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
 INCLUDEPATH += sdcore
 
-LIBS += -L../sdcore/build -lsdcore
+LIBS += -Lsdcore/build -lsdcore
 
 RESOURCES += simdspresources.qrc
 
@@ -34,6 +34,12 @@ include(pri/actions.pri)
 include(pri/editor.pri)
 include(pri/simdsp.pri)
 include(pri/project.pri)
+
+DESTDIR = build
+OBJECTS_DIR = build/obj
+MOC_DIR = build/moc
+RCC_DIR = build/rcc
+UI_DIR = build/ui
 
 TARGET = SimDSP
 TEMPLATE = app
