@@ -1,3 +1,26 @@
-build/
-files/
+.qmake.stash
+
+# QtCreator folders and files #
+#####################
+SimDSP.pro.user
+/SimDSP-build-*
+/release*
+/build*
+/debug*
 *.user
+*.user*
+sdcore.pro.user
+/sdcore/sdcore-build-*
+/sdcore/release*
+/sdcore/build*
+/sdcore/debug*
+/sdcore*.user
+/sdcore/*.user*
+
+
+# SimDSP Tools and files folder
+#####################
+/tools
+/files
+
+Makefile*
