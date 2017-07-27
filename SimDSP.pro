@@ -1,50 +1,39 @@
-#-------------------------------------------------
+#######################################################################
+# SimDSP Project file.
 #
-# Project created by QtCreator 2016-09-22T19:28:03
+# Copyright (c) 2017 lmcapacho
 #
-#-------------------------------------------------
+# This file is part of SimDSP.
+#
+# SimDSP is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# SimDSP is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with SimDSP.  If not, see <http://www.gnu.org/licenses/>.
+#
+#######################################################################
 
 QT       += core gui multimedia help
-QT       -= sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
-
-TARGET = SimDSP
-TEMPLATE = app
 
 INCLUDEPATH += sdcore
 
 LIBS += -L../sdcore/build -lsdcore
 
-SOURCES += main.cpp\
-        simdsp.cpp \
-    highlighter.cpp \
-    sdeditor.cpp \
-    sdeditortab.cpp \
-    sdproject.cpp \
-    sdprojectexplorer.cpp \
-    sdbuilder.cpp \
-    sdnewfile.cpp \
-    sdnewproject.cpp \
-    sdhelp.cpp
+RESOURCES += simdspresources.qrc
 
-HEADERS  += simdsp.h \
-    highlighter.h \
-    sdeditor.h \
-    sdeditortab.h \
-    sdproject.h \
-    sdprojectexplorer.h \
-    sdbuilder.h \
-    sdnewfile.h \
-    sdnewproject.h \
-    sdhelp.h
+include(pri/actions.pri)
+include(pri/editor.pri)
+include(pri/simdsp.pri)
+include(pri/project.pri)
 
-FORMS    += simdsp.ui \
-    sdeditortab.ui \
-    sdprojectexplorer.ui \
-    sdnewfile.ui \
-    sdnewproject.ui \
-    sdhelp.ui
-
-RESOURCES += \
-    textfiles.qrc
+TARGET = SimDSP
+TEMPLATE = app
