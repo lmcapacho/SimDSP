@@ -1,0 +1,16 @@
+// SimDSP main file
+
+#include <simdsp.h>
+
+void dsp_setup()
+{
+	// put your setup code here, to run once:
+	
+}
+
+void dsp_loop()
+{
+	// put your main code here, to run repeatedly:
+	
+}
+
