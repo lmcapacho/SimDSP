@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=SimDSP
+GenericName=SimDSP
+Type=Application
+Categories=Development;
+Name=SimDSP
+Exec=simdsp
+Icon=simdsp
+Comment=DSP Simulator
+Terminal=false
