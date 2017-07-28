@@ -20,7 +20,7 @@
 #
 #######################################################################
 
-QT       += core gui multimedia help
+QT       += core gui multimedia
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
@@ -41,5 +41,32 @@ MOC_DIR = build/moc
 RCC_DIR = build/rcc
 UI_DIR = build/ui
 
+unix {
+
+	isEmpty(PREFIX) {
+		PREFIX = /usr
+	}
+	BINDIR = $$PREFIX/bin
+	INCLUDEDIR = $$PREFIX/include
+  DATADIR = $$PREFIX/share
+  PKGDATADIR = $$DATADIR/simdsp
+  
+	target.path = $$BINDIR
+	
+	bin.path = $$PKGDATADIR
+	bin.files = simdsp
+	
+	include.path = $$INCLUDEDIR
+	include.files += sdcore/simdsp.h sdcore/sdfunctions.h
+	
+	desktop.path = $$DATADIR/applications
+  desktop.files += simdsp.desktop
+  
+	icon.path = $$DATADIR/icons
+	icon.extra = install -D -m 0644 $$PWD/resources/images/simdsp_icon.png $(INSTALL_ROOT)$$DATADIR/icons/simdsp.png
+	
+	INSTALLS += target bin include desktop icon 
+}
+	
 TARGET = SimDSP
 TEMPLATE = app

@@ -3,13 +3,13 @@
 # Name: Makefile
 # Author: lmcapacho (lmcapacho@uniquindio.edu.co)
 # Creation Date: 2017-01
-# Last Modified: 2017-03
+# Last Modified: 2017-07
 ##################################################
 
-CC			= gcc
-CXX			= g++
-CXXFLAGS 	= -O3 -Wall -fPIC -I/home/lmcapacho/Dropbox/SimDSP/sdcore
-LDFLAGS		= -shared -L/home/lmcapacho/Dropbox/SimDSP/sdcore/build
+CC        = gcc
+CXX       = g++
+CXXFLAGS 	= -O3 -Wall -fPIC
+LDFLAGS		= -shared
 TARGET_LIB 	= libsdcode.so
 
 SRCS 		= $(wildcard ../*.cpp)
