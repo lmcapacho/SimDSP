@@ -1,5 +1,7 @@
 #!/bin/bash
-# Based into fritzing release script
+# Based into fritzing release script (https://github.com/fritzing/fritzing-app)
+# Using linuxdeployqt (https://github.com/probonopd/linuxdeployqt)
+
 arch_aux=`uname -m`
 
 echo
@@ -67,10 +69,10 @@ echo "copying headers files"
 cp -rf $sdcore_folder/simdsp.h $sdcore_folder/sdfunctions.h include/
 
 echo "copying libraries"
-#wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
-#chmod a+x linuxdeployqt*.AppImage
-#./linuxdeployqt*.AppImage -bundle-non-qt-libs
-linuxdeployqt SimDSP -bundle-non-qt-libs
+wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
+chmod a+x linuxdeployqt*.AppImage
+./linuxdeployqt*.AppImage SimDSP -bundle-non-qt-libs
+#linuxdeployqt SimDSP -bundle-non-qt-libs
 
 echo "copying sdcore libraries"
 cp -d $sdcore_folder/build/libsdcore.so* lib/
@@ -84,12 +86,14 @@ mv SimDSP lib/
 mv simdsp.sh simdsp
 chmod +x simdsp
 
+rm -f linuxdeployqt*.AppImage
+
 cd $current_dir
 
-#echo "compressing...."
-#tar -cjf ./$release_name.tar.bz2 $release_name
+echo "compressing...."
+tar -cjf ./$release_name.tar.bz2 $release_name
 
-#echo "cleaning up"
-#rm -rf $release_folder
+echo "cleaning up"
+rm -rf $release_folder
 
 echo "done!"
