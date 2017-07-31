@@ -37,12 +37,12 @@ echo "sdcorefolder $sdcore_folder"
 
 cd $sdcore_folder
 echo "Compiling SimDSP core..."
-$QT_HOME/bin/qmake
+$QT_HOME/bin/qmake -config release
 make
 
 cd $app_folder
 echo "Compiling SimDSP app..."
-$QT_HOME/bin/qmake
+$QT_HOME/bin/qmake -config release
 make
 
 release_name=simdsp-$relname.linux.$arch
@@ -52,40 +52,44 @@ mkdir $release_folder
 
 echo "copying release files"
 cp -rf simdsp.sh install_simdsp.sh simdsp.desktop README.md LICENSE $release_folder/
-mv build/SimDSP $release_folder/
+mkdir $release_folder/icons
+cp resources/images/simdsp_icon.png $release_folder/icons/
+cp build/SimDSP $release_folder/
 chmod +x $release_folder/install_simdsp.sh
 
+export LD_LIBRARY_PATH=$sdcore_folder/build
 cd $release_folder
 
-echo "making library folders"
-mkdir lib
-mkdir lib/imageformats
-mkdir lib/sqldrivers
-mkdir lib/platforms
+echo "making include folder"
+mkdir include
 
-cd lib
+echo "copying headers files"
+cp -rf $sdcore_folder/simdsp.h $sdcore_folder/sdfunctions.h include/
+
+echo "copying libraries"
+#wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
+#chmod a+x linuxdeployqt*.AppImage
+#./linuxdeployqt*.AppImage -bundle-non-qt-libs
+linuxdeployqt SimDSP -bundle-non-qt-libs
 
 echo "copying sdcore libraries"
-cp -d $app_folder/sdcore/build/libsdcore.so* .
+cp -d $sdcore_folder/build/libsdcore.so* lib/
 
-echo "copying qt libraries"
-cp -d $QT_HOME/lib/libQt5PrintSupport.so* $QT_HOME/lib/libQt5Widgets.so* $QT_HOME/lib/libQt5Gui.so* $QT_HOME/lib/libQt5Core.so* $QT_HOME/lib/libicui18n.so* $QT_HOME/lib/libicuuc.so.* $QT_HOME/lib/libicudata.so* .
+rm AppRun
 
-echo "copying qt plugins"
-cp $QT_HOME/plugins/imageformats/libqjpeg.so imageformats
-cp $QT_HOME/plugins/sqldrivers/libqsqlite.so sqldrivers
-cp $QT_HOME/plugins/platforms/libqxcb.so platforms
+mv plugins/* lib/
+rm -rf plugins
 
-mv ../SimDSP .
-mv ../simdsp.sh ../simdsp
-chmod +x ../simdsp
+mv SimDSP lib/
+mv simdsp.sh simdsp
+chmod +x simdsp
 
 cd $current_dir
 
-echo "compressing...."
-tar -cjf ./$release_name.tar.bz2 $release_name
+#echo "compressing...."
+#tar -cjf ./$release_name.tar.bz2 $release_name
 
-echo "cleaning up"
-rm -rf $release_folder
+#echo "cleaning up"
+#rm -rf $release_folder
 
 echo "done!"

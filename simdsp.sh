@@ -7,7 +7,17 @@ if [ "$dirname" = "." ]; then
 	dirname="$PWD/$dirname"
 fi
 
+if [ -n "$LIBRARY_PATH" ]; then
+  LIBRARY_PATH=$LIBRARY_PATH:"${dirname}/lib"
+else
+  LIBRARY_PATH="${dirname}/lib"
+fi
+
 LD_LIBRARY_PATH="${dirname}/lib"
 export LD_LIBRARY_PATH
+export LIBRARY_PATH
+
+CPATH="${dirname}/include"
+export CPATH
 
 "$dirname/lib/$appname" $*
