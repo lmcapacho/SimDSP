@@ -28,6 +28,8 @@ INCLUDEPATH += sdcore
 
 LIBS += -Lsdcore/build -lsdcore
 
+QMAKE_LFLAGS += -static
+
 RESOURCES += simdspresources.qrc
 
 include(pri/actions.pri)
