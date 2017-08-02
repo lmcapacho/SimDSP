@@ -28,7 +28,7 @@ INCLUDEPATH += sdcore
 
 LIBS += -Lsdcore/build -lsdcore
 
-QMAKE_LFLAGS += -static
+QMAKE_CXXFLAGS += -static-libstdc++
 
 RESOURCES += simdspresources.qrc
 
