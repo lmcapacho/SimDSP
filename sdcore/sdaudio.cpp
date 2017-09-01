@@ -29,6 +29,7 @@ SDAudio::SDAudio(QObject *parent) :
     , audioInput(0)
     , audioOutput(0)
     , inputData(0)
+    , outputData(0)
 {
     audioFormat.setSampleSize(16);
     audioFormat.setSampleRate(8000);
