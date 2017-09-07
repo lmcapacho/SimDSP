@@ -50,7 +50,7 @@ public:
     SDEditortab *editor;
 
 public slots:
-    void builderOutput(QByteArray error);
+    void builderOutput(QByteArray data);
     void doubleClickedFile(QString fileName);
 
 private:

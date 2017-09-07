@@ -137,19 +137,21 @@ void SDProject::saveFile()
 bool SDProject::buildProject()
 {
     editor->saveAll();
-    output->append(tr("Compiling SimDSP code..."));
+    output->append(tr("<b>Compiling SimDSP code...</b><br>"));
 
     if( !builder->build() ){
-        output->append(tr("Failed compile SimDSP"));
+        output->append(tr("<span style='color:#AE0000;'><b>Failed compile SimDSP</b></span>"));
         return false;
     }else{
-        output->append(tr("SimDSP compile successfully"));
+        output->append(tr("<span style='color:#017500;'><b>SimDSP compile successfully</b></span>"));
         return true;
     }
 }
 
 void SDProject::builderOutput(QByteArray data)
 {
+    //data.prepend("<pre style='color:#AE0000;'>");
+    //data.append("</pre>");
     output->append(data);
 }
 
