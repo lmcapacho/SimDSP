@@ -206,7 +206,8 @@
     <property name="title">
      <string>&amp;Build</string>
     </property>
-    <addaction name="actionBuild"/>
+    <addaction name="actionBuildProject"/>
+    <addaction name="actionCleanProject"/>
     <addaction name="separator"/>
     <addaction name="actionRun"/>
     <addaction name="actionStop"/>
@@ -242,7 +243,7 @@
    <addaction name="actionNewFile"/>
    <addaction name="actionSaveFile"/>
    <addaction name="separator"/>
-   <addaction name="actionBuild"/>
+   <addaction name="actionBuildProject"/>
    <addaction name="actionRun"/>
    <addaction name="actionStop"/>
    <addaction name="separator"/>
@@ -303,13 +304,13 @@
     <string>Stop</string>
    </property>
   </action>
-  <action name="actionBuild">
+  <action name="actionBuildProject">
    <property name="icon">
     <iconset resource="../simdspresources.qrc">
      <normaloff>:/resources/images/icons/builder.png</normaloff>:/resources/images/icons/builder.png</iconset>
    </property>
    <property name="text">
-    <string>Build</string>
+    <string>Build Project</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+B</string>
@@ -392,6 +393,11 @@
   <action name="actionFont">
    <property name="text">
     <string>Font</string>
+   </property>
+  </action>
+  <action name="actionCleanProject">
+   <property name="text">
+    <string>Clean Project</string>
    </property>
   </action>
  </widget>

@@ -54,6 +54,17 @@ bool SDBuilder::build()
     return output.exists();
 }
 
+void SDBuilder::clean()
+{
+    QDir build(QDir::currentPath()+"/build");
+    if( ! build.exists() )
+        return;
+
+    process->start("make", QStringList() << "-C" << "build" << "clean");
+    process->waitForStarted();
+    process->waitForFinished();
+}
+
 void SDBuilder::create()
 {
     QDir build(QDir::currentPath());

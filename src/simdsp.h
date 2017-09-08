@@ -69,7 +69,8 @@ public slots:
     void actionNewProject();
     void actionOpenProject();
     void actionSaveProject();
-    void actionBuild();
+    void actionBuildProject();
+    void actionCleanProject();
 
     // Edit slots
     void actionIncreaseFontSize();

@@ -43,6 +43,7 @@ public:
     void closeProject();
     bool saveProject(QString projectName, QString projectPath);
     bool buildProject();
+    void cleanProject();
 
     void newFile(QString fileName);
     void saveFile();

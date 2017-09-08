@@ -39,7 +39,8 @@ SimDSP::SimDSP(QWidget *parent) :
     connect(ui->actionNewProject, &QAction::triggered, this, &SimDSP::actionNewProject);
     connect(ui->actionSaveProject, &QAction::triggered, this, &SimDSP::actionSaveProject);
     connect(ui->actionOpenProject, &QAction::triggered, this, &SimDSP::actionOpenProject);
-    connect(ui->actionBuild, &QAction::triggered, this, &SimDSP::actionBuild);
+    connect(ui->actionBuildProject, &QAction::triggered, this, &SimDSP::actionBuildProject);
+    connect(ui->actionCleanProject, &QAction::triggered, this, &SimDSP::actionCleanProject);
 
     connect(ui->actionIncreaseFontSize, &QAction::triggered, this, &SimDSP::actionIncreaseFontSize);
     connect(ui->actionDecreaseFontSize, &QAction::triggered, this, &SimDSP::actionDecreaseFontSize);
@@ -161,10 +162,16 @@ void SimDSP::actionOpenProject()
     }
 }
 
-void SimDSP::actionBuild()
+void SimDSP::actionBuildProject()
 {
     ui->appOutput->clear();
     sdproject->buildProject();
+}
+
+void SimDSP::actionCleanProject()
+{
+    ui->appOutput->clear();
+    sdproject->cleanProject();
 }
 
 void SimDSP::actionSaveProject()
@@ -225,7 +232,8 @@ void SimDSP::actionRun()
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->runTab));
 
         ui->actionRun->setDisabled(true);
-        ui->actionBuild->setDisabled(true);
+        ui->actionBuildProject->setDisabled(true);
+        ui->actionCleanProject->setDisabled(true);
         ui->actionStop->setEnabled(true);
         ui->actionLoad->setEnabled(true);
         ui->actionSave->setEnabled(true);
@@ -244,7 +252,8 @@ void SimDSP::actionStop()
     ui->statusBar->showMessage(tr("Ready"));
 
     ui->actionRun->setEnabled(true);
-    ui->actionBuild->setEnabled(true);
+    ui->actionBuildProject->setEnabled(true);
+    ui->actionCleanProject->setEnabled(true);
     ui->actionStop->setDisabled(true);
     ui->actionLoad->setDisabled(true);
     ui->actionSave->setDisabled(true);

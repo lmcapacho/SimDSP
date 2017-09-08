@@ -33,6 +33,7 @@ class SDBuilder : public QObject
 public:
     explicit SDBuilder();
     bool build();
+    void clean();
     void create();
 
 signals:

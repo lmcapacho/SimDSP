@@ -74,7 +74,7 @@ void SDAudio::initSoundCard(int bSize, double fs)
 void SDAudio::createAudioOutput()
 {
     audioOutput = new QAudioOutput(audioOutputDevice, audioFormat, this);
-    audioOutput->setBufferSize(bufferSize);
+    //audioOutput->setBufferSize(bufferSize);
 }
 
 void SDAudio::createAudioInput()
