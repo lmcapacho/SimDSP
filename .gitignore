@@ -16,6 +16,7 @@ sdcore.pro.user
 /sdcore/debug*
 /sdcore*.user
 /sdcore/*.user*
+object_script.*
 
 
 # SimDSP Tools and files folder
