@@ -105,6 +105,11 @@ void SDSignal::stop()
         soundCard = NULL;
         bMicEnabled = false;
     }
+
+    xs->fill(0.0);
+    ys->fill(0.0);
+    updateFFT();
+    emit newData(xs, Xs, ys, Ys);
 }
 
 short SDSignal::readADC()
