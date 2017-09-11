@@ -20,12 +20,10 @@
 #
 #######################################################################
 
-QT       += widgets multimedia
+QT       += widgets multimedia printsupport
 
 TARGET = sdcore
 TEMPLATE = lib
-
-LIBS += -lfftw3 -lm
 
 DEFINES += SIMDSPCORE_LIBRARY
 
@@ -55,6 +53,13 @@ HEADERS += sdcore.h\
 unix {
     target.path = /usr/lib
     INSTALLS += target
+
+    LIBS += -lfftw3 -lm
+}
+
+win32 {
+    INCLUDEPATH += "$$PWD\..\resources\dependencies\fftw3"
+    LIBS += "$$PWD\..\resources\dependencies\fftw3\libfftw3-3.dll"
 }
 
 FORMS += \

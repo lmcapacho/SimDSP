@@ -73,7 +73,11 @@ void SimDSP::initSimDSP()
 
     isProjectPathTmp = true;
 
+#ifdef Q_OS_LINUX
     codeLibrary =  new QLibrary(QDir::currentPath()+"/build/libsdcode.so");
+#elif defined(Q_OS_WIN32)
+    codeLibrary =  new QLibrary(QDir::currentPath()+"/build/libsdcode.dll");
+#endif
 
     SimDSPTimer = new QTimer();
     connect(SimDSPTimer, &QTimer::timeout, this, &SimDSP::loop);
@@ -146,7 +150,11 @@ void SimDSP::actionNewProject()
         newProject->getProjectInfo(projectName, projectPath);
         sdproject->newProject(projectName, projectPath+"/"+projectName);
         isProjectPathTmp = false;
+    #ifdef Q_OS_LINUX
         codeLibrary->setFileName(QDir::currentPath()+"/build/libsdcode.so");
+    #elif defined(Q_OS_WIN32)
+        codeLibrary->setFileName(QDir::currentPath()+"/build/libsdcode.dll");
+    #endif
     }
 }
 
@@ -158,7 +166,11 @@ void SimDSP::actionOpenProject()
 
     if( sdproject->openProject(path) ){
         isProjectPathTmp = false;
+    #ifdef Q_OS_LINUX
         codeLibrary->setFileName(QDir::currentPath()+"/build/libsdcode.so");
+    #elif defined(Q_OS_WIN32)
+        codeLibrary->setFileName(QDir::currentPath()+"/build/libsdcode.dll");
+    #endif
     }
 }
 
@@ -182,8 +194,12 @@ void SimDSP::actionSaveProject()
         QString projectPath, projectName;
         newProject->getProjectInfo(projectName, projectPath);
         if( sdproject->saveProject(projectName, projectPath) ){
-          isProjectPathTmp = false;
-          codeLibrary->setFileName(QDir::currentPath()+"/build/libsdcode.so");
+            isProjectPathTmp = false;
+        #ifdef Q_OS_LINUX
+            codeLibrary->setFileName(QDir::currentPath()+"/build/libsdcode.so");
+        #elif defined(Q_OS_WIN32)
+            codeLibrary->setFileName(QDir::currentPath()+"/build/libsdcode.dll");
+        #endif
         }
     }
 }

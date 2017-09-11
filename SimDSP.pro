@@ -28,8 +28,6 @@ INCLUDEPATH += sdcore
 
 LIBS += -Lsdcore/build -lsdcore
 
-QMAKE_CXXFLAGS += -static-libstdc++
-
 RESOURCES += simdspresources.qrc
 
 include(pri/actions.pri)
@@ -68,6 +66,10 @@ unix {
 	icon.extra = install -D -m 0644 $$PWD/resources/images/simdsp_icon.png $(INSTALL_ROOT)$$DATADIR/icons/simdsp.png
 	
 	INSTALLS += target bin include desktop icon 
+}
+
+win32 {
+    INCLUDEPATH += "$$PWD\resources\dependencies\fftw3"
 }
 	
 TARGET = SimDSP

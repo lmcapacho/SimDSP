@@ -38,18 +38,25 @@ bool SDBuilder::build()
     QFile::copy(":/resources/templates/simdsp.cpp", QDir::currentPath()+"/simdsp.cpp");
     QFile::setPermissions(QDir::currentPath()+"/build/simdsp.cpp", QFile::WriteUser | QFile::ReadUser);
 
-
+#ifdef Q_OS_LINUX
     QFile::remove(QDir::currentPath()+"/build/libsdcode.so");
-
     process->start("make", QStringList() << "-C" << "build");
+#elif defined(Q_OS_WIN32)
+    QFile::remove(QDir::currentPath()+"/build/libsdcode.dll");
+    process->start("mingw32-make", QStringList() << "-C" << "build");
+#endif
+
     process->waitForStarted();
     if(!process->waitForFinished())
         return false;
 
-    //if(!QFileInfo::exists(QDir::currentPath()+"simdsp.dsp"))
     QFile::remove(QDir::currentPath()+"/simdsp.cpp");
 
+#ifdef Q_OS_LINUX
     QFileInfo output(QDir::currentPath()+"/build/libsdcode.so");
+#elif defined(Q_OS_WIN32)
+    QFileInfo output(QDir::currentPath()+"/build/libsdcode.dll");
+#endif
 
     return output.exists();
 }
@@ -60,7 +67,11 @@ void SDBuilder::clean()
     if( ! build.exists() )
         return;
 
+#ifdef Q_OS_LINUX
     process->start("make", QStringList() << "-C" << "build" << "clean");
+#elif defined(Q_OS_WIN32)
+    process->start("mingw32-make", QStringList() << "-C" << "build" << "clean");
+#endif
     process->waitForStarted();
     process->waitForFinished();
 }
@@ -70,7 +81,11 @@ void SDBuilder::create()
     QDir build(QDir::currentPath());
     build.mkpath("build");
 
-    QFile::copy(":/resources/templates/Makefile", "build/Makefile");
+#ifdef Q_OS_LINUX
+    QFile::copy(":/resources/templates/Makefile_linux", "build/Makefile");
+#elif defined(Q_OS_WIN32)
+    QFile::copy(":/resources/templates/Makefile_win", "build/Makefile");
+#endif
     QFile makefile("build/Makefile");
     makefile.setPermissions(QFile::WriteUser | QFile::ReadUser);
 }

@@ -26,43 +26,43 @@
 #include <QDebug>
 
 SimDSPCore* sd;
-void* sd_void;
+void* SIMDSPCORESHARED_EXPORT sd_void;
 
 /******************************************
  * SimDSP Core functions
  ******************************************/
 
-void attachInterrupt(void (*callback)())
+void SIMDSPCORESHARED_EXPORT attachInterrupt(void (*callback)())
 {
     sd->attachInterrupt(callback);
 }
 
-void println(string text)
+void SIMDSPCORESHARED_EXPORT println(string text)
 {
     sd->println(text);
 }
 
-void println(short number)
+void SIMDSPCORESHARED_EXPORT println(short number)
 {
     sd->println(number);
 }
 
-void println(int number)
+void SIMDSPCORESHARED_EXPORT println(int number)
 {
     sd->println(number);
 }
 
-void println(double number)
+void SIMDSPCORESHARED_EXPORT println(double number)
 {
     sd->println(number);
 }
 
-void println(float number)
+void SIMDSPCORESHARED_EXPORT println(float number)
 {
     sd->println(number);
 }
 
-void println(const char *format, ...)
+void SIMDSPCORESHARED_EXPORT println(const char *format, ...)
 {
     QString buffer;
     va_list args;
@@ -74,42 +74,42 @@ void println(const char *format, ...)
     sd->println(buffer.toStdString());
 }
 
-int  readKeyboard()
+int SIMDSPCORESHARED_EXPORT readKeyboard()
 {
     return sd->readKeyboard();
 }
 
-void setfs(double fs)
+void SIMDSPCORESHARED_EXPORT setfs(double fs)
 {
     sd->setfs(fs);
 }
 
-short readADC()
+short SIMDSPCORESHARED_EXPORT readADC()
 {
     return sd->readADC();
 }
 
-void writeDAC(short value)
+void SIMDSPCORESHARED_EXPORT writeDAC(short value)
 {
     sd->writeDAC(value);
 }
 
-void captureBlock( short* pBuffer, int length, void (*callback)() )
+void SIMDSPCORESHARED_EXPORT captureBlock( short* pBuffer, int length, void (*callback)() )
 {
     sd->captureBlock( pBuffer, length, callback );
 }
 
-void playBlock( short* pBuffer, int length, void (*callback)() )
+void SIMDSPCORESHARED_EXPORT playBlock( short* pBuffer, int length, void (*callback)() )
 {
     sd->playBlock( pBuffer, length, callback );
 }
 
-void enableMic(int length)
+void SIMDSPCORESHARED_EXPORT enableMic(int length)
 {
     sd->enableMic(length);
 }
 
-void initSDCore()
+void SIMDSPCORESHARED_EXPORT initSDCore()
 {
     if(!sd){
         sd = new SimDSPCore();
