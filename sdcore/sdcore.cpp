@@ -100,8 +100,7 @@ void SimDSPCore::playBlock( short* pBuffer, int length, void (*callback)() )
 void SimDSPCore::enableMic(int length)
 {
     sd->enableMic(length);
-    ui->inputComboBox->setCurrentIndex(4);
-    sd->setSignalType(4);
+    ui->inputComboBox->setCurrentIndex(sd->SIGNAL_MIC);
 }
 
 void SimDSPCore::setTextOutput(QTextEdit *textOutput)

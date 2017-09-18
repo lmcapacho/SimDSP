@@ -57,6 +57,7 @@ signals:
 
 public slots:
     void readMore();
+    void stateChanged(QAudio::State state);
 
 private:
 

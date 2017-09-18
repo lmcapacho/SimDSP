@@ -48,7 +48,7 @@ SDAudio::~SDAudio()
 
 void SDAudio::initSoundCard(int bSize, double fs)
 {
-    bufferSize = bSize;
+    bufferSize = bSize<<1;
     buffer =  new QByteArray(bufferSize, 0);
 
     setSampleRate(fs);
@@ -74,18 +74,21 @@ void SDAudio::initSoundCard(int bSize, double fs)
 void SDAudio::createAudioOutput()
 {
     audioOutput = new QAudioOutput(audioOutputDevice, audioFormat, this);
-    //audioOutput->setBufferSize(bufferSize);
+    audioOutput->setBufferSize(bufferSize);
 }
 
 void SDAudio::createAudioInput()
 {
     audioInput = new QAudioInput(audioInputDevice, audioFormat, this);
+    audioInput->setBufferSize(bufferSize);
 }
 
 void SDAudio::record()
 {
     if(!inputData){
         inputData = audioInput->start();
+    }else{
+        audioInput->resume();
     }
     inputData->reset();
     connect(inputData, &QIODevice::readyRead, this, &SDAudio::readMore);
@@ -95,16 +98,18 @@ void SDAudio::play(short *outBuffer)
 {
     if(!outputData){
         outputData = audioOutput->start();
+        connect(audioOutput, QOverload<QAudio::State>::of(&QAudioOutput::stateChanged), this,  &SDAudio::stateChanged);
     }
-    qint64 dataRemaining = bufferSize;
     char* charBuffer = reinterpret_cast<char*>(outBuffer);
 
-    while (dataRemaining) {
-        qint64 bytesWritten = outputData->write(charBuffer, dataRemaining);
-        dataRemaining -= bytesWritten;
-        charBuffer += bytesWritten;
+    outputData->write(charBuffer, bufferSize);
+}
+
+void SDAudio::stateChanged(QAudio::State state)
+{
+    if(state == QAudio::IdleState ){
+        emit playFinish();
     }
-    emit playFinish();
 }
 
 void SDAudio::readMore()
@@ -115,15 +120,15 @@ void SDAudio::readMore()
     qint64 len = audioInput->bytesReady();    
 
     if(len < bufferSize)
-        return;
+       return;
 
     if(len > bufferSize)
-        len = bufferSize;
+       len = bufferSize;
 
     qint64 l = inputData->read(buffer->data(), len);
     if(l > 0){
-        disconnect(inputData, 0, this, 0);
-        emit recordFinish((short*)buffer->data()) ;
+       audioInput->suspend();
+       emit recordFinish((short*)buffer->data()) ;
     }
 }
 

@@ -282,17 +282,6 @@ double SDSignal::getSample()
 void SDSignal::setSignalType(int st)
 {
     signalType = static_cast<SignalTypes>(st);
-
-    /*if(signalType == SIGNAL_MIC){
-
-    }else{
-        if(soundCard){
-            disconnect(soundCard, 0, this, 0);
-            delete soundCard;
-        }
-        soundCard = NULL;
-    }*/
-
 }
 
 /**************************
@@ -492,6 +481,7 @@ void SDSignal::enableMic(int length)
     soundCard->initSoundCard(length, fs);
 
     bMicEnabled = true;
+    setSignalType(SIGNAL_MIC);
 }
 
 void SDSignal::recordFinish(short *data)
@@ -499,7 +489,7 @@ void SDSignal::recordFinish(short *data)
   if ( block_capture == NULL )
   return;
 
-  memcpy(block_capture->pBuffer, data, block_capture->length*2);
+  memcpy(block_capture->pBuffer, data, block_capture->length<<1);
 
   updateBuffer(block_capture, xs);
 
