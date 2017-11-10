@@ -49,7 +49,7 @@ void SDEditortab::newFile()
     editor->newFile();
 
     highlighter = new Highlighter(editor->document());
-    textEdit = qobject_cast<QTextEdit*>(ui->tabWidget->currentWidget());
+    //textEdit = qobject_cast<QTextEdit*>(ui->tabWidget->currentWidget());
 
     ui->tabWidget->insertTab(ui->tabWidget->count(),editor,QString(editor->userFriendlyCurrentFile()));
     ui->tabWidget->setCurrentIndex(ui->tabWidget->count()-1);
@@ -65,7 +65,7 @@ void SDEditortab::newFile(QString fileName)
     editor->newFile(fileName);
 
     highlighter = new Highlighter(editor->document());
-    textEdit = qobject_cast<QTextEdit*>(ui->tabWidget->currentWidget());
+    //textEdit = qobject_cast<QTextEdit*>(ui->tabWidget->currentWidget());
 
     ui->tabWidget->insertTab(ui->tabWidget->count(),editor,QString(editor->userFriendlyCurrentFile()));
     ui->tabWidget->setCurrentIndex(ui->tabWidget->count()-1);
@@ -113,7 +113,7 @@ bool SDEditortab::loadFile(const QString &fileName)
     setFont(editor);
 
     highlighter = new Highlighter(editor->document());
-    textEdit = qobject_cast<SDEditor*>(ui->tabWidget->currentWidget());
+    //textEdit = qobject_cast<SDEditor*>(ui->tabWidget->currentWidget());
 
     const bool succeeded = editor->loadFile(fileName);
     if (succeeded)

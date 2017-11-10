@@ -22,13 +22,15 @@
 #ifndef SDEditor_H
 #define SDEditor_H
 
-#include <QTextEdit>
+#include <QPlainTextEdit>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QTextStream>
 #include <QApplication>
+#include <QPainter>
+#include <QTextBlock>
 
-class SDEditor : public QTextEdit
+class SDEditor : public QPlainTextEdit
 {
     Q_OBJECT
 
@@ -48,18 +50,52 @@ public:
     void isFileLoad(bool load);
     bool closeEditor();
 
+    void lineNumberAreaPaintEvent(QPaintEvent *event);
+    int lineNumberAreaWidth();
+    void setFont(QFont &);
+
 protected:
+    void resizeEvent(QResizeEvent *event) override;
 
 private slots:
     void documentWasModified();
+    void updateLineNumberAreaWidth(int newBlockCount);
+    void updateLineNumberArea(const QRect &, int);
 
 private:
     bool maybeSave();
     void setCurrentFile(const QString &fileName);
     QString strippedName(const QString &fullFileName);
 
+    QWidget *lineNumberArea;
+
+    QFont font;
+
     QString curFile;
     bool isUntitled;
     bool isLoad;
 };
+
+// Line Number Area
+class SDEditorLNA : public QWidget
+{
+
+public:
+    SDEditorLNA(SDEditor *sdeditor) : QWidget(sdeditor) {
+        sdEditor = sdeditor;
+    }
+
+    QSize sizeHint() const override {
+        return QSize(sdEditor->lineNumberAreaWidth(), 0);
+    }
+
+protected:
+    void paintEvent(QPaintEvent *event) override {
+        sdEditor->lineNumberAreaPaintEvent(event);
+    }
+
+private:
+    SDEditor *sdEditor;
+};
+
 #endif // SDEditor_H

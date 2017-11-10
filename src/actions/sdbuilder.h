@@ -35,6 +35,7 @@ public:
     bool build();
     void clean();
     void create();
+    void createMakefile();
 
 signals:
     void errorOutput(QByteArray error);

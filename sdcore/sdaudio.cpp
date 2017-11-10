@@ -23,7 +23,7 @@
 #include "sdaudio.h"
 
 SDAudio::SDAudio(QObject *parent) :
-    QObject(parent)
+    QThread(parent)
     , audioInputDevice(QAudioDeviceInfo::defaultInputDevice())
     , audioOutputDevice(QAudioDeviceInfo::defaultOutputDevice())
     , audioInput(0)
@@ -37,6 +37,8 @@ SDAudio::SDAudio(QObject *parent) :
     audioFormat.setCodec("audio/pcm");
     audioFormat.setSampleType(QAudioFormat::SignedInt);
     audioFormat.setByteOrder(QAudioFormat::LittleEndian);
+
+    start();
 }
 
 SDAudio::~SDAudio()
@@ -44,6 +46,14 @@ SDAudio::~SDAudio()
     delete buffer;
     audioInput->stop();
     audioOutput->stop();
+
+    quit();
+    wait();
+}
+
+void SDAudio::run()
+{
+    exec();
 }
 
 void SDAudio::initSoundCard(int bSize, double fs)
@@ -98,16 +108,17 @@ void SDAudio::play(short *outBuffer)
 {
     if(!outputData){
         outputData = audioOutput->start();
-        connect(audioOutput, QOverload<QAudio::State>::of(&QAudioOutput::stateChanged), this,  &SDAudio::stateChanged);
     }
-    char* charBuffer = reinterpret_cast<char*>(outBuffer);
+    charBuffer = reinterpret_cast<char*>(outBuffer);
 
     outputData->write(charBuffer, bufferSize);
+    connect(audioOutput, QOverload<QAudio::State>::of(&QAudioOutput::stateChanged), this,  &SDAudio::stateChanged);
 }
 
 void SDAudio::stateChanged(QAudio::State state)
 {
     if(state == QAudio::IdleState ){
+        disconnect(audioOutput, QOverload<QAudio::State>::of(&QAudioOutput::stateChanged), this,  &SDAudio::stateChanged);
         emit playFinish();
     }
 }
@@ -117,7 +128,7 @@ void SDAudio::readMore()
     if(!audioInput )
         return;
 
-    qint64 len = audioInput->bytesReady();    
+    qint64 len = audioInput->bytesReady();
 
     if(len < bufferSize)
        return;

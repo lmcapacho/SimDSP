@@ -31,8 +31,9 @@
 #include <QBuffer>
 #include <QAudioInput>
 #include <QAudioOutput>
+#include <QThread>
 
-class SDAudio : public QObject
+class SDAudio : public QThread
 {
     Q_OBJECT
 public:
@@ -50,6 +51,8 @@ public:
     void setSampleRate(int sampleRate);
     void setSampleSize(int sampleSize);
     void setChannelCount(int channelCount);
+
+    void run();
 
 signals:
     void recordFinish( short *inBuffer);
@@ -69,6 +72,8 @@ private:
     QAudioFormat audioFormat;
     QIODevice *outputData;
     QByteArray *buffer;
+
+    char* charBuffer;
 
     int bufferSize;
 };

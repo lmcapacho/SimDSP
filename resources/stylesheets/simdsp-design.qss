@@ -33,7 +33,7 @@ QToolButton {
 }
 
 
-QTextEdit{
+QPlainTextEdit{
     background-color: #FCFCFC;
 }
 

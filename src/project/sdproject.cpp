@@ -29,6 +29,8 @@ SDProject::SDProject(SDProjectexplorer *explorer,
     output = appOutput;
     editor = editorTab;
 
+    currentProject = 0;
+
     connect(projectExplorer, QOverload<QString>::of(&SDProjectexplorer::DoubleClickedFile), this, &SDProject::doubleClickedFile);
 }
 
@@ -52,6 +54,9 @@ void SDProject::newProject(QString projectName, QString projectPath)
     projectExplorer->addTreeRoot(projectName);
     projectExplorer->addTreeChild(projectName);
     projectExplorer->setExpanded(true);
+
+    projects.append(Project(projectName, projectPath));
+    currentProject++;
 
     editor->newFile("dsp_code");
     editor->activeEditor()->loadFile("dsp_code.cpp");

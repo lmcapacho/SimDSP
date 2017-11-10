@@ -53,9 +53,6 @@ SDSignal::SDSignal()
     xs->fill(0.0);
     ys->fill(0.0);
 
-    fftInADC = xs->data();
-    fftInDAC = ys->data();
-
     planADC = fftw_plan_dft_r2c_1d ( fftWidth, fftInADC, fftOutADC, FFTW_ESTIMATE );
     planDAC = fftw_plan_dft_r2c_1d ( fftWidth, fftInDAC, fftOutDAC, FFTW_ESTIMATE );
 
@@ -105,11 +102,6 @@ void SDSignal::stop()
         soundCard = NULL;
         bMicEnabled = false;
     }
-
-    xs->fill(0.0);
-    ys->fill(0.0);
-    updateFFT();
-    emit newData(xs, Xs, ys, Ys);
 }
 
 short SDSignal::readADC()
@@ -167,6 +159,12 @@ void SDSignal::writeDAC(short value)
 void SDSignal::updateFFT()
 {
     double real, img;
+
+    for( int i=0; i<fftWidth; i++){
+        fftInADC[i]=xs->value(i);
+        fftInDAC[i]=ys->value(i);
+    }
+
 
     fftw_execute (planADC);
     fftw_execute (planDAC);
@@ -282,6 +280,17 @@ double SDSignal::getSample()
 void SDSignal::setSignalType(int st)
 {
     signalType = static_cast<SignalTypes>(st);
+
+    /*if(signalType == SIGNAL_MIC){
+
+    }else{
+        if(soundCard){
+            disconnect(soundCard, 0, this, 0);
+            delete soundCard;
+        }
+        soundCard = NULL;
+    }*/
+
 }
 
 /**************************
@@ -481,7 +490,6 @@ void SDSignal::enableMic(int length)
     soundCard->initSoundCard(length, fs);
 
     bMicEnabled = true;
-    setSignalType(SIGNAL_MIC);
 }
 
 void SDSignal::recordFinish(short *data)
@@ -489,7 +497,7 @@ void SDSignal::recordFinish(short *data)
   if ( block_capture == NULL )
   return;
 
-  memcpy(block_capture->pBuffer, data, block_capture->length<<1);
+  memcpy(block_capture->pBuffer, data, block_capture->length*2);
 
   updateBuffer(block_capture, xs);
 

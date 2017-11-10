@@ -1,17 +1,17 @@
 #include "simdsp.h"
 
-void dsp_init()
+ __attribute__ ((visibility("default"))) void dsp_init()
 {
     initSDCore();
     dsp_setup();
 }
 
-void loop()
+ __attribute__ ((visibility("default"))) void loop()
 {
     dsp_loop();
 }
 
-void* getSDCore()
+ __attribute__ ((visibility("default"))) void* getSDCore()
 {
     return sd_void;
 }

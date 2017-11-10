@@ -31,6 +31,14 @@
 #include "../actions/sdbuilder.h"
 #include "../editor/sdeditortab.h"
 
+class Project
+{
+public:
+    Project(QString name, QString path){projectName = name; projectPath = path;}
+    QString projectName;
+    QString projectPath;
+};
+
 class SDProject : public QObject
 {
     Q_OBJECT
@@ -60,6 +68,8 @@ private:
 
     QTextEdit *output;
     QString path;
+    QList<Project> projects;
+    int currentProject;
 };
 
 #endif // SDPROJECT_H

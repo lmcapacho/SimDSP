@@ -108,10 +108,12 @@ void SimDSP::closeEvent(QCloseEvent *event)
                   isProjectPathTmp = false;
                 }
             }
+        }else if(saveBtn == QMessageBox::Cancel) {
+            event->ignore();
+        }else {
+            event->accept();
         }
     }
-
-    event->accept();
 }
 
 /******************************************
