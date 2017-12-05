@@ -129,11 +129,18 @@ void SDEditor::setCurrentFile(const QString &fileName)
 
 bool SDEditor::loadFile(const QString &fileName)
 {
-    QFile file(fileName);
+    QString name;
+    QFileInfo fi(fileName);
+    if( fi.suffix().isNull() )
+        name = fileName+".cpp";
+    else
+        name = fileName;
+
+    QFile file(name);
     if (!file.open(QFile::ReadOnly | QFile::Text)) {
         QMessageBox::warning(this, tr("SimDSP"),
                              tr("Cannot read file %1:\n%2.")
-                             .arg(fileName)
+                             .arg(name)
                              .arg(file.errorString()));
         return false;
     }
@@ -143,7 +150,7 @@ bool SDEditor::loadFile(const QString &fileName)
     setPlainText(in.readAll());
     QApplication::restoreOverrideCursor();
 
-    setCurrentFile(fileName);
+    setCurrentFile(name);
 
     connect(document(), &QTextDocument::contentsChanged,
             this, &SDEditor::documentWasModified);

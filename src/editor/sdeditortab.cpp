@@ -88,9 +88,16 @@ bool SDEditortab::openFile(const QString &fileName)
 
 bool SDEditortab::findFile(const QString &fileName)
 {
-    QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
+    QString name;
+    QFileInfo fi(fileName);
+    if( fi.suffix().isNull() )
+        name = fileName+".cpp";
+    else
+        name = fileName;
+
+    QString canonicalFilePath = QFileInfo(name).canonicalFilePath();
     if(!fileName.isEmpty()){
-        for(int i=0;i < ui->tabWidget->count();i++)
+        for(int i=0; i<ui->tabWidget->count(); i++)
         {
             SDEditor *editor = qobject_cast<SDEditor *>(ui->tabWidget->widget(i));
             if (editor->currentFile() == canonicalFilePath){
@@ -99,7 +106,7 @@ bool SDEditortab::findFile(const QString &fileName)
             }
         }
     }
-      return 0;
+    return false;
 }
 
 
@@ -115,7 +122,8 @@ bool SDEditortab::loadFile(const QString &fileName)
     highlighter = new Highlighter(editor->document());
     //textEdit = qobject_cast<SDEditor*>(ui->tabWidget->currentWidget());
 
-    const bool succeeded = editor->loadFile(fileName);
+    bool succeeded = editor->loadFile(fileName);
+
     if (succeeded)
         editor->show();
     else

@@ -38,14 +38,25 @@ SDProjectexplorer::~SDProjectexplorer()
 }
 
 
-void SDProjectexplorer::addTreeRoot(QString name)
+int SDProjectexplorer::addTreeRoot(QString name)
 {
     QFont font;
     parent = new QTreeWidgetItem(ui->projectTreeWidget);
 
+    font.setBold(false);
+    QTreeWidgetItemIterator it(ui->projectTreeWidget);
+    while (*it) {
+        (*it)->setFont(0, font);
+        (*it)->setTextColor(0, QColor("#888888"));
+        ++it;
+    }
+
     font.setBold(true);
     parent->setText(0, name);
     parent->setFont(0, font);
+    parent->setTextColor(0, QColor("#FFFFFF"));
+
+    return ui->projectTreeWidget->columnCount();
 }
 
 void SDProjectexplorer::addTreeChild(QString name)
@@ -75,5 +86,5 @@ void SDProjectexplorer::removeTreeRoot()
 
 void SDProjectexplorer::doubleClickedFile(QTreeWidgetItem *item, int column)
 {
-    emit DoubleClickedFile(item->text(column));
+    emit DoubleClickedFile(item->text(column), column);
 }

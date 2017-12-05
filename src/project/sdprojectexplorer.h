@@ -24,6 +24,7 @@
 
 #include <QWidget>
 #include <QTreeWidgetItem>
+#include <QTreeWidgetItemIterator>
 #include <QDebug>
 
 namespace Ui {
@@ -37,14 +38,14 @@ class SDProjectexplorer : public QWidget
 public:
     explicit SDProjectexplorer(QWidget *parent = 0);
     ~SDProjectexplorer();
-    void addTreeRoot(QString name);
+    int addTreeRoot(QString name);
     void addTreeChild(QString name);
     void setExpanded(bool expanded);
     void setTreeRootName(QString name);
     void removeTreeRoot();
 
 signals:
-    void DoubleClickedFile(QString fileName);
+    void DoubleClickedFile(QString fileName, int column);
 
 public slots:
     void doubleClickedFile(QTreeWidgetItem* item, int column);

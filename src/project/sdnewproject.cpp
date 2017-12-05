@@ -29,6 +29,7 @@ SDNewProject::SDNewProject(QWidget *parent) :
     ui->setupUi(this);
 
     ui->projectPath->setText(QDir::homePath());
+    ui->projectName->setFocus();
 
     connect(ui->browseButton, &QPushButton::clicked, this, &SDNewProject::browsePath);
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &SDNewProject::accepted);

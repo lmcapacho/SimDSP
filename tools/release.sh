@@ -74,7 +74,7 @@ echo "copying release files"
 cp -rf simdsp.sh install_simdsp.sh simdsp.desktop README.md LICENSE $release_folder/
 mkdir $release_folder/icons
 cp resources/images/simdsp_icon.png $release_folder/icons/
-cp build/SimDSP $release_folder/
+cp SimDSP $release_folder/
 chmod +x $release_folder/install_simdsp.sh
 
 export LD_LIBRARY_PATH=$sdcore_folder/build
@@ -90,7 +90,6 @@ echo "copying libraries"
 wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
 chmod a+x linuxdeployqt*.AppImage
 ./linuxdeployqt*.AppImage SimDSP -bundle-non-qt-libs -qmake=$QT_HOME/bin/qmake
-#linuxdeployqt SimDSP -bundle-non-qt-libs
 
 echo "copying sdcore libraries"
 cp -d $sdcore_folder/build/libsdcore.so* lib/

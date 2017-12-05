@@ -31,13 +31,13 @@ SDProject::SDProject(SDProjectexplorer *explorer,
 
     currentProject = 0;
 
-    connect(projectExplorer, QOverload<QString>::of(&SDProjectexplorer::DoubleClickedFile), this, &SDProject::doubleClickedFile);
+    connect(projectExplorer, QOverload<QString,int>::of(&SDProjectexplorer::DoubleClickedFile), this, &SDProject::doubleClickedFile);
 }
 
 void SDProject::newProject(QString projectName, QString projectPath)
 {
     path = projectPath;
-    QString codePath = "dsp_code.cpp";
+    QString codePath = projectName+".cpp";
 
     QDir::setCurrent(path);
 
@@ -51,16 +51,14 @@ void SDProject::newProject(QString projectName, QString projectPath)
     connect(builder, QOverload<QByteArray>::of(&SDBuilder::errorOutput), this, &SDProject::builderOutput);
     connect(builder, QOverload<QByteArray>::of(&SDBuilder::msgOutput), this, &SDProject::builderOutput);
 
-    projectExplorer->addTreeRoot(projectName);
+    int column = projectExplorer->addTreeRoot(projectName);
     projectExplorer->addTreeChild(projectName);
     projectExplorer->setExpanded(true);
 
-    projects.append(Project(projectName, projectPath));
-    currentProject++;
+    projects.append(Project(projectName, projectPath, column));
 
-    editor->newFile("dsp_code");
-    editor->activeEditor()->loadFile("dsp_code.cpp");
-    editor->setClosable(false);
+    editor->newFile(projectName);
+    editor->activeEditor()->loadFile(projectName+".cpp");
 }
 
 
@@ -162,15 +160,10 @@ void SDProject::cleanProject()
 
 void SDProject::builderOutput(QByteArray data)
 {
-    //data.prepend("<pre style='color:#AE0000;'>");
-    //data.append("</pre>");
     output->append(data);
 }
 
-void SDProject::doubleClickedFile(QString fileName)
+void SDProject::doubleClickedFile(QString fileName, int column)
 {
-    if(fileName != "dsp_code")
-        editor->openFile(fileName);
-    else
-        editor->openFile("dsp_code.cpp");
+    editor->openFile(fileName);
 }

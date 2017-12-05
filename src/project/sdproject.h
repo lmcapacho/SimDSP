@@ -34,9 +34,10 @@
 class Project
 {
 public:
-    Project(QString name, QString path){projectName = name; projectPath = path;}
+    Project(QString name, QString path, int column){projectName = name; projectPath = path; position=column;}
     QString projectName;
     QString projectPath;
+    int position;
 };
 
 class SDProject : public QObject
@@ -60,7 +61,7 @@ public:
 
 public slots:
     void builderOutput(QByteArray data);
-    void doubleClickedFile(QString fileName);
+    void doubleClickedFile(QString fileName, int column);
 
 private:
     SDProjectexplorer *projectExplorer;
