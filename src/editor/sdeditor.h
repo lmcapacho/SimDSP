@@ -37,7 +37,6 @@ class SDEditor : public QPlainTextEdit
 public:
     SDEditor();
 
-    void newFile();
     void newFile(QString fileName);
     void loadTemplate(QString fileName);
     bool loadFile(const QString &fileName);

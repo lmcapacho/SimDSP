@@ -25,6 +25,7 @@
 #include <QDialog>
 #include <QFileDialog>
 #include <QDir>
+#include <QDebug>
 
 namespace Ui {
 class SDNewProject;
@@ -42,6 +43,7 @@ public:
 public slots:
     void browsePath();
     void accepted();
+    void changeLineEdit(const QString& value);
 
 private:
     Ui::SDNewProject *ui;

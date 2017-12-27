@@ -29,33 +29,30 @@ SDProject::SDProject(SDProjectexplorer *explorer,
     output = appOutput;
     editor = editorTab;
 
-    currentProject = 0;
+    builder = new SDBuilder();
 
-    connect(projectExplorer, QOverload<QString,int>::of(&SDProjectexplorer::DoubleClickedFile), this, &SDProject::doubleClickedFile);
+    connect(builder, QOverload<QByteArray>::of(&SDBuilder::errorOutput), this, &SDProject::builderOutput);
+    connect(builder, QOverload<QByteArray>::of(&SDBuilder::msgOutput), this, &SDProject::builderOutput);
+    connect(projectExplorer, QOverload<QString>::of(&SDProjectexplorer::itemActivated), this, &SDProject::itemActivated);
+    connect(projectExplorer, QOverload<QString>::of(&SDProjectexplorer::deleteFile), this, &SDProject::removeFile);
 }
 
 void SDProject::newProject(QString projectName, QString projectPath)
 {
     path = projectPath;
-    QString codePath = projectName+".cpp";
+    QString mainFile = projectName+".cpp";
 
     QDir::setCurrent(path);
 
-    QFile::copy(":/resources/templates/sdBaseTPL.txt", codePath);
-    QFile code(codePath);
+    QFile::copy(":/resources/templates/sdBaseTPL.txt", mainFile);
+    QFile code(mainFile);
     code.setPermissions(QFile::WriteUser | QFile::ReadUser);
 
-    builder = new SDBuilder();
     builder->create();
 
-    connect(builder, QOverload<QByteArray>::of(&SDBuilder::errorOutput), this, &SDProject::builderOutput);
-    connect(builder, QOverload<QByteArray>::of(&SDBuilder::msgOutput), this, &SDProject::builderOutput);
-
-    int column = projectExplorer->addTreeRoot(projectName);
-    projectExplorer->addTreeChild(projectName);
+    projectExplorer->addProject(projectPath, projectName);
+    projectExplorer->addFile(projectName);
     projectExplorer->setExpanded(true);
-
-    projects.append(Project(projectName, projectPath, column));
 
     editor->newFile(projectName);
     editor->activeEditor()->loadFile(projectName+".cpp");
@@ -68,68 +65,70 @@ bool SDProject::openProject(QString projectPath)
     if (!dir.exists())
         return false;
 
-    QFileInfo file(projectPath + QDir::separator() + "dsp_code.cpp" );
-    if (!file.exists())
+    QString projectName = QDir(projectPath).dirName();
+
+    QString oldFile = projectPath + QDir::separator() + "dsp_code.cpp";
+    QString filePath = projectPath + QDir::separator() + projectName + ".cpp";
+
+    QFileInfo file(oldFile);
+    if (file.exists()){
+        QFile::rename(oldFile, filePath);
+    }
+
+    file.setFile(filePath);
+    if (!file.exists()){
+        QMessageBox::information(0, "SimDSP", tr("There is not a project in this folder\n"));
         return false;
+    }
+
+    QString mainFile = dir.dirName()+".cpp";
 
     path =  projectPath;
-    projectExplorer->removeTreeRoot();
-    projectExplorer->addTreeRoot(dir.dirName());
+    projectExplorer->addProject(projectPath, dir.dirName());
 
     dir.setNameFilters(QStringList() << "*.cpp" << "*.h");
     foreach (QString f, dir.entryList(QDir::Files)) {
-        projectExplorer->addTreeChild(f);
+        QFileInfo fi(f);
+        if( fi.baseName() == dir.dirName() && fi.suffix() == "cpp" )
+            projectExplorer->addFile(fi.baseName());
+        else
+            projectExplorer->addFile(f);
     }
 
     projectExplorer->setExpanded(true);
+    projectExplorer->sortProject();
 
     QDir::setCurrent(path);
 
-    editor->closeAll();
-    editor->newFile("dsp_code");
-    editor->activeEditor()->loadFile("dsp_code.cpp");
-    editor->setClosable(false);
+    editor->newFile(dir.dirName());
+    editor->activeEditor()->loadFile(mainFile);
 
     return true;
 }
 
-void SDProject::closeProject()
+int SDProject::closeProject()
 {
-    editor->closeAll();
-    projectExplorer->removeTreeRoot();
+    int index = projectExplorer->removeProject();
+    path = QDir::currentPath();
+    return index;
 }
 
-bool SDProject::saveProject(QString projectName, QString projectPath)
+void SDProject::closeAll()
 {
-    QDir dir(path);
-    if (! dir.exists())
-        return false;
-
-    if(!dir.mkpath(projectPath))
-        return false;
-
-    foreach (QString f, dir.entryList(QDir::Files)) {
-        QFile::copy(path + QDir::separator() + f, projectPath + QDir::separator() + projectName + QDir::separator() + f);
-    }
-
-    dir.rmpath(path);
-    path = projectPath;
-    projectExplorer->setTreeRootName(projectName);
-
-    QDir::setCurrent(path + QDir::separator() + projectName);
-
     editor->closeAll();
-    editor->newFile("dsp_code");
-    editor->activeEditor()->loadFile("dsp_code.cpp");
-    editor->setClosable(false);
-
-    return true;
+    projectExplorer->removeAllProjects();
 }
 
 void SDProject::newFile(QString fileName)
 {
     editor->openFile(fileName);
-    projectExplorer->addTreeChild(fileName);
+    projectExplorer->addFile(fileName);
+}
+
+void SDProject::removeFile(QString fileName)
+{
+    editor->openFile(fileName);
+    editor->tabClose();
 }
 
 void SDProject::saveFile()
@@ -137,9 +136,20 @@ void SDProject::saveFile()
     editor->saveFile();
 }
 
+int SDProject::closeTab()
+{
+    return editor->tabClose();
+}
+
+void SDProject::closeAllTabs()
+{
+    editor->closeAll();
+}
+
 bool SDProject::buildProject()
 {
     editor->saveAll();
+    output->clear();
     output->append(tr("<b>Compiling SimDSP Project...</b><br>"));
 
     if( !builder->build() ){
@@ -153,6 +163,7 @@ bool SDProject::buildProject()
 
 void SDProject::cleanProject()
 {
+    output->clear();
     output->append(tr("<b>Cleaning SimDSP Project...</b><br>"));
     builder->clean();
     output->append(tr("<span style='color:#017500;'><b>Cleaned SimDSP Project</b><br></span>"));
@@ -163,7 +174,13 @@ void SDProject::builderOutput(QByteArray data)
     output->append(data);
 }
 
-void SDProject::doubleClickedFile(QString fileName, int column)
+void SDProject::itemActivated(QString fileName)
 {
-    editor->openFile(fileName);
+    QFileInfo fi(fileName);
+    QString currentPath = QDir::currentPath();
+    QDir::setCurrent(fi.canonicalPath());
+    editor->openFile(fi.fileName());
+    QDir::setCurrent(currentPath);
+
+    emit tabOpen();
 }

@@ -26,19 +26,11 @@
 #include <QFile>
 #include <QDir>
 #include <QTextEdit>
+#include <QMessageBox>
 
 #include "sdprojectexplorer.h"
 #include "../actions/sdbuilder.h"
 #include "../editor/sdeditortab.h"
-
-class Project
-{
-public:
-    Project(QString name, QString path, int column){projectName = name; projectPath = path; position=column;}
-    QString projectName;
-    QString projectPath;
-    int position;
-};
 
 class SDProject : public QObject
 {
@@ -49,19 +41,25 @@ public:
                        QTextEdit *appOutput);
     void newProject(QString projectName, QString projectPath);
     bool openProject(QString projectPath);
-    void closeProject();
-    bool saveProject(QString projectName, QString projectPath);
+    int  closeProject();
     bool buildProject();
     void cleanProject();
+    void closeAll();
 
     void newFile(QString fileName);
     void saveFile();
+    int  closeTab();
+    void closeAllTabs();
 
     SDEditortab *editor;
 
+signals:
+    void tabOpen();
+
 public slots:
     void builderOutput(QByteArray data);
-    void doubleClickedFile(QString fileName, int column);
+    void itemActivated(QString fileName);
+    void removeFile(QString fileName);
 
 private:
     SDProjectexplorer *projectExplorer;
@@ -69,8 +67,6 @@ private:
 
     QTextEdit *output;
     QString path;
-    QList<Project> projects;
-    int currentProject;
 };
 
 #endif // SDPROJECT_H

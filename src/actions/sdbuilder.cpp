@@ -42,11 +42,11 @@ bool SDBuilder::build()
     if( ! build.exists() )
         create();
     else{
-#ifdef Q_OS_LINUX
-    QFile makefile("build/Makefile_linux");
-#elif defined(Q_OS_WIN32)
-    QFile makefile("build/Makefile_win");
-#endif
+    #ifdef Q_OS_LINUX
+        QFile makefile("build/Makefile_linux");
+    #elif defined(Q_OS_WIN32)
+        QFile makefile("build/Makefile_win");
+    #endif
         if( !makefile.exists() )
             createMakefile();
     }

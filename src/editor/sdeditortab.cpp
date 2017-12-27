@@ -41,22 +41,6 @@ SDEditortab::~SDEditortab()
     delete ui;
 }
 
-void SDEditortab::newFile()
-{
-    SDEditor *editor = createEditor();
-
-    setFont(editor);
-    editor->newFile();
-
-    highlighter = new Highlighter(editor->document());
-    //textEdit = qobject_cast<QTextEdit*>(ui->tabWidget->currentWidget());
-
-    ui->tabWidget->insertTab(ui->tabWidget->count(),editor,QString(editor->userFriendlyCurrentFile()));
-    ui->tabWidget->setCurrentIndex(ui->tabWidget->count()-1);
-
-    connect(editor->document(), &QTextDocument::contentsChanged, this, &SDEditortab::asterisk);
-}
-
 void SDEditortab::newFile(QString fileName)
 {
     SDEditor *editor = createEditor();
@@ -74,7 +58,7 @@ void SDEditortab::newFile(QString fileName)
 }
 
 
-bool SDEditortab::openFile(const QString &fileName)
+bool SDEditortab::openFile(QString fileName)
 {
     if (findFile(fileName)) {
         ui->tabWidget->setCurrentIndex(findTab);
@@ -86,7 +70,7 @@ bool SDEditortab::openFile(const QString &fileName)
     return succeeded;
 }
 
-bool SDEditortab::findFile(const QString &fileName)
+bool SDEditortab::findFile(QString fileName)
 {
     QString name;
     QFileInfo fi(fileName);
@@ -110,7 +94,7 @@ bool SDEditortab::findFile(const QString &fileName)
 }
 
 
-bool SDEditortab::loadFile(const QString &fileName)
+bool SDEditortab::loadFile(QString fileName)
 {
     SDEditor *editor = createEditor();
 
@@ -137,8 +121,9 @@ bool SDEditortab::loadFile(const QString &fileName)
 void SDEditortab::saveFile()
 {
     if( activeEditor() && activeEditor()->save() ){
-        if (QFileInfo(activeEditor()->currentFile()).fileName() == "dsp_code.cpp")
-            ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), "dsp_code");
+        QFileInfo fileInfo = QFileInfo(activeEditor()->currentFile());
+        if ( fileInfo.baseName() == fileInfo.dir().dirName() )
+            ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), fileInfo.baseName());
         else
             ui->tabWidget->setTabText(ui->tabWidget->currentIndex(),
                                       QFileInfo(activeEditor()->currentFile()).fileName());
@@ -171,11 +156,6 @@ SDEditor *SDEditortab::createEditor()
 {
     SDEditor *editor = new SDEditor;
 
-#ifndef QT_NO_CLIPBOARD
-    //connect(editor, &QTextEdit::copyAvailable, ui->action_Cut, &QAction::setEnabled);
-    //connect(editor, &QTextEdit::copyAvailable, ui->action_Copy, &QAction::setEnabled);
-#endif
-
     return editor;
 }
 
@@ -184,16 +164,19 @@ void SDEditortab::tabCloseRequested()
     tabClose();
 }
 
-void SDEditortab::tabClose()
+int SDEditortab::tabClose()
 {
-    SDEditor *editor = activeEditor();
+    if(ui->tabWidget->count()){
+        SDEditor *editor = activeEditor();
 
-    bool close = editor->closeEditor();
+        bool close = editor->closeEditor();
 
-    if( close ){
-        ui->tabWidget->removeTab(ui->tabWidget->currentIndex());
+        if( close ){
+            ui->tabWidget->removeTab(ui->tabWidget->currentIndex());
+        }
     }
 
+    return ui->tabWidget->count();
 }
 
 void SDEditortab::setFont(SDEditor *editor)
@@ -211,8 +194,9 @@ void SDEditortab::saveAll()
     for( int index=0; index < ui->tabWidget->count(); index++ ){
         SDEditor *tab = reinterpret_cast<SDEditor*>(ui->tabWidget->widget(index));
         tab->save();
-        if (QFileInfo(tab->currentFile()).fileName() == "dsp_code.cpp")
-            ui->tabWidget->setTabText(index, "dsp_code");
+        QFileInfo fileInfo = QFileInfo(tab->currentFile());
+        if ( fileInfo.baseName() == fileInfo.dir().dirName() )
+            ui->tabWidget->setTabText(index, fileInfo.baseName());
         else
             ui->tabWidget->setTabText(index, QFileInfo(tab->currentFile()).fileName());
     }

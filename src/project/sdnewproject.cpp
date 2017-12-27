@@ -31,8 +31,11 @@ SDNewProject::SDNewProject(QWidget *parent) :
     ui->projectPath->setText(QDir::homePath());
     ui->projectName->setFocus();
 
+    ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+
     connect(ui->browseButton, &QPushButton::clicked, this, &SDNewProject::browsePath);
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &SDNewProject::accepted);
+    connect(ui->projectName, QOverload<const QString&>::of(&QLineEdit::textChanged), this, &SDNewProject::changeLineEdit);
 }
 
 SDNewProject::~SDNewProject()
@@ -42,8 +45,8 @@ SDNewProject::~SDNewProject()
 
 void SDNewProject::getProjectInfo(QString &name, QString &path)
 {
-    path = ui->projectPath->text();
     name = ui->projectName->text();
+    path = ui->projectPath->text() + QDir::separator() + name;
 }
 
 void SDNewProject::browsePath()
@@ -52,7 +55,8 @@ void SDNewProject::browsePath()
             tr("Save SimDSP Project"),QDir::homePath(),
             QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
-    ui->projectPath->setText(path);
+    if( !path.isEmpty() )
+        ui->projectPath->setText(path);
 }
 
 
@@ -61,6 +65,31 @@ void SDNewProject::accepted()
     QDir dir(ui->projectPath->text());
 
     if(dir.exists()){
-        dir.mkpath(ui->projectPath->text()+"/"+ui->projectName->text());
+        dir.mkpath(ui->projectPath->text() + QDir::separator() + ui->projectName->text());
     }
+}
+
+void SDNewProject::changeLineEdit(const QString &value)
+{
+    QString filePath = ui->projectPath->text() + QDir::separator() + value;
+
+    if( value.isEmpty() ){
+        ui->message->setText("Project name is empty");
+        ui->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);
+        return;
+    }
+    else{
+        ui->message->setText(filePath);
+        filePath += QDir::separator() + value + ".cpp";
+    }
+
+    QFileInfo file(filePath);
+
+    if( file.exists() ){
+        ui->message->setText("A project with the same name already exists in the project folder");
+        ui->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);
+        return;
+    }
+
+    ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
 }

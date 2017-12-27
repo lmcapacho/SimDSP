@@ -34,16 +34,6 @@ SDEditor::SDEditor()
     updateLineNumberAreaWidth(0);
 }
 
-void SDEditor::newFile()
-{
-    static int sequenceNumber = 1;
-
-    isUntitled = true;
-    curFile = tr("untitled%1").arg(sequenceNumber++);
-
-    connect(document(), &QTextDocument::contentsChanged, this, &SDEditor::documentWasModified);
-}
-
 void SDEditor::newFile(QString fileName)
 {
     isUntitled = false;

@@ -25,7 +25,12 @@
 #include <QWidget>
 #include <QTreeWidgetItem>
 #include <QTreeWidgetItemIterator>
+#include <QDesktopServices>
+#include <QMenu>
+#include <QMessageBox>
+#include <QDir>
 #include <QDebug>
+#include <QUrl>
 
 namespace Ui {
 class SDProjectexplorer;
@@ -38,21 +43,37 @@ class SDProjectexplorer : public QWidget
 public:
     explicit SDProjectexplorer(QWidget *parent = 0);
     ~SDProjectexplorer();
-    int addTreeRoot(QString name);
-    void addTreeChild(QString name);
+    void addProject(QString path, QString name);
+    void addFile(QString name);
     void setExpanded(bool expanded);
-    void setTreeRootName(QString name);
-    void removeTreeRoot();
+    void setProjectName(QString name);
+    void sortProject();
+    int  removeProject();
+    void removeAllProjects();
 
 signals:
-    void DoubleClickedFile(QString fileName, int column);
+    void buildProject();
+    void cleanProject();
+    void runProject();
+    void closeProject();
+    void changePath();
+
+    void newFile();
+    void deleteFile(QString fileName);
+    void itemActivated(QString fileName);
 
 public slots:
-    void doubleClickedFile(QTreeWidgetItem* item, int column);
+    void itemActivatedSD(QTreeWidgetItem* item, int column);
+    void showContextMenu(const QPoint &pos);
+    void activateProject();
+    void showContainingFolder();
+    void openFile();
+    void removeFile();
 
 private:
-    Ui::SDProjectexplorer *ui;
 
-    QTreeWidgetItem *parent;
+    Ui::SDProjectexplorer *ui;
+    QTreeWidgetItem* currentProject;
+    QTreeWidgetItem* selectItem;
 };
 #endif // SDPROJECTEXPLORER_H

@@ -56,8 +56,10 @@ public:
 
 public slots:
     // Files slots
-    void actionNewFile();
+    void actionNewFile();    
     void actionSaveFile();
+    void actionCloseTab();
+    void actionCloseAll();
 
     // Build slots
     void actionRun();
@@ -68,9 +70,11 @@ public slots:
     // Project slots
     void actionNewProject();
     void actionOpenProject();
-    void actionSaveProject();
     void actionBuildProject();
     void actionCleanProject();
+    void actionCloseProject();
+    void actionCloseAllProjectsEditors();
+    void actionChangePath();
 
     // Edit slots
     void actionIncreaseFontSize();
@@ -83,13 +87,17 @@ public slots:
 
     void loop();
 
+    void tabOpen();
+
 private:
     Ui::SimDSP *ui;
 
-    void initSimDSP();
-    void closeEvent(QCloseEvent *event);
+    void initActionsConnections();
 
-    QTemporaryDir tmpProjectPath;
+    void menuCloseAllProjects();
+    void menuOpenProject();
+
+    void closeEvent(QCloseEvent *event);
 
     SDProject *sdproject;
     SDBuilder *sdbuilder;
@@ -100,8 +108,6 @@ private:
     loopFunction dsp_loop;
 
     SimDSPCore* sdcore;
-
-    bool isProjectPathTmp;
 };
 
 #endif // SIMDSP_H

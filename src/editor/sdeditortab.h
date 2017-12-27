@@ -45,13 +45,12 @@ class SDEditortab : public QWidget
 public:
     explicit SDEditortab(QWidget *parent = 0);
     ~SDEditortab();
-    void newFile();
     void newFile(QString fileName);
-    bool openFile(const QString &fileName);
+    bool openFile(QString fileName);
     SDEditor *createEditor();
     SDEditor *activeEditor();
     void asterisk();
-    void tabClose();
+    int tabClose();
     void saveFile();
     void saveAll();
     void closeAll();
@@ -65,8 +64,8 @@ private slots:
     void tabCloseRequested();
 
 private:
-    bool findFile(const QString &fileName);
-    bool loadFile(const QString &fileName);
+    bool findFile(QString fileName);
+    bool loadFile(QString fileName);
     void setFont(SDEditor *editor);
     void setFontAll();
 

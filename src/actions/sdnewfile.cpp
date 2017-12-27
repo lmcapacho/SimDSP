@@ -73,15 +73,21 @@ void SDNewFile::changeFileName(const QString &fileName)
 
 
     QValidator *validator = new QRegExpValidator(rx, this);
+    ui->path->setText(QDir::currentPath() + QDir::separator() + fileName);
 
     int pos = 0;
-
-    if( validator->validate((QString&)fileName,pos) == QValidator::Acceptable )
-        ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
-    else
+    if( validator->validate((QString&)fileName, pos) == QValidator::Acceptable ){
+        QFileInfo fi(QDir::currentPath() + QDir::separator() + fileName);
+        if( fi.exists() ){
+            ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+            ui->path->setText("The file exists in this project");
+        } else{
+            ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+        }
+    }
+    else{
         ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-
-    ui->path->setText(QDir::currentPath()+'/'+fileName);
+    }
 }
 
 void SDNewFile::accepted()
