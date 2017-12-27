@@ -83,10 +83,17 @@ void SDPlot::setSizeWindow(int size)
     sizeWindow = (850/size)-1;
 }
 
+void SDPlot::clearPlot()
+{
+    ui->customPlot->graph()->data()->clear();
+    ui->customPlot->replot();
+}
+
 void SDPlot::setfs(double fsValue)
 {
     fs = fsValue;
 }
+
 
 /************************************************************
  * Public slots

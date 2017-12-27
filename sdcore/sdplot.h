@@ -40,6 +40,7 @@ public:
     void setSizeWindow(int size);
     void updatePlotTime(const QVector<double> *data);
     void updatePlotFreq(const QVector<double> *data);
+    void clearPlot();
     void setfs(double fsValue);
 
 public slots:

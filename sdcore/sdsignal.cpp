@@ -88,6 +88,9 @@ SDSignal::~SDSignal()
 
 void SDSignal::start()
 {
+    xs->fill(0.0);
+    ys->fill(0.0);
+
     timer->start(500);
 }
 

@@ -245,6 +245,8 @@ void SimDSPCore::newData(const QVector<double> *inTime, const QVector<double> *i
 void SimDSPCore::stop()
 {
     sd->stop();
+    ui->PlotA->clearPlot();
+    ui->PlotB->clearPlot();
 }
 
 void SimDSPCore::start()
