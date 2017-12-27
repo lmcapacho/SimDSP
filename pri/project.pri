@@ -27,8 +27,8 @@ HEADERS += \
     
 SOURCES += \
     src/project/sdproject.cpp \
-    src/project/sdprojectexplorer.cpp \
-    src/project/sdnewproject.cpp    
+    src/project/sdnewproject.cpp \     
+    $$PWD/../src/project/sdprojectexplorer.cpp
     
 FORMS    += \
     src/project/sdprojectexplorer.ui \

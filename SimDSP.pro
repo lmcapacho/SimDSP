@@ -28,7 +28,8 @@ INCLUDEPATH += sdcore
 
 LIBS += -Lsdcore/build -lsdcore
 
-RESOURCES += simdspresources.qrc
+RESOURCES += \
+    simdspresources.qrc
 
 include(pri/actions.pri)
 include(pri/editor.pri)

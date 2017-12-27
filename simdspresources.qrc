@@ -17,5 +17,6 @@
         <file>resources/images/icons/new_file.png</file>
         <file>resources/images/icons/save.png</file>
         <file>resources/templates/Makefile_win</file>
+        <file>resources/images/icons/simdsp.png</file>
     </qresource>
 </RCC>

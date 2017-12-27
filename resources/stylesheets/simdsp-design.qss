@@ -1,31 +1,77 @@
+/* ----------- Main Window ----------- */
 QMainWindow {
     background-color: #FFFFFF;
 }
 
-
+/* ------------ Menu Bar ------------- */
 QMenuBar {
     background-color: #131418;
     color: #FFFFFF;
+    left:5px;
 }
 
 QMenuBar::item {
-    padding: 10px;
+    spacing: 10px;
+    padding: 7px 10px;
 }
 
 QMenuBar::item:selected {
-    color: #333333;
+    color: #000000;
+    background: #E4E49D;
 }
 
 QMenuBar::item:pressed {
-    color: #888888;
-    background: transparent;
+    color: #000000;
+    background: #E4E49D;
 }
 
+/* ---------- Menu dropdowns ---------- */
+
+QMenu {
+    background-color: #FFFFFF;
+    color:#333;
+    margin: 0px 3px 0px 3px;
+    border:none;
+}
+
+QMenu::item {
+    background-color: #FFFFFF;
+    color:#333;
+    margin: 2px;
+    padding: 2px 15px 2px 20px;
+}
+
+QMenu::item:selected {
+    color: #000000;
+    background: #E4E49D;
+}
+
+QMenu::separator {
+    background-color: #c1c1c1;
+    height:1px;
+}
+
+QMenu::indicator {
+    width: 15px;
+    height: 15px;
+}
+
+QMenu::item:disabled {
+    color:#b7b7b7;
+}
+
+QMenu::item:disabled:selected {
+    color:#b7b7b7;
+    background-color: #d9d9d9;
+}
+
+/* ---------- Tool bar ---------- */
 
 QToolBar {
     background: #FFFFFF;
-
 }
+
+/* ---------- Tool button ---------- */
 
 QToolButton {
     color: #2A2A2A;
