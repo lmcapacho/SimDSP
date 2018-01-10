@@ -111,7 +111,7 @@ Highlighter::Highlighter(QTextDocument *parent)
     keywordFormat2.setFontWeight(QFont::Helvetica);
     QStringList keywordPatterns2;
     //QString fileName2 = ;
-    QFile file2(":/resources/files/keyWords2.txt");
+    QFile file2(":/resources/files/SDWords.txt");
     if (!file2.open(QIODevice::ReadOnly | QIODevice::Text))
         qDebug() << "Error al leer archivo";
     QTextStream textStream2(&file2);

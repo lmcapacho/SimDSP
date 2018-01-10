@@ -104,7 +104,6 @@ bool SDEditortab::loadFile(QString fileName)
     setFont(editor);
 
     highlighter = new Highlighter(editor->document());
-    //textEdit = qobject_cast<SDEditor*>(ui->tabWidget->currentWidget());
 
     bool succeeded = editor->loadFile(fileName);
 

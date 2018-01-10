@@ -22,6 +22,11 @@
 #ifndef SDEditor_H
 #define SDEditor_H
 
+#include <QCompleter>
+#include <QAbstractItemModel>
+#include <QAbstractItemView>
+#include <QStringListModel>
+#include <QScrollBar>
 #include <QPlainTextEdit>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -29,6 +34,7 @@
 #include <QApplication>
 #include <QPainter>
 #include <QTextBlock>
+#include <QDebug>
 
 class SDEditor : public QPlainTextEdit
 {
@@ -55,17 +61,22 @@ public:
 
 protected:
     void resizeEvent(QResizeEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
 
 private slots:
     void documentWasModified();
     void updateLineNumberAreaWidth(int newBlockCount);
     void updateLineNumberArea(const QRect &, int);
+    void insertCompletion(const QString &completion);
 
 private:
     bool maybeSave();
     void setCurrentFile(const QString &fileName);
     QString strippedName(const QString &fullFileName);
+    QAbstractItemModel *modelFromFile(const QString& fileName);
+    QString textUnderCursor() const;
 
+    QCompleter *completer;
     QWidget *lineNumberArea;
 
     QFont font;

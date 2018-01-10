@@ -28,8 +28,17 @@ SDEditor::SDEditor()
 
     lineNumberArea = new SDEditorLNA(this);
 
+    completer = new QCompleter(this);
+    completer->setModel(modelFromFile(":/resources/files/SDWords.txt"));
+    completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
+    completer->setCompletionMode(QCompleter::PopupCompletion);
+    completer->setCaseSensitivity(Qt::CaseInsensitive);
+    completer->setWrapAround(false);
+    completer->setWidget(this);
+
     connect(this, QOverload<int>::of(&SDEditor::blockCountChanged), this, &SDEditor::updateLineNumberAreaWidth);
     connect(this, QOverload<const QRect&,int>::of(&SDEditor::updateRequest), this, &SDEditor::updateLineNumberArea);
+    connect(completer, QOverload<const QString&>::of(&QCompleter::activated), this, &SDEditor::insertCompletion);
 
     updateLineNumberAreaWidth(0);
 }
@@ -193,6 +202,92 @@ void SDEditor::setFont(QFont& editorfont)
     QPlainTextEdit::setFont(font);
 }
 
+/*=========== Completer ===============*/
+
+QAbstractItemModel *SDEditor::modelFromFile(const QString& fileName)
+{
+    QFile file(fileName);
+    if (!file.open(QFile::ReadOnly))
+        return new QStringListModel(completer);
+
+#ifndef QT_NO_CURSOR
+    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+#endif
+    QStringList words;
+
+    while (!file.atEnd()) {
+        QByteArray line = file.readLine();
+        if (!line.isEmpty())
+            words << line.trimmed();
+    }
+
+#ifndef QT_NO_CURSOR
+    QApplication::restoreOverrideCursor();
+#endif
+    return new QStringListModel(words, completer);
+}
+
+void SDEditor::insertCompletion(const QString& completion)
+{
+    QTextCursor tc = textCursor();
+    tc.select(QTextCursor::WordUnderCursor);
+    tc.insertText(completion);
+    setTextCursor(tc);
+}
+
+void SDEditor::keyPressEvent(QKeyEvent *event)
+{
+    if (completer->popup()->isVisible()) {
+        // The following keys are forwarded by the completer to the widget
+       switch (event->key()) {
+           case Qt::Key_Enter:
+           case Qt::Key_Return:
+           case Qt::Key_Escape:
+           case Qt::Key_Tab:
+           case Qt::Key_Backtab:
+                event->ignore();
+                return; // let the completer do default behavior
+           default:
+               break;
+       }
+    }
+
+    bool isShortcut = ((event->modifiers() & Qt::ControlModifier) && event->key() == Qt::Key_Space); // CTRL+Space
+    if (!completer || !isShortcut) // do not process the shortcut when we have a completer
+        QPlainTextEdit::keyPressEvent(event);
+
+    const bool ctrlOrShift = event->modifiers() & (Qt::ControlModifier | Qt::ShiftModifier);
+    if (!completer || (ctrlOrShift && event->text().isEmpty()))
+        return;
+
+    static QString eow("~!@#$%^&*()_+{}|:\"<>?,./;'[]\\-="); // end of word
+    bool hasModifier = (event->modifiers() != Qt::NoModifier) && !ctrlOrShift;
+    QString completionPrefix = textUnderCursor();
+
+    if (!isShortcut && (hasModifier || event->text().isEmpty()|| completionPrefix.length() < 3
+                      || eow.contains(event->text().right(1)))) {
+        completer->popup()->hide();
+        return;
+    }
+
+    if (completionPrefix != completer->completionPrefix()) {
+        completer->setCompletionPrefix(completionPrefix);
+        completer->popup()->setCurrentIndex(completer->completionModel()->index(0, 0));
+    }
+
+    QRect cr = cursorRect();
+    cr.setWidth(completer->popup()->sizeHintForColumn(0)
+                + completer->popup()->verticalScrollBar()->sizeHint().width());
+    completer->complete(cr);
+}
+
+QString SDEditor::textUnderCursor() const
+{
+    QTextCursor tc = textCursor();
+    tc.select(QTextCursor::WordUnderCursor);
+    return tc.selectedText();
+}
+
 /*======== Line Number Area ============*/
 
 int SDEditor::lineNumberAreaWidth()
@@ -228,7 +323,6 @@ void SDEditor::updateLineNumberArea(const QRect &rect, int dy)
     if (rect.contains(viewport()->rect()))
         updateLineNumberAreaWidth(0);
 }
-
 
 
 void SDEditor::resizeEvent(QResizeEvent *e)

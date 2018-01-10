@@ -42,11 +42,13 @@ SimDSP::SimDSP(QWidget *parent) :
     ui->widgetEditor->addAction(ui->actionDecreaseFontSize);
     ui->widgetEditor->addAction(ui->actionResetFontSize);
 
-    sdproject = new SDProject(ui->widgetProject,
-                              ui->widgetEditor,
-                              ui->appOutput);
+    sdproject = new SDProject(ui->widgetProject, ui->widgetEditor,
+                              ui->appOutput, ui->issuesOutput);
 
+    ui->tabWidget->setCurrentIndex(0);
     ui->tabWidget->setTabEnabled(ui->tabWidget->indexOf(ui->runTab), false);
+
+    ui->outputTab->setCurrentIndex(0);
 
     codeLibrary =  new QLibrary();
 
@@ -97,12 +99,16 @@ void SimDSP::initActionsConnections()
     connect(ui->actionQuit, &QAction::triggered, this, &SimDSP::close);
 
     connect(sdproject, &SDProject::tabOpen, this, &SimDSP::tabOpen);
+    connect(sdproject, QOverload<int>::of(&SDProject::buildIssues), this, &SimDSP::issues);
 
     connect(ui->widgetProject, &SDProjectexplorer::changePath, this, &SimDSP::actionChangePath);
 }
 
 void SimDSP::closeEvent(QCloseEvent *event)
 {
+    sdproject->closeAllTabs();
+    event->accept();
+
     /*if( isProjectPathTmp ){
         QMessageBox::StandardButton saveBtn = QMessageBox::question( this, "SimDSP",
                                                                      tr("Do you want to save the project?\n"),
@@ -210,12 +216,20 @@ void SimDSP::actionOpenProject()
 
 void SimDSP::actionBuildProject()
 {
-    sdproject->buildProject();
+    ui->outputTab->setTabText(1, "Issues");
+    if(sdproject->buildProject()){
+        ui->outputTab->setCurrentIndex(0);
+    }
+    else{
+        ui->outputTab->setCurrentIndex(1);
+    }
 }
 
 void SimDSP::actionCleanProject()
 {
     sdproject->cleanProject();
+    ui->outputTab->setCurrentIndex(0);
+    ui->outputTab->setTabText(1, "Issues");
 }
 
 void SimDSP::actionCloseProject()
@@ -249,10 +263,11 @@ void SimDSP::actionChangePath()
 
 void SimDSP::actionRun()
 {
-    ui->appOutput->clear();
     if(sdproject->buildProject()){
 
         ui->appOutput->clear();
+        ui->issuesOutput->clear();
+        ui->outputTab->setTabText(1, "Issues");
 
         setupFunction dsp_setup = (setupFunction) codeLibrary->resolve("dsp_setup");
         if(!dsp_setup){
@@ -300,6 +315,8 @@ void SimDSP::actionRun()
             return;
         }
 
+        ui->outputTab->setTabText(0, "Application Output");
+        ui->outputTab->setCurrentIndex(0);
         ui->statusBar->showMessage(tr("SimDSP Running..."));
 
         ui->tabWidget->setTabEnabled(ui->tabWidget->indexOf(ui->runTab), true);
@@ -311,11 +328,16 @@ void SimDSP::actionRun()
         ui->actionStop->setEnabled(true);
         ui->actionLoad->setEnabled(true);
         ui->actionSave->setEnabled(true);
+    }else{
+        ui->outputTab->setCurrentIndex(1);
     }
 }
 
 void SimDSP::actionStop()
 {
+    ui->outputTab->setTabText(0, "Compile Output");
+    ui->outputTab->setCurrentIndex(0);
+
     ui->tabWidget->setTabEnabled(ui->tabWidget->indexOf(ui->runTab), false);
     ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->codeTab));
 
@@ -371,6 +393,11 @@ void SimDSP::tabOpen()
     ui->actionSaveFile->setEnabled(true);
     ui->actionCloseTab->setEnabled(true);
     ui->actionCloseAll->setEnabled(true);
+}
+
+void SimDSP::issues(int total)
+{
+    ui->outputTab->setTabText(1, "Issues ("+QString::number(total)+")");
 }
 
 /******************************************

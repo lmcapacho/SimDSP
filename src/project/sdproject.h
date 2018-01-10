@@ -27,6 +27,7 @@
 #include <QDir>
 #include <QTextEdit>
 #include <QMessageBox>
+#include <QRegExp>
 
 #include "sdprojectexplorer.h"
 #include "../actions/sdbuilder.h"
@@ -38,7 +39,8 @@ class SDProject : public QObject
 public:
     explicit SDProject(SDProjectexplorer *explorer,
                        SDEditortab *editorTab,
-                       QTextEdit *appOutput);
+                       QTextEdit *appOutput,
+                       QTextEdit *issuesOutput);
     void newProject(QString projectName, QString projectPath);
     bool openProject(QString projectPath);
     int  closeProject();
@@ -55,6 +57,7 @@ public:
 
 signals:
     void tabOpen();
+    void buildIssues(int total);
 
 public slots:
     void builderOutput(QByteArray data);
@@ -66,7 +69,11 @@ private:
     SDBuilder *builder;
 
     QTextEdit *output;
+    QTextEdit *issues;
     QString path;
+
+    int totalIssues;
+    QRegularExpression msgRegExp;
 };
 
 #endif // SDPROJECT_H

@@ -21,15 +21,17 @@
 
 #include "sdproject.h"
 
-SDProject::SDProject(SDProjectexplorer *explorer,
-                     SDEditortab *editorTab,
-                     QTextEdit *appOutput)
+SDProject::SDProject(SDProjectexplorer *explorer, SDEditortab *editorTab,
+                     QTextEdit *appOutput, QTextEdit *issuesOutput)
 {
     projectExplorer = explorer;
     output = appOutput;
     editor = editorTab;
+    issues = issuesOutput;
 
     builder = new SDBuilder();
+
+    msgRegExp.setPattern(QLatin1String("^(([A-Za-z]:)?[^:]+):(\\d+):(\\d+:)?\\s+((fatal |#)?(warning|error|note):?\\s)?([^\\s].+)$"));
 
     connect(builder, QOverload<QByteArray>::of(&SDBuilder::errorOutput), this, &SDProject::builderOutput);
     connect(builder, QOverload<QByteArray>::of(&SDBuilder::msgOutput), this, &SDProject::builderOutput);
@@ -149,7 +151,9 @@ void SDProject::closeAllTabs()
 bool SDProject::buildProject()
 {
     editor->saveAll();
+    issues->clear();
     output->clear();
+    totalIssues = 0;
     output->append(tr("<b>Compiling SimDSP Project...</b><br>"));
 
     if( !builder->build() ){
@@ -163,6 +167,7 @@ bool SDProject::buildProject()
 
 void SDProject::cleanProject()
 {
+    issues->clear();
     output->clear();
     output->append(tr("<b>Cleaning SimDSP Project...</b><br>"));
     builder->clean();
@@ -171,6 +176,28 @@ void SDProject::cleanProject()
 
 void SDProject::builderOutput(QByteArray data)
 {
+    QString dataString(data);
+    QStringList outputLines = dataString.split(QRegExp("[\r\n]"));
+
+    for(int i=0; i<outputLines.size(); i++){
+        QRegularExpressionMatch match = msgRegExp.match(outputLines[i]);
+        if(match.hasMatch()){
+            QStringList issue = outputLines[i].split(":");
+
+            if(outputLines[i].contains("error")){
+                QString msg = issue[0].remove("../") + ":" + issue[1] + ": " + issue[4] ;
+                issues->append("<span style='color:#AE0000;'>"+msg+"</span>");
+                totalIssues++;
+            }
+            else if(outputLines[i].contains("warning")){
+                QString msg = issue[0].remove("../") + ":" + issue[1] + ": " + issue[4] ;
+                issues->append("<span style='color:#AD6D11;'>"+msg+"</span>");
+                totalIssues++;
+            }
+
+            emit buildIssues(totalIssues);
+        }
+    }
     output->append(data);
 }
 

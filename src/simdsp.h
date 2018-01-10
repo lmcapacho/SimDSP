@@ -88,6 +88,7 @@ public slots:
     void loop();
 
     void tabOpen();
+    void issues(int total);
 
 private:
     Ui::SimDSP *ui;
