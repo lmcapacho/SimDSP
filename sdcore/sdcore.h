@@ -77,6 +77,8 @@ public slots:
 
     void changeInOutSelect(QAbstractButton *button);
 
+    void changeAWGN(bool checked);
+
     void newData(const QVector<double> *inTime, const QVector<double> *inFreq,
                  const QVector<double> *outTime, const QVector<double> *outFreq);
 

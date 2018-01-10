@@ -30,6 +30,8 @@
 #include <QVector>
 #include <QFile>
 
+#include <random>
+
 #include <sdaudio.h>
 
 #include <fftw3.h>
@@ -54,6 +56,7 @@ public:
       SIGNAL_SIN,
       SIGNAL_SQUARE,
       SIGNAL_SAWTOOTH,
+      SIGNAL_NOISE,
       SIGNAL_FILE,
       SIGNAL_MIC
     };
@@ -70,6 +73,7 @@ public:
     double getSignalFrequency();
     void setBaseTime(int bt);
 
+    double wgn();
     double getSample();
     short readADC();
     void  writeDAC(short value);
@@ -84,6 +88,8 @@ public:
     void start();
     void stop();
 
+    void changeAWGN(bool state);
+
 signals:
    void newData(const QVector<double> *inTime, const QVector<double> *inFreq,
                      const QVector<double> *outTime, const QVector<double> *outFreq);
@@ -92,6 +98,7 @@ public slots:
    void processBlocks();
    void recordFinish(short* data);
    void playFinish();
+   void changeSNR(int value);
 
 private:
 
@@ -104,6 +111,11 @@ private:
     double signalFrequency;
     double signalAmplitude;
     double omegafq;
+
+    double snr;
+    bool bAWGN;
+    std::default_random_engine generator;
+    std::normal_distribution<double> distribution;
 
     SignalTypes signalType;
 

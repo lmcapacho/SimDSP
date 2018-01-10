@@ -1,7 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>resources/files/keyWords.txt</file>
-        <file>resources/files/keyWords2.txt</file>
         <file>resources/templates/Makefile_linux</file>
         <file>resources/templates/sdBaseTPL.txt</file>
         <file>resources/templates/sdSourceTPL.txt</file>
@@ -18,5 +17,6 @@
         <file>resources/images/icons/save.png</file>
         <file>resources/templates/Makefile_win</file>
         <file>resources/images/icons/simdsp.png</file>
+        <file>resources/files/SDWords.txt</file>
     </qresource>
 </RCC>

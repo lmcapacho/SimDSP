@@ -1,6 +1,9 @@
 attachInterrupt
+captureBlock
+enableMic
+playBlock
 println
+readADC
 readKeyboard
 setfs
-readADC
 writeDAC

@@ -66,6 +66,9 @@ SDSignal::SDSignal()
     bMicRecording =  false;
     bMicEnabled =  false;
 
+    bAWGN = false;
+    snr = 40;
+
     timer = new QTimer();
     connect(timer, &QTimer::timeout, this, &SDSignal::processBlocks);
 }
@@ -208,6 +211,17 @@ void SDSignal::setfs(double fsValue)
 }
 
 /**************************
+ * White Gaussian noise
+ **************************/
+double SDSignal::wgn()
+{
+    double randNumber = distribution(generator);
+    double np = qPow(10.0, -snr/10.0);
+
+    return qSqrt(np)*randNumber;
+}
+
+/**************************
  * Get a new sample
  **************************/
 double SDSignal::getSample()
@@ -233,6 +247,10 @@ double SDSignal::getSample()
                 sample = -1.0 + (omegafq/M_PI);
         break;
 
+        case SIGNAL_NOISE:
+            sample = wgn();
+        break;
+
         case SIGNAL_FILE:
             if( pFileInBuffer )
             {
@@ -249,6 +267,8 @@ double SDSignal::getSample()
         default:
         break;
     }
+
+    if( bAWGN ) sample += wgn();
 
     sample *= signalAmplitude;
     if ( sample >  1.0 ) sample =  1.0;
@@ -348,7 +368,6 @@ void SDSignal::loadFile(QFile *file)
     }
 }
 
-
 void SDSignal::saveFile(QFile *file)
 {
     QTextStream out(file);
@@ -357,6 +376,16 @@ void SDSignal::saveFile(QFile *file)
     if ( pFileOutBuffer )
         while ( index < iFileLength )
             out << pFileOutBuffer[index++] << " ";
+}
+
+void SDSignal::changeAWGN(bool state)
+{
+    bAWGN = state;
+}
+
+void SDSignal::changeSNR(int value)
+{
+    snr = (double) value;
 }
 
 void SDSignal::captureBlock(short *pBuffer, int length, void (*callback)())

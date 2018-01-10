@@ -22,7 +22,8 @@
 #include "sdcore.h"
 #include "ui_sdcore.h"
 
-SimDSPCore::SimDSPCore() : QWidget()
+SimDSPCore::SimDSPCore() :
+    QWidget()
 {
     ui = new Ui::SimDSPCore;
     ui->setupUi(this);
@@ -100,7 +101,9 @@ void SimDSPCore::playBlock( short* pBuffer, int length, void (*callback)() )
 void SimDSPCore::enableMic(int length)
 {
     sd->enableMic(length);
-    ui->inputComboBox->setCurrentIndex(sd->SIGNAL_MIC);
+    ui->inputComboBox->setItemData(sd->SIGNAL_MIC, QVariant(Qt::ItemIsSelectable|Qt::ItemIsEnabled), Qt::UserRole-1);
+    ui->inputComboBox->setCurrentIndex(sd->SIGNAL_MIC);    
+    ui->inputComboBox->setDisabled(true);
 }
 
 void SimDSPCore::setTextOutput(QTextEdit *textOutput)
@@ -156,12 +159,17 @@ void SimDSPCore::init()
     connect(ui->timeBaseDial, QOverload<int>::of(&QDial::valueChanged), this, &SimDSPCore::changeBaseTime);
     connect(ui->timeFreqGroup, QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked),this, &SimDSPCore::changeInOutSelect);
 
+    connect(ui->awgnCheckBox, QOverload<bool>::of(&QCheckBox::toggled), this, &SimDSPCore::changeAWGN);
+    connect(ui->snrSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), sd, &SDSignal::changeSNR);
+
     connect(sd, &SDSignal::newData, this, &SimDSPCore::newData);
 
     connect(ui->widgetKeyboard, &SDKeyboard::keyboardClicked, this, &SimDSPCore::keyboardClicked);
 
     sd->setSignalFrequency(100);
     ui->frequencySpinBox->setSingleStep(50);
+
+    ui->inputComboBox->setItemData(sd->SIGNAL_MIC, 0, Qt::UserRole-1);
 }
 
 
@@ -178,6 +186,20 @@ void SimDSPCore::keyboardClicked()
 
 void SimDSPCore::changeInput(int inputIndex)
 {
+    SDSignal::SignalTypes signalType = static_cast<SDSignal::SignalTypes>(inputIndex);
+
+    if( signalType >= SDSignal::SIGNAL_NOISE ){
+        ui->snrSpinBox->setValue(0);
+        ui->frequencySpinBox->setDisabled(true);
+        ui->awgnCheckBox->setDisabled(true);
+        ui->awgnCheckBox->setChecked(false);
+    }
+    else{
+        ui->snrSpinBox->setValue(40);
+        ui->awgnCheckBox->setEnabled(true);
+        ui->frequencySpinBox->setEnabled(true);
+    }
+
     sd->setSignalType(inputIndex);
 }
 
@@ -224,6 +246,18 @@ void SimDSPCore::changeInOutSelect(QAbstractButton *button)
     }
 }
 
+void SimDSPCore::changeAWGN(bool checked)
+{
+    sd->changeAWGN(checked);
+    if(checked){
+        ui->snrLabel->setEnabled(true);
+        ui->snrSpinBox->setEnabled(true);
+    }else{
+        ui->snrLabel->setDisabled(true);
+        ui->snrSpinBox->setDisabled(true);
+    }
+}
+
 void SimDSPCore::newData(const QVector<double> *inTime, const QVector<double> *inFreq,
                          const QVector<double> *outTime, const QVector<double> *outFreq)
 {
@@ -247,6 +281,9 @@ void SimDSPCore::stop()
     sd->stop();
     ui->PlotA->clearPlot();
     ui->PlotB->clearPlot();
+    ui->inputComboBox->setItemData(sd->SIGNAL_MIC, 0, Qt::UserRole-1);
+    ui->inputComboBox->setCurrentIndex(sd->SIGNAL_SIN);
+    ui->inputComboBox->setEnabled(true);
 }
 
 void SimDSPCore::start()
