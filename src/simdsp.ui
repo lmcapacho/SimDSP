@@ -356,6 +356,7 @@ p, li { white-space: pre-wrap; }
     <addaction name="actionResetFontSize"/>
     <addaction name="separator"/>
     <addaction name="actionFont"/>
+    <addaction name="actionResetFont"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menu_Edit"/>
@@ -618,6 +619,14 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+W</string>
+   </property>
+  </action>
+  <action name="actionResetFont">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Reset Font</string>
    </property>
   </action>
  </widget>

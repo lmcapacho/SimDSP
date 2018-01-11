@@ -26,6 +26,7 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QSettings>
 
 #include "sdcore.h"
 #include "sdsignal.h"
@@ -80,6 +81,7 @@ public slots:
     void actionIncreaseFontSize();
     void actionDecreaseFontSize();
     void actionResetFontSize();
+    void actionResetFont();
     void actionFont();
 
     // Help slots
@@ -99,6 +101,8 @@ private:
     void menuOpenProject();
 
     void closeEvent(QCloseEvent *event);
+
+    QSettings settings;
 
     SDProject *sdproject;
     SDBuilder *sdbuilder;

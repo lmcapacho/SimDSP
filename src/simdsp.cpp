@@ -92,6 +92,7 @@ void SimDSP::initActionsConnections()
     connect(ui->actionIncreaseFontSize, &QAction::triggered, this, &SimDSP::actionIncreaseFontSize);
     connect(ui->actionDecreaseFontSize, &QAction::triggered, this, &SimDSP::actionDecreaseFontSize);
     connect(ui->actionResetFontSize, &QAction::triggered, this, &SimDSP::actionResetFontSize);
+    connect(ui->actionResetFont, &QAction::triggered, this, &SimDSP::actionResetFont);
     connect(ui->actionFont, &QAction::triggered, this, &SimDSP::actionFont);
 
     connect(ui->actionHelpContents, &QAction::triggered, this, &SimDSP::actionHelpContents);
@@ -198,8 +199,9 @@ void SimDSP::actionNewProject()
 
 void SimDSP::actionOpenProject()
 {
+    QString lastOpen = settings.value("simdsp/lastopen", QDir::homePath()).toString();
     QString path = QFileDialog::getExistingDirectory(this,
-            tr("Open SimDSP Project"),QDir::homePath(),
+            tr("Open SimDSP Project"), lastOpen,
             QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
     if(!path.isEmpty()){
@@ -210,6 +212,7 @@ void SimDSP::actionOpenProject()
             codeLibrary->setFileName(QDir::currentPath()+"/build/libsdcode.dll");
         #endif
             menuOpenProject();
+            settings.setValue("simdsp/lastopen", path);
         }
     }
 }
@@ -337,7 +340,7 @@ void SimDSP::actionStop()
 {
     ui->outputTab->setTabText(0, "Compile Output");
     ui->outputTab->setCurrentIndex(0);
-    ui->outputTab->clear();
+    ui->appOutput->clear();
 
     ui->tabWidget->setTabEnabled(ui->tabWidget->indexOf(ui->runTab), false);
     ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->codeTab));
@@ -384,6 +387,11 @@ void SimDSP::actionResetFontSize()
     ui->widgetEditor->resetFontSize();
 }
 
+void SimDSP::actionResetFont()
+{
+    ui->widgetEditor->resetFont();
+}
+
 void SimDSP::actionFont()
 {
     ui->widgetEditor->selectFont();
@@ -419,6 +427,7 @@ void SimDSP::menuCloseAllProjects()
     ui->actionIncreaseFontSize->setDisabled(true);
     ui->actionDecreaseFontSize->setDisabled(true);
     ui->actionResetFontSize->setDisabled(true);
+    ui->actionResetFont->setDisabled(true);
     ui->actionFont->setDisabled(true);
 }
 
@@ -436,5 +445,6 @@ void SimDSP::menuOpenProject()
     ui->actionIncreaseFontSize->setEnabled(true);
     ui->actionDecreaseFontSize->setEnabled(true);
     ui->actionResetFontSize->setEnabled(true);
+    ui->actionResetFont->setEnabled(true);
     ui->actionFont->setEnabled(true);
 }

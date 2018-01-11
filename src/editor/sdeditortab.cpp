@@ -30,14 +30,16 @@ SDEditortab::SDEditortab(QWidget *parent) :
 
     connect(ui->tabWidget, &QTabWidget::tabCloseRequested, this, &SDEditortab::tabCloseRequested);
 
-    font.setFamily("Consolas");
+    font.setFamily(settings.value("editortab/font/family", "Consolas").toString());
     font.setStyleHint(QFont::Monospace);
     font.setFixedPitch(true);
-    font.setPointSize(10);
+    font.setPointSize( settings.value("editortab/font/size", 10).toInt() );
 }
 
 SDEditortab::~SDEditortab()
 {
+    settings.setValue("editortab/font/family", font.family());
+    settings.setValue("editortab/font/size", font.pointSize());
     delete ui;
 }
 
@@ -238,6 +240,13 @@ void SDEditortab::decreaseFontSize()
 
 void SDEditortab::resetFontSize()
 {
+    font.setPointSize(10);
+    setFontAll();
+}
+
+void SDEditortab::resetFont()
+{
+    font.setFamily("Consolas");
     font.setPointSize(10);
     setFontAll();
 }

@@ -27,6 +27,7 @@
 #include <QTextEdit>
 #include <QDebug>
 #include <QFontDialog>
+#include <QSettings>
 
 #include "sdeditor.h"
 #include "highlighter.h"
@@ -58,6 +59,7 @@ public:
     void increaseFontSize();
     void decreaseFontSize();
     void resetFontSize();
+    void resetFont();
     void selectFont();
 
 private slots:
@@ -72,6 +74,8 @@ private:
     QFont font;
 
     Ui::SDEditortab *ui;
+
+    QSettings settings;
 
     Highlighter *highlighter;
     int findTab;
