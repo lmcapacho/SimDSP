@@ -337,6 +337,7 @@ void SimDSP::actionStop()
 {
     ui->outputTab->setTabText(0, "Compile Output");
     ui->outputTab->setCurrentIndex(0);
+    ui->outputTab->clear();
 
     ui->tabWidget->setTabEnabled(ui->tabWidget->indexOf(ui->runTab), false);
     ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->codeTab));

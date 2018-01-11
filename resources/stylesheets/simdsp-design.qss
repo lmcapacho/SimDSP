@@ -80,7 +80,8 @@ QToolButton {
 
 
 QPlainTextEdit{
-    background-color: #FCFCFC;
+    background-color: #FAFAFA;
+    color: #383a42;
 }
 
 QTextEdit#appOutput{

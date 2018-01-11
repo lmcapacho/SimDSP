@@ -74,7 +74,6 @@ private:
     Ui::SDEditortab *ui;
 
     Highlighter *highlighter;
-    //QTextEdit *textEdit;
     int findTab;
 };
 

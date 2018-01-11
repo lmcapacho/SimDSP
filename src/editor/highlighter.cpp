@@ -57,108 +57,103 @@
 Highlighter::Highlighter(QTextDocument *parent)
     : QSyntaxHighlighter(parent)
 {
-    HighlightingRule rule, rule2;
-
-    keywordFormat.setForeground(QColor("#772953"));
-    keywordFormat.setFontWeight(QFont::Bold);
+    HighlightingRule rule;
 
     QStringList keywordPatterns;
     QFile file(":/resources/files/keyWords.txt");
 
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-        qDebug() << "Error al leer archivo";
+        qDebug() << "Error reading file KeyWords";
 
     QTextStream textStream(&file);
-
     while (!textStream.atEnd())
-        keywordPatterns << textStream.readLine();
+        keywordPatterns << "\\b" + textStream.readLine() + "\\b";
     file.close();
 
+    keywordFormat.setForeground(QColor("#a626a4"));
     foreach (const QString &pattern, keywordPatterns) {
-        rule.pattern = QRegExp(pattern);
+        rule.pattern = QRegularExpression(pattern);
         rule.format = keywordFormat;
         highlightingRules.append(rule);
     }
 
-    classFormat.setFontWeight(QFont::Bold);
-    classFormat.setForeground(Qt::darkMagenta);
-    rule.pattern = QRegExp("\\bQ[A-Za-z]+\\b");
-    rule.format = classFormat;
-    highlightingRules.append(rule);
-
-    singleLineCommentFormat.setForeground(Qt::darkGray);
-    rule.pattern = QRegExp("//[^\n]*");
-    rule.format = singleLineCommentFormat;
-    highlightingRules.append(rule);
-
-    multiLineCommentFormat.setForeground(Qt::darkRed);
-
-    quotationFormat.setForeground(Qt::darkGreen);
-    rule.pattern = QRegExp("\".*\"");
+    quotationFormat.setForeground(QColor("#50a14f"));
+    rule.pattern = QRegularExpression("(\".*\"|\'.*\'|\\<.*\\>)");
     rule.format = quotationFormat;
     highlightingRules.append(rule);
 
-    functionFormat.setFontItalic(true);
-    functionFormat.setForeground(Qt::darkCyan);
-    rule.pattern = QRegExp("\\b[A-Za-z0-9_.]+(?=\\()");
+    functionFormat.setForeground(QColor("#4078f2"));
+    rule.pattern = QRegularExpression("\\b[A-Za-z0-9_.]+(?=\\()");
     rule.format = functionFormat;
     highlightingRules.append(rule);
 
-    commentStartExpression = QRegExp("/\\*");
-    commentEndExpression = QRegExp("\\*/");
+    rule.pattern = QRegularExpression("#[A-Za-z]+");
+    highlightingRules.append(rule);
 
-    keywordFormat2.setForeground(Qt::darkYellow);
-    keywordFormat2.setFontWeight(QFont::Helvetica);
-    QStringList keywordPatterns2;
-    //QString fileName2 = ;
-    QFile file2(":/resources/files/SDWords.txt");
-    if (!file2.open(QIODevice::ReadOnly | QIODevice::Text))
-        qDebug() << "Error al leer archivo";
-    QTextStream textStream2(&file2);
-    while (!textStream2.atEnd())
-        keywordPatterns2 << textStream2.readLine();
-    file2.close();
+    variableFormat.setForeground(QColor("#986801"));
+    rule.format = variableFormat;
+    rule.pattern = QRegularExpression("\\b(0[xX][0-9a-fA-F]+|(\\d+)(\\d+(\\.\\d{1,2})?)|0[b][0-1]+)\\b");
+    highlightingRules.append(rule);
 
-    foreach (const QString &pattern2, keywordPatterns2) {
-        rule2.pattern = QRegExp(pattern2);
-        rule2.format = keywordFormat2;
-        highlightingRules.append(rule2);
+    QFile fileSD(":/resources/files/SDWords.txt");
+    if (!fileSD.open(QIODevice::ReadOnly | QIODevice::Text))
+        qDebug() << "Error reading file SDWords";
+
+    keywordPatterns.clear();
+    textStream.setDevice(&fileSD);
+    while (!textStream.atEnd()){
+        keywordPatterns << "\\b" + textStream.readLine() + "\\b";
     }
-    /*functionFormat2.setFontItalic(true);
-    functionFormat2.setForeground(Qt::cyan);
-    rule2.pattern = QRegExp("\\w[A-Za-z]+\\w");
-    rule2.format = functionFormat2;
-    highlightingRules.append(rule);*/
+    fileSD.close();
+
+    sdwordFormat.setForeground(Qt::darkYellow);
+
+    foreach (const QString &pattern, keywordPatterns) {
+        rule.pattern = QRegularExpression(pattern);
+        rule.format = sdwordFormat;
+        highlightingRules.append(rule);
+    }
+
+    singleLineCommentFormat.setForeground(Qt::darkGray);
+    singleLineCommentFormat.setFontItalic(true);
+
+    rule.pattern = QRegularExpression("//[^\n]*");
+    rule.format = singleLineCommentFormat;
+    highlightingRules.append(rule);
+
+    multiLineCommentFormat.setForeground(Qt::darkGray);
+    multiLineCommentFormat.setFontItalic(true);
+
+    commentStartExpression = QRegularExpression("/\\*");
+    commentEndExpression = QRegularExpression("\\*/");
 }
 
 void Highlighter::highlightBlock(const QString &text)
 {
     foreach (const HighlightingRule &rule, highlightingRules) {
-        QRegExp expression(rule.pattern);
-        int index = expression.indexIn(text);
-        while (index >= 0) {
-            int length = expression.matchedLength();
-            setFormat(index, length, rule.format);
-            index = expression.indexIn(text, index + length);
+        QRegularExpressionMatchIterator matchIterator = rule.pattern.globalMatch(text);
+        while (matchIterator.hasNext()) {
+            QRegularExpressionMatch match = matchIterator.next();
+            setFormat(match.capturedStart(), match.capturedLength(), rule.format);
         }
     }
     setCurrentBlockState(0);
 
     int startIndex = 0;
     if (previousBlockState() != 1)
-        startIndex = commentStartExpression.indexIn(text);
+        startIndex = text.indexOf(commentStartExpression);
 
     while (startIndex >= 0) {
-        int endIndex = commentEndExpression.indexIn(text, startIndex);
-        int commentLength;
+        QRegularExpressionMatch match = commentEndExpression.match(text, startIndex);
+        int endIndex = match.capturedStart();
+        int commentLength = 0;
         if (endIndex == -1) {
             setCurrentBlockState(1);
             commentLength = text.length() - startIndex;
         } else {
-            commentLength = endIndex - startIndex
-                            + commentEndExpression.matchedLength();
+            commentLength = endIndex - startIndex + match.capturedLength();
         }
         setFormat(startIndex, commentLength, multiLineCommentFormat);
-        startIndex = commentStartExpression.indexIn(text, startIndex + commentLength);
+        startIndex = text.indexOf(commentStartExpression, startIndex + commentLength);
     }
 }

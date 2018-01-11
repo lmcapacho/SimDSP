@@ -49,7 +49,6 @@ void SDEditortab::newFile(QString fileName)
     editor->newFile(fileName);
 
     highlighter = new Highlighter(editor->document());
-    //textEdit = qobject_cast<QTextEdit*>(ui->tabWidget->currentWidget());
 
     ui->tabWidget->insertTab(ui->tabWidget->count(),editor,QString(editor->userFriendlyCurrentFile()));
     ui->tabWidget->setCurrentIndex(ui->tabWidget->count()-1);
