@@ -85,6 +85,8 @@ public slots:
     void actionFont();
 
     // Help slots
+    void actionAbout();
+    void actionAboutQt();
     void actionHelpContents();
 
     // Example slots

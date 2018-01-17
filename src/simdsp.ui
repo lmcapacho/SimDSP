@@ -328,11 +328,13 @@ p, li { white-space: pre-wrap; }
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="enabled">
-     <bool>false</bool>
+     <bool>true</bool>
     </property>
     <property name="title">
      <string>&amp;Help</string>
     </property>
+    <addaction name="actionAbout"/>
+    <addaction name="actionAboutQt"/>
    </widget>
    <widget class="QMenu" name="menuBuild">
     <property name="title">
@@ -641,6 +643,16 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="shortcut">
     <string>Ctrl+A</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About &amp;SimDSP</string>
+   </property>
+  </action>
+  <action name="actionAboutQt">
+   <property name="text">
+    <string>About Qt</string>
    </property>
   </action>
  </widget>

@@ -98,7 +98,9 @@ void SimDSP::initActionsConnections()
     connect(ui->actionResetFont, &QAction::triggered, this, &SimDSP::actionResetFont);
     connect(ui->actionFont, &QAction::triggered, this, &SimDSP::actionFont);
 
-    connect(ui->actionHelpContents, &QAction::triggered, this, &SimDSP::actionHelpContents);
+    //connect(ui->actionHelpContents, &QAction::triggered, this, &SimDSP::actionHelpContents);
+    connect(ui->actionAbout, &QAction::triggered, this, &SimDSP::actionAbout);
+    connect(ui->actionAboutQt, &QAction::triggered, this, &SimDSP::actionAboutQt);
 
     connect(ui->actionQuit, &QAction::triggered, this, &SimDSP::close);
 
@@ -390,6 +392,41 @@ void SimDSP::actionHelpContents()
     /*SDHelp* help = new SDHelp(this);
 
     help->show();*/
+}
+
+void SimDSP::actionAbout()
+{
+    QString text = QString("<h3>SimDSP - DSP Simulator</h3>"
+
+                   "<p>Copyright (C) 2017-%1 Luis Miguel Capacho V., Alexander López Parrado "
+                   "and Jorge Iván Marín H.</p>"
+
+                   "<p>SimDSP (Based on Qt) created and designed by Luis Miguel Capacho V.</p>"
+
+                   "<p>Based on an original idea by Jorge Iván Marín H. (SimDSP Based on C++ Builder)</p>"
+
+                   "<p>The base code is a derivative work of the code from the GNUSimDSP "
+                   "project (Based on WxWidgets) by Alexander López Parrado.</p>"
+
+                   "<p>SimDSP is free software: you can redistribute it and/or modify it under the terms "
+                   "of the GNU General Public License as published by the Free Software Foundation, either"
+                   "version 3 of the License, or (at your option) any later version.</p>"
+
+                   "<p>SimDSP is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; "
+                   "without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. "
+                   "See the GNU General Public License for more details.</p>"
+
+                   "<p>You should have received a copy of the GNU General Public License along with SimDSP.  "
+                   "If not, see <a href=\"http://%2/\">%2</a>.</p>")
+                    .arg(QStringLiteral("2018"))
+                    .arg(QStringLiteral("www.gnu.org/licenses"));
+
+    QMessageBox::about(this, "About SimDSP", text);
+}
+
+void SimDSP::actionAboutQt()
+{
+    QMessageBox::aboutQt(this, "About Qt used on SimDSP");
 }
 
 void SimDSP::actionOpenExample()
