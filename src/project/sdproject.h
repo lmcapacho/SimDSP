@@ -43,6 +43,7 @@ public:
                        QTextEdit *issuesOutput);
     void newProject(QString projectName, QString projectPath);
     bool openProject(QString projectPath);
+    bool openExample(QString examplePath);
     int  closeProject();
     bool buildProject();
     void cleanProject();
@@ -61,7 +62,7 @@ signals:
 
 public slots:
     void builderOutput(QByteArray data);
-    void itemActivated(QString fileName);
+    void itemActivated(QString fileName, bool isExample);
     void removeFile(QString fileName);
 
 private:

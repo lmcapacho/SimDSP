@@ -35,7 +35,7 @@ SDProject::SDProject(SDProjectexplorer *explorer, SDEditortab *editorTab,
 
     connect(builder, QOverload<QByteArray>::of(&SDBuilder::errorOutput), this, &SDProject::builderOutput);
     connect(builder, QOverload<QByteArray>::of(&SDBuilder::msgOutput), this, &SDProject::builderOutput);
-    connect(projectExplorer, QOverload<QString>::of(&SDProjectexplorer::itemActivated), this, &SDProject::itemActivated);
+    connect(projectExplorer, QOverload<QString, bool>::of(&SDProjectexplorer::itemActivated), this, &SDProject::itemActivated);
     connect(projectExplorer, QOverload<QString>::of(&SDProjectexplorer::deleteFile), this, &SDProject::removeFile);
 }
 
@@ -104,6 +104,46 @@ bool SDProject::openProject(QString projectPath)
 
     editor->newFile(dir.dirName());
     editor->activeEditor()->loadFile(mainFile);
+
+    return true;
+}
+
+bool SDProject::openExample(QString examplePath)
+{
+    QDir dir(examplePath);
+    if (!dir.exists())
+        return false;
+
+    QString exampleName = QDir(examplePath).dirName();
+    QString filePath = examplePath + QDir::separator() + exampleName + ".cpp";
+
+    QFileInfo file(filePath);
+    if (!file.exists()){
+        QMessageBox::information(0, "SimDSP", tr("There is not an example in this folder\n"));
+        return false;
+    }
+
+    QString mainFile = dir.dirName()+".cpp";
+
+    path =  examplePath;
+    projectExplorer->addExample(path, dir.dirName());
+
+    dir.setNameFilters(QStringList() << "*.cpp" << "*.h");
+    foreach (QString f, dir.entryList(QDir::Files)) {
+        QFileInfo fi(f);
+        if( fi.baseName() == dir.dirName() && fi.suffix() == "cpp" )
+            projectExplorer->addFile(fi.baseName());
+        else
+            projectExplorer->addFile(f);
+    }
+
+    projectExplorer->setExpanded(true);
+    projectExplorer->sortProject();
+
+    QDir::setCurrent(path);
+
+    editor->newFile(dir.dirName());
+    editor->activeEditor()->loadFile(mainFile, true);
 
     return true;
 }
@@ -186,6 +226,8 @@ void SDProject::builderOutput(QByteArray data)
 
             if(outputLines[i].contains("error")){
                 QString msg = issue[0].remove("../") + ":" + issue[1] + ": " + issue[4] ;
+                if(issue.size()>5)
+                    msg += issue[5];
                 issues->append("<span style='color:#AE0000;'>"+msg+"</span>");
                 totalIssues++;
             }
@@ -201,12 +243,19 @@ void SDProject::builderOutput(QByteArray data)
     output->append(data);
 }
 
-void SDProject::itemActivated(QString fileName)
+void SDProject::itemActivated(QString fileName, bool isExample)
 {
+    QString name;
     QFileInfo fi(fileName);
+    if( fi.suffix().isNull() )
+        name = fileName+".cpp";
+    else
+        name = fileName;
+
     QString currentPath = QDir::currentPath();
-    QDir::setCurrent(fi.canonicalPath());
-    editor->openFile(fi.fileName());
+    QString canonicalPath = QFileInfo(name).canonicalPath();
+    QDir::setCurrent(canonicalPath);
+    editor->openFile(fi.fileName(), isExample);
     QDir::setCurrent(currentPath);
 
     emit tabOpen();

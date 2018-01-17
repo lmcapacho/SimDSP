@@ -87,6 +87,9 @@ public slots:
     // Help slots
     void actionHelpContents();
 
+    // Example slots
+    void actionOpenExample();
+
     void loop();
 
     void tabOpen();
@@ -96,6 +99,7 @@ private:
     Ui::SimDSP *ui;
 
     void initActionsConnections();
+    void loadExamples();
 
     void menuCloseAllProjects();
     void menuOpenProject();
@@ -103,6 +107,8 @@ private:
     void closeEvent(QCloseEvent *event);
 
     QSettings settings;
+
+    QList<QAction*> examplesActionList;
 
     SDProject *sdproject;
     SDBuilder *sdbuilder;

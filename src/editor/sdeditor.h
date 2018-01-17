@@ -45,7 +45,7 @@ public:
 
     void newFile(QString fileName);
     void loadTemplate(QString fileName);
-    bool loadFile(const QString &fileName);
+    bool loadFile(const QString &fileName, bool readOnly=false);
     bool save();
     bool saveAs();
     bool saveFile(const QString &fileName);

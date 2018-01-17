@@ -103,14 +103,14 @@ mv SimDSP lib/
 mv simdsp.sh simdsp
 chmod +x simdsp
 
-#rm -f linuxdeployqt*.AppImage
+rm -f linuxdeployqt*.AppImage
 
 cd $current_dir
 
-#echo "compressing...."
-#tar -cjf ./$release_name.tar.bz2 $release_name
+echo "compressing...."
+tar -cjf ./$release_name.tar.bz2 $release_name
 
-#echo "cleaning up"
-#rm -rf $release_folder
+echo "cleaning up"
+rm -rf $release_folder
 
 echo "done!"

@@ -29,6 +29,7 @@ SDProjectexplorer::SDProjectexplorer(QWidget *parent) :
     ui->setupUi(this);
 
     ui->projectTreeWidget->hideColumn(1);
+    ui->projectTreeWidget->hideColumn(2);
     ui->projectTreeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
 
     connect(ui->projectTreeWidget, QOverload<QTreeWidgetItem*, int>::of(&QTreeWidget::itemActivated),
@@ -63,7 +64,13 @@ void SDProjectexplorer::addProject(QString path, QString name)
     currentProject->setTextColor(0, QColor("#FFFFFF"));
     currentProject->setToolTip(0, path);
 
-    currentProject->setText(1, path);    
+    currentProject->setText(1, path);
+}
+
+void SDProjectexplorer::addExample(QString path, QString name)
+{
+    addProject(path, name);
+    currentProject->setText(2, "example");
 }
 
 void SDProjectexplorer::addFile(QString name)
@@ -167,11 +174,16 @@ void SDProjectexplorer::removeFile()
     }
 }
 
+bool SDProjectexplorer::isExample()
+{
+    return !currentProject->text(2).isEmpty();
+}
+
 void SDProjectexplorer::itemActivatedSD(QTreeWidgetItem *item, int column)
 {
     if(item->parent()){
         QString fileName = item->parent()->text(1) + QDir::separator() + item->text(column);
-        emit itemActivated(fileName);
+        emit itemActivated(fileName, !item->parent()->text(2).isEmpty());
     }
 }
 
@@ -194,25 +206,28 @@ void SDProjectexplorer::showContextMenu(const QPoint &pos)
             QAction* m_active = new QAction(tr("Set as Active Project"), this);
             connect(m_active, &QAction::triggered, this, &SDProjectexplorer::activateProject);
             menu.addAction(m_active);
+        }else{
+
+            QAction* m_build = new QAction(QIcon(":/resources/images/icons/builder.png"), tr("Build"), this);
+            connect(m_build, &QAction::triggered, this, &SDProjectexplorer::buildProject);
+            menu.addAction(m_build);
+
+            QAction* m_clean = new QAction(tr("Clean"), this);
+            connect(m_clean, &QAction::triggered, this, &SDProjectexplorer::cleanProject);
+            menu.addAction(m_clean);
+
+            QAction* m_run = new QAction(QIcon(":/resources/images/icons/play.png"), tr("Run"), this);
+            connect(m_run, &QAction::triggered, this, &SDProjectexplorer::runProject);
+            menu.addAction(m_run);
+
+            menu.addSeparator();
+
+            if( item->text(2).isEmpty() ){
+                QAction* m_new_file = new QAction(QIcon(":/resources/images/icons/new_file.png"), tr("New File"), this);
+                connect(m_new_file, &QAction::triggered, this, &SDProjectexplorer::newFile);
+                menu.addAction(m_new_file);
+            }
         }
-
-        QAction* m_build = new QAction(QIcon(":/resources/images/icons/builder.png"), tr("Build"), this);
-        connect(m_build, &QAction::triggered, this, &SDProjectexplorer::buildProject);
-        menu.addAction(m_build);
-
-        QAction* m_clean = new QAction(tr("Clean"), this);
-        connect(m_clean, &QAction::triggered, this, &SDProjectexplorer::cleanProject);
-        menu.addAction(m_clean);
-
-        QAction* m_run = new QAction(QIcon(":/resources/images/icons/play.png"), tr("Run"), this);
-        connect(m_run, &QAction::triggered, this, &SDProjectexplorer::runProject);
-        menu.addAction(m_run);
-
-        menu.addSeparator();
-
-        QAction* m_new_file = new QAction(QIcon(":/resources/images/icons/new_file.png"), tr("New File"), this);
-        connect(m_new_file, &QAction::triggered, this, &SDProjectexplorer::newFile);
-        menu.addAction(m_new_file);
 
         QString m_closeName = tr("Close Project") + " '" + item->text(0) + "'";
         QAction* m_close = new QAction(m_closeName, this);
@@ -232,10 +247,12 @@ void SDProjectexplorer::showContextMenu(const QPoint &pos)
         connect(m_show_folder, &QAction::triggered, this, &SDProjectexplorer::showContainingFolder);
         menu.addAction(m_show_folder);
 
-        if( item->parent()->text(0) != item->text(0) ){
-            QAction* m_remove = new QAction(tr("Remove File"), this);
-            connect(m_remove, &QAction::triggered, this, &SDProjectexplorer::removeFile);
-            menu.addAction(m_remove);
+        if( item->parent()->text(2).isNull() ){
+            if( item->parent()->text(0) != item->text(0) ){
+                QAction* m_remove = new QAction(tr("Remove File"), this);
+                connect(m_remove, &QAction::triggered, this, &SDProjectexplorer::removeFile);
+                menu.addAction(m_remove);
+            }
         }
 
         menu.exec( ui->projectTreeWidget->mapToGlobal(pos) );

@@ -53,6 +53,7 @@ SimDSP::SimDSP(QWidget *parent) :
     codeLibrary =  new QLibrary();
 
     initActionsConnections();
+    loadExamples();
 
     ui->statusBar->showMessage(tr("Ready"));
 }
@@ -71,6 +72,7 @@ void SimDSP::initActionsConnections()
     connect(ui->widgetProject, &SDProjectexplorer::newFile, this, &SimDSP::actionNewFile);
     connect(ui->actionSaveFile, &QAction::triggered, this, &SimDSP::actionSaveFile);
     connect(ui->actionCloseTab, &QAction::triggered, this, &SimDSP::actionCloseTab);
+    connect(ui->widgetEditor, &SDEditortab::tabCloseRequested, this, &SimDSP::actionCloseTab);
     connect(ui->actionCloseAll, &QAction::triggered, this, &SimDSP::actionCloseAll);
 
     connect(ui->actionRun, &QAction::triggered, this, &SimDSP::actionRun);
@@ -89,6 +91,7 @@ void SimDSP::initActionsConnections()
     connect(ui->widgetProject, &SDProjectexplorer::closeProject, this, &SimDSP::actionCloseProject);
     connect(ui->actionCloseAllProjectsEditors, &QAction::triggered, this, &SimDSP::actionCloseAllProjectsEditors);
 
+    connect(ui->actionSelectAll, &QAction::triggered, ui->widgetEditor, &SDEditortab::selectAll );
     connect(ui->actionIncreaseFontSize, &QAction::triggered, this, &SimDSP::actionIncreaseFontSize);
     connect(ui->actionDecreaseFontSize, &QAction::triggered, this, &SimDSP::actionDecreaseFontSize);
     connect(ui->actionResetFontSize, &QAction::triggered, this, &SimDSP::actionResetFontSize);
@@ -105,32 +108,42 @@ void SimDSP::initActionsConnections()
     connect(ui->widgetProject, &SDProjectexplorer::changePath, this, &SimDSP::actionChangePath);
 }
 
+void SimDSP::loadExamples()
+{
+    QAction* exampleAction;
+    QMenu* examplesMenu = ui->menuFile->addMenu(tr("Examples"));
+
+    foreach (QAction *action, ui->menuFile->actions()) {
+        if(action->isSeparator()){
+            ui->menuFile->insertMenu(action, examplesMenu);
+            break;
+        }
+    }
+
+    QString examplesFolder = QCoreApplication::applicationDirPath() + QDir::separator() + "examples";
+
+    QFileInfoList folderList = QDir(examplesFolder).entryInfoList(QDir::NoDotAndDotDot|QDir::AllDirs);
+
+    foreach (QFileInfo folderInfo, folderList) {
+
+        QDirIterator it(folderInfo.absoluteFilePath(), QDir::NoDotAndDotDot|QDir::AllDirs);
+        QMenu* examplesFolder = examplesMenu->addMenu(folderInfo.fileName());
+
+        while (it.hasNext()) {
+            QString folder = it.next();
+            exampleAction = new QAction(this);
+            exampleAction->setData(folder);
+            exampleAction->setText(QFileInfo(folder).fileName());
+            connect(exampleAction, &QAction::triggered, this, &SimDSP::actionOpenExample);
+            examplesFolder->addAction(exampleAction);
+        }
+    }
+}
+
 void SimDSP::closeEvent(QCloseEvent *event)
 {
     sdproject->closeAllTabs();
     event->accept();
-
-    /*if( isProjectPathTmp ){
-        QMessageBox::StandardButton saveBtn = QMessageBox::question( this, "SimDSP",
-                                                                     tr("Do you want to save the project?\n"),
-                                                                     QMessageBox::Cancel | QMessageBox::No | QMessageBox::Yes,
-                                                                     QMessageBox::Yes);
-        if (saveBtn == QMessageBox::Yes) {
-            SDNewProject* newProject = new SDNewProject(this);
-
-            if(newProject->exec()){
-                QString projectPath, projectName;
-                newProject->getProjectInfo(projectName, projectPath);
-                if( sdproject->saveProject(projectName, projectPath) ){
-                  isProjectPathTmp = false;
-                }
-            }
-        }else if(saveBtn == QMessageBox::Cancel) {
-            event->ignore();
-        }else {
-            event->accept();
-        }
-    }*/
 }
 
 /******************************************
@@ -165,19 +178,27 @@ void SimDSP::actionCloseAll()
 
 void SimDSP::actionNewFile()
 {
-    SDNewFile* newFile =  new SDNewFile(this);
+    if(ui->widgetProject->isExample()){
+        QMessageBox::information(0, "SimDSP", tr("This is an example. Examples are read-only\n"));
+    }else{
+        SDNewFile* newFile =  new SDNewFile(this);
 
-    if(newFile->exec()){
-        sdproject->newFile(newFile->getFileName());
-        ui->actionSaveFile->setEnabled(true);
-        ui->actionCloseTab->setEnabled(true);
-        ui->actionCloseAll->setEnabled(true);
+        if(newFile->exec()){
+            sdproject->newFile(newFile->getFileName());
+            ui->actionSaveFile->setEnabled(true);
+            ui->actionCloseTab->setEnabled(true);
+            ui->actionCloseAll->setEnabled(true);
+        }
     }
 }
 
 void SimDSP::actionSaveFile()
 {
-    sdproject->saveFile();
+    if(ui->widgetProject->isExample()){
+        QMessageBox::information(0, "SimDSP", tr("This is an example. Examples are read-only\n"));
+    }else{
+        sdproject->saveFile();
+    }
 }
 
 void SimDSP::actionNewProject()
@@ -237,15 +258,18 @@ void SimDSP::actionCleanProject()
 
 void SimDSP::actionCloseProject()
 {
-    if( sdproject->closeProject() < 0 )
+    ui->appOutput->clear();
+
+    if( sdproject->closeProject() < 0 ){
         menuCloseAllProjects();
+        return;
+    }
 
 #ifdef Q_OS_LINUX
     codeLibrary->setFileName(QDir::currentPath()+"/build/libsdcode.so");
 #elif defined(Q_OS_WIN32)
     codeLibrary->setFileName(QDir::currentPath()+"/build/libsdcode.dll");
 #endif
-    ui->appOutput->clear();
 }
 
 void SimDSP::actionCloseAllProjectsEditors()
@@ -253,6 +277,8 @@ void SimDSP::actionCloseAllProjectsEditors()
     sdproject->closeAll();
     ui->appOutput->clear();
     menuCloseAllProjects();
+    ui->actionCloseTab->setDisabled(true);
+    ui->actionCloseAll->setDisabled(true);
 }
 
 void SimDSP::actionChangePath()
@@ -366,6 +392,19 @@ void SimDSP::actionHelpContents()
     help->show();*/
 }
 
+void SimDSP::actionOpenExample()
+{
+    QAction* example = qobject_cast<QAction*>(sender());
+    if( sdproject->openExample(example->data().toString()) ){
+    #ifdef Q_OS_LINUX
+        codeLibrary->setFileName(QDir::currentPath()+"/build/libsdcode.so");
+    #elif defined(Q_OS_WIN32)
+        codeLibrary->setFileName(QDir::currentPath()+"/build/libsdcode.dll");
+    #endif
+        menuOpenProject();
+    }
+}
+
 void SimDSP::loop()
 {
     dsp_loop();
@@ -422,13 +461,17 @@ void SimDSP::menuCloseAllProjects()
     ui->actionRun->setDisabled(true);
     ui->actionNewFile->setDisabled(true);
     ui->actionSaveFile->setDisabled(true);
-    ui->actionCloseTab->setDisabled(true);
-    ui->actionCloseAll->setDisabled(true);
+    ui->actionSelectAll->setDisabled(true);
     ui->actionIncreaseFontSize->setDisabled(true);
     ui->actionDecreaseFontSize->setDisabled(true);
     ui->actionResetFontSize->setDisabled(true);
     ui->actionResetFont->setDisabled(true);
     ui->actionFont->setDisabled(true);
+
+    if( ui->widgetEditor->getOpenedTabs() == 0 ){
+        ui->actionCloseTab->setDisabled(true);
+        ui->actionCloseAll->setDisabled(true);
+    }
 }
 
 void SimDSP::menuOpenProject()
@@ -442,6 +485,7 @@ void SimDSP::menuOpenProject()
     ui->actionSaveFile->setEnabled(true);
     ui->actionCloseTab->setEnabled(true);
     ui->actionCloseAll->setEnabled(true);
+    ui->actionSelectAll->setEnabled(true);
     ui->actionIncreaseFontSize->setEnabled(true);
     ui->actionDecreaseFontSize->setEnabled(true);
     ui->actionResetFontSize->setEnabled(true);

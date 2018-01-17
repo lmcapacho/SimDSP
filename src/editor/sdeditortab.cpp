@@ -59,14 +59,14 @@ void SDEditortab::newFile(QString fileName)
 }
 
 
-bool SDEditortab::openFile(QString fileName)
+bool SDEditortab::openFile(QString fileName, bool readOnly)
 {
     if (findFile(fileName)) {
         ui->tabWidget->setCurrentIndex(findTab);
         return true;
     }
 
-    const bool succeeded = loadFile(fileName);
+    const bool succeeded = loadFile(fileName, readOnly);
 
     return succeeded;
 }
@@ -95,7 +95,7 @@ bool SDEditortab::findFile(QString fileName)
 }
 
 
-bool SDEditortab::loadFile(QString fileName)
+bool SDEditortab::loadFile(QString fileName, bool readOnly)
 {
     SDEditor *editor = createEditor();
 
@@ -106,14 +106,15 @@ bool SDEditortab::loadFile(QString fileName)
 
     highlighter = new Highlighter(editor->document());
 
-    bool succeeded = editor->loadFile(fileName);
+    bool succeeded = editor->loadFile(fileName, readOnly);
 
-    if (succeeded)
+    if (succeeded){
         editor->show();
-    else
+        connect(editor->document(), &QTextDocument::contentsChanged, this, &SDEditortab::asterisk);
+    }
+    else{
         editor->close();
-
-    connect(editor->document(), &QTextDocument::contentsChanged, this, &SDEditortab::asterisk);
+    }
 
     return succeeded;
 }
@@ -157,11 +158,6 @@ SDEditor *SDEditortab::createEditor()
     SDEditor *editor = new SDEditor;
 
     return editor;
-}
-
-void SDEditortab::tabCloseRequested()
-{
-    tabClose();
 }
 
 int SDEditortab::tabClose()
@@ -260,4 +256,17 @@ void SDEditortab::selectFont()
     }else{
         return;
     }
+}
+
+int SDEditortab::getOpenedTabs()
+{
+    return ui->tabWidget->count();
+}
+
+
+// Public slots
+
+void SDEditortab::selectAll()
+{
+    activeEditor()->selectAll();
 }

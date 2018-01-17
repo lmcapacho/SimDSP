@@ -44,12 +44,14 @@ public:
     explicit SDProjectexplorer(QWidget *parent = 0);
     ~SDProjectexplorer();
     void addProject(QString path, QString name);
+    void addExample(QString path, QString name);
     void addFile(QString name);
     void setExpanded(bool expanded);
     void setProjectName(QString name);
     void sortProject();
     int  removeProject();
     void removeAllProjects();
+    bool isExample();
 
 signals:
     void buildProject();
@@ -60,7 +62,7 @@ signals:
 
     void newFile();
     void deleteFile(QString fileName);
-    void itemActivated(QString fileName);
+    void itemActivated(QString fileName, bool isExample);
 
 public slots:
     void itemActivatedSD(QTreeWidgetItem* item, int column);

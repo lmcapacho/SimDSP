@@ -41,6 +41,8 @@ SDEditor::SDEditor()
     connect(completer, QOverload<const QString&>::of(&QCompleter::activated), this, &SDEditor::insertCompletion);
 
     updateLineNumberAreaWidth(0);
+
+    isLoad = false;
 }
 
 void SDEditor::newFile(QString fileName)
@@ -126,7 +128,7 @@ void SDEditor::setCurrentFile(const QString &fileName)
 }
 
 
-bool SDEditor::loadFile(const QString &fileName)
+bool SDEditor::loadFile(const QString &fileName, bool readOnly)
 {
     QString name;
     QFileInfo fi(fileName);
@@ -151,8 +153,11 @@ bool SDEditor::loadFile(const QString &fileName)
 
     setCurrentFile(name);
 
-    connect(document(), &QTextDocument::contentsChanged,
-            this, &SDEditor::documentWasModified);
+    if( readOnly ){
+        setReadOnly(true);
+    }else{
+        connect(document(), &QTextDocument::contentsChanged, this, &SDEditor::documentWasModified);
+    }
 
     return true;
 }

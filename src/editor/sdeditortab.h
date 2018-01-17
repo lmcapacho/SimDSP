@@ -47,7 +47,7 @@ public:
     explicit SDEditortab(QWidget *parent = 0);
     ~SDEditortab();
     void newFile(QString fileName);
-    bool openFile(QString fileName);
+    bool openFile(QString fileName, bool readOnly=false);
     SDEditor *createEditor();
     SDEditor *activeEditor();
     void asterisk();
@@ -61,13 +61,17 @@ public:
     void resetFontSize();
     void resetFont();
     void selectFont();
+    int  getOpenedTabs();
 
-private slots:
+public slots:
+    void selectAll();
+
+signals:
     void tabCloseRequested();
 
 private:
     bool findFile(QString fileName);
-    bool loadFile(QString fileName);
+    bool loadFile(QString fileName, bool readOnly=false);
     void setFont(SDEditor *editor);
     void setFontAll();
 

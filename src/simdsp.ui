@@ -65,7 +65,7 @@
         <enum>QTabWidget::East</enum>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <property name="movable">
         <bool>false</bool>
@@ -347,10 +347,13 @@ p, li { white-space: pre-wrap; }
     <addaction name="actionLoad"/>
     <addaction name="actionSave"/>
    </widget>
-   <widget class="QMenu" name="menu_Edit">
+   <widget class="QMenu" name="menuEdit">
     <property name="title">
      <string>&amp;Edit</string>
     </property>
+    <addaction name="separator"/>
+    <addaction name="actionSelectAll"/>
+    <addaction name="separator"/>
     <addaction name="actionIncreaseFontSize"/>
     <addaction name="actionDecreaseFontSize"/>
     <addaction name="actionResetFontSize"/>
@@ -359,7 +362,7 @@ p, li { white-space: pre-wrap; }
     <addaction name="actionResetFont"/>
    </widget>
    <addaction name="menuFile"/>
-   <addaction name="menu_Edit"/>
+   <addaction name="menuEdit"/>
    <addaction name="menuBuild"/>
    <addaction name="menuHelp"/>
   </widget>
@@ -627,6 +630,17 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="text">
     <string>Reset Font</string>
+   </property>
+  </action>
+  <action name="actionSelectAll">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Select &amp;All</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+A</string>
    </property>
   </action>
  </widget>

@@ -44,7 +44,7 @@
       <bool>false</bool>
      </property>
      <property name="columnCount">
-      <number>2</number>
+      <number>3</number>
      </property>
      <attribute name="headerVisible">
       <bool>false</bool>
@@ -56,7 +56,12 @@
      </column>
      <column>
       <property name="text">
-       <string notr="true">2</string>
+       <string notr="true">Path</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>isExample</string>
       </property>
      </column>
     </widget>
