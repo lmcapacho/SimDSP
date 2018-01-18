@@ -52,7 +52,7 @@ bool SDBuilder::build()
     }
 
     QFile::copy(":/resources/templates/simdsp.cpp", QDir::currentPath()+"/simdsp.cpp");
-    QFile::setPermissions(QDir::currentPath()+"/build/simdsp.cpp", QFile::WriteUser | QFile::ReadUser);
+    QFile::setPermissions(QDir::currentPath()+"/simdsp.cpp", QFile::WriteUser | QFile::ReadUser);
 
 #ifdef Q_OS_LINUX
     QFile::remove(QDir::currentPath()+"/build/libsdcode.so");
