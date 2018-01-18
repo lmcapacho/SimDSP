@@ -36,7 +36,7 @@ include(pri/editor.pri)
 include(pri/simdsp.pri)
 include(pri/project.pri)
 
-#DESTDIR = build
+DESTDIR = $$PWD
 OBJECTS_DIR = build/obj
 MOC_DIR = build/moc
 RCC_DIR = build/rcc
