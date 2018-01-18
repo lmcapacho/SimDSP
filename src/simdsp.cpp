@@ -401,12 +401,12 @@ void SimDSP::actionAbout()
                    "<p>Copyright (C) 2017-%1 Luis Miguel Capacho V., Alexander López Parrado "
                    "and Jorge Iván Marín H.</p>"
 
-                   "<p>SimDSP (Based on Qt) created and designed by Luis Miguel Capacho V.</p>"
+                   "<p>SimDSP based on Qt created and designed by Luis Miguel Capacho V.</p>"
 
-                   "<p>Based on an original idea by Jorge Iván Marín H. (SimDSP Based on C++ Builder)</p>"
+                   "<p>Based on an original idea by Jorge Iván Marín H. (SimDSP based on C++ Builder)</p>"
 
                    "<p>The base code is a derivative work of the code from the GNUSimDSP "
-                   "project (Based on WxWidgets) by Alexander López Parrado.</p>"
+                   "project based on WxWidgets by Alexander López Parrado.</p>"
 
                    "<p>SimDSP is free software: you can redistribute it and/or modify it under the terms "
                    "of the GNU General Public License as published by the Free Software Foundation, either"

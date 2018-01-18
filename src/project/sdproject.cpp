@@ -222,7 +222,7 @@ void SDProject::builderOutput(QByteArray data)
     for(int i=0; i<outputLines.size(); i++){
         QRegularExpressionMatch match = msgRegExp.match(outputLines[i]);
         if(match.hasMatch()){
-            QStringList issue = outputLines[i].split(":");
+            QStringList issue = outputLines[i].split(QRegExp(":(?!:)"));
 
             if(outputLines[i].contains("error")){
                 QString msg = issue[0].remove("../") + ":" + issue[1] + ": " + issue[4] ;
