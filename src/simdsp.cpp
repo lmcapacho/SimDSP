@@ -49,6 +49,8 @@ SimDSP::SimDSP(QWidget *parent) :
     ui->tabWidget->setTabEnabled(ui->tabWidget->indexOf(ui->runTab), false);
 
     ui->outputTab->setCurrentIndex(0);
+    ui->appOutput->setFont(QFont("SansSerif"));
+    ui->issuesOutput->setFont(QFont("SansSerif"));
 
     codeLibrary =  new QLibrary();
 
