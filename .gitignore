@@ -17,11 +17,13 @@ sdcore.pro.user
 /sdcore*.user
 /sdcore/*.user*
 object_script.*
-
+/examples/*/*/build*
 
 # SimDSP Tools and files folder
 #####################
 /files
 
 Makefile
+Makefile.*
 SimDSP
+SimDSP.exe
