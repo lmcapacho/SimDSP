@@ -111,7 +111,7 @@ move examples resources
 move icons resources
 move SimDSP.exe resources
 
-%script_folder%\Bat_To_Exe_Converter\Bat_To_Exe_Converter_x64.exe /bat simdsp.bat /exe SimDSP.exe /icon resources\icons\simdsp_icon.ico
+%script_folder%\Bat_To_Exe_Converter\Bat_To_Exe_Converter_x64.exe /bat simdsp.bat /exe SimDSP.exe /icon resources\icons\simdsp.ico
 del simdsp.bat
 
 if not exist MinGW mkdir MinGW
