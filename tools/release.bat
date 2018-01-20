@@ -66,7 +66,7 @@ copy README.md %release_folder%
 copy LICENSE %release_folder%
 
 if not exist %release_folder%\icons mkdir %release_folder%\icons
-copy resources\images\simdsp_icon.ico %release_folder%\icons
+copy resources\images\icons\simdsp.ico %release_folder%\icons
 copy SimDSP.exe %release_folder%
 
 echo.
