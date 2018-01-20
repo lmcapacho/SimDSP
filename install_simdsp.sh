@@ -19,7 +19,7 @@ xdg-desktop-menu install --novendor --mode user simdsp.desktop
 # ~/.local/share/icons/hicolor/*size*
 #    /apps
 xdg-icon-resource install --noupdate --novendor --mode user --context apps \
-	--size 256 icons/simdsp_icon.png simdsp
+	--size 256 resources/icons/simdsp_icon.png simdsp
 
 # update user databases
 update-desktop-database "${APPLICATIONSDIR}"

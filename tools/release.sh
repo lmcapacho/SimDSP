@@ -83,6 +83,10 @@ cd $release_folder
 echo "making include folder"
 mkdir include
 
+echo "copying examples"
+mkdir examples
+cp -rf $app_folder/examples .
+
 echo "copying headers files"
 cp -rf $sdcore_folder/simdsp.h $sdcore_folder/sdfunctions.h include/
 
@@ -99,7 +103,11 @@ rm AppRun
 mv plugins/* lib/
 rm -rf plugins
 
-mv SimDSP lib/
+mkdir resources
+mv SimDSP resources
+mv lib include icons examples doc translations resources
+rm -f qt.conf
+
 mv simdsp.sh simdsp
 chmod +x simdsp
 

@@ -4,8 +4,10 @@ appname="SimDSP"
 dirname="$(dirname -- "$(readlink -f -- "${0}")" )"
 
 if [ "$dirname" = "." ]; then
-	dirname="$PWD/$dirname"
+	dirname="$PWD/$dirname/resources/"
 fi
+
+dirname="$dirname/resources/"
 
 if [ -n "$LIBRARY_PATH" ]; then
   LIBRARY_PATH=$LIBRARY_PATH:"${dirname}/lib"
@@ -20,4 +22,4 @@ export LIBRARY_PATH
 CPATH="${dirname}/include"
 export CPATH
 
-"$dirname/lib/$appname" $*
+"$dirname/$appname" $*
