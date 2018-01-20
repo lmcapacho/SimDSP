@@ -129,8 +129,9 @@ void SDProjectexplorer::activateProject()
 int SDProjectexplorer::removeProject()
 {
     int index = -1;
-    if(currentProject){
-        delete currentProject;
+
+    if(selectItem){
+        delete selectItem;
         index = ui->projectTreeWidget->topLevelItemCount()-1;
         if( index >= 0 ){
             currentProject = ui->projectTreeWidget->topLevelItem( index );
