@@ -1,0 +1,14 @@
+sudo: required
+dist: trusty
+
+install:
+  - sudo apt-get install -y qt5-default qttools5-dev-tools libfftw3-3
+
+script:
+  - cd sdcore
+  - qmake sdcore.pro 
+  - make
+  - cd SimDSP
+  - qmake SimDSP.pro
+  - make
+  - ./SimDSP
