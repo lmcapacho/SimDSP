@@ -153,6 +153,7 @@ void SimDSPCore::init()
 {
     sd = new SDSignal;
 
+#if QT_VERSION >= 0x050700
     connect(ui->inputComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SimDSPCore::changeInput );
     connect(ui->frequencySpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &SimDSPCore::changeFrequency);
     connect(ui->amplitudeDial, QOverload<int>::of(&QDial::valueChanged), this, &SimDSPCore::changeAmplitude);
@@ -161,6 +162,16 @@ void SimDSPCore::init()
 
     connect(ui->awgnCheckBox, QOverload<bool>::of(&QCheckBox::toggled), this, &SimDSPCore::changeAWGN);
     connect(ui->snrSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), sd, &SDSignal::changeSNR);
+#else
+    connect(ui->inputComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(changeInput(int)));
+    connect(ui->frequencySpinBox, SIGNAL(valueChanged(int)), this, SLOT(changeFrequency(int)));
+    connect(ui->amplitudeDial, SIGNAL(valueChanged(int)), this, SLOT(changeAmplitude(int)));
+    connect(ui->timeBaseDial, SIGNAL(valueChanged(int)), this, SLOT(changeBaseTime(int)));
+    connect(ui->timeFreqGroup, SIGNAL(buttonClicked(QAbstractButton*)), this, SLOT(changeInOutSelect(QAbstractButton*)));
+
+    connect(ui->awgnCheckBox, SIGNAL(toggled(bool)), this, SLOT(changeAWGN(bool)));
+    connect(ui->snrSpinBox, SIGNAL(valueChanged(int)), sd, SLOT(changeSNR(int)));
+#endif
 
     connect(sd, &SDSignal::newData, this, &SimDSPCore::newData);
 

@@ -30,7 +30,11 @@ SDKeyboard::SDKeyboard(QWidget *parent) :
 
     status = -1;
 
+#if QT_VERSION >= 0x050700
     connect(ui->keyboardGroup, QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked),this, &SDKeyboard::updateKey);
+#else
+    connect(ui->keyboardGroup, SIGNAL(buttonClicked(QAbstractButton*)), this, SLOT(updateKey(QAbstractButton*)));
+#endif
 }
 
 SDKeyboard::~SDKeyboard()

@@ -516,7 +516,11 @@ void SDSignal::enableMic(int length)
 
     soundCard = new SDAudio(this);
 
+#if QT_VERSION >= 0x050700
     connect(soundCard, QOverload<short*>::of(&SDAudio::recordFinish), this, &SDSignal::recordFinish);
+#else
+    connect(soundCard, SIGNAL(recordFinish(short*)), this, SLOT(recordFinish(short*)));
+#endif
     connect(soundCard, &SDAudio::playFinish, this, &SDSignal::playFinish);
 
     soundCard->initSoundCard(length, fs);

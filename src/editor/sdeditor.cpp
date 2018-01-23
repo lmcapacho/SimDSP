@@ -36,9 +36,15 @@ SDEditor::SDEditor()
     completer->setWrapAround(false);
     completer->setWidget(this);
 
+#if QT_VERSION >= 0x050700
     connect(this, QOverload<int>::of(&SDEditor::blockCountChanged), this, &SDEditor::updateLineNumberAreaWidth);
     connect(this, QOverload<const QRect&,int>::of(&SDEditor::updateRequest), this, &SDEditor::updateLineNumberArea);
     connect(completer, QOverload<const QString&>::of(&QCompleter::activated), this, &SDEditor::insertCompletion);
+#else
+    connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateLineNumberAreaWidth(int)));
+    connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateLineNumberArea(QRect,int)));
+    connect(completer, SIGNAL(activated(QString)), this, SLOT(insertCompletion(QString)));
+#endif
 
     updateLineNumberAreaWidth(0);
 

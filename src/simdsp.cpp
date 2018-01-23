@@ -107,8 +107,11 @@ void SimDSP::initActionsConnections()
     connect(ui->actionQuit, &QAction::triggered, this, &SimDSP::close);
 
     connect(sdproject, &SDProject::tabOpen, this, &SimDSP::tabOpen);
+#if QT_VERSION >= 0x050700
     connect(sdproject, QOverload<int>::of(&SDProject::buildIssues), this, &SimDSP::issues);
-
+#else
+    connect(sdproject, SIGNAL(buildIssues(int)), this, SLOT(issues(int)));
+#endif
     connect(ui->widgetProject, &SDProjectexplorer::changePath, this, &SimDSP::actionChangePath);
 }
 
