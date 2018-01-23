@@ -2,13 +2,13 @@ sudo: required
 dist: trusty
 
 install:
-  - sudo apt-get install -y qt5-default qttools5-dev-tools libqt5multimedia5 qtmultimedia5-dev libfftw3-3
+  - sudo apt-get install -y qt5-default qttools5-dev-tools libqt5multimedia5 qtmultimedia5-dev libfftw3-3 libfftw3-dev
 
 script:
   - cd sdcore
   - qmake sdcore.pro 
   - make
-  - cd SimDSP
+  - cd ..
   - qmake SimDSP.pro
   - make
   - ./SimDSP
