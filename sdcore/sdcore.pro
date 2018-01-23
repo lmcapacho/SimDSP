@@ -21,6 +21,7 @@
 #######################################################################
 
 QT       += widgets multimedia printsupport
+CONFIG   += c++11
 
 TARGET = sdcore
 TEMPLATE = lib
