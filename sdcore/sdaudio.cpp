@@ -66,7 +66,7 @@ void SDAudio::initSoundCard(int bSize, double fs)
     QAudioDeviceInfo infoInput(QAudioDeviceInfo::defaultInputDevice());
     if (!infoInput.isFormatSupported(audioFormat))
     {
-        qInfo() << "Default format not supported - trying to use nearest";
+        qDebug() << "Default format not supported - trying to use nearest";
         audioFormat = infoInput.nearestFormat(audioFormat);
     }
 
@@ -74,7 +74,7 @@ void SDAudio::initSoundCard(int bSize, double fs)
 
     if (!infoOutput.isFormatSupported(audioFormat))
     {
-        qInfo() << "Default format not supported - trying to use nearest";
+        qDebug() << "Default format not supported - trying to use nearest";
         audioFormat = infoOutput.nearestFormat(audioFormat);
     }
     createAudioInput();
