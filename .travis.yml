@@ -8,6 +8,7 @@ script:
   - cd sdcore
   - qmake sdcore.pro 
   - make
+  - sudo cp -d sdcore/build/libsdcore.so* /usr/lib/
   - cd ..
   - qmake SimDSP.pro
   - make
