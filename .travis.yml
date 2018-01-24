@@ -17,4 +17,4 @@ script:
   - cd ..
   - qmake SimDSP.pro
   - make
-  - ./SimDSP
+  - timeout 10 ./SimDSP
