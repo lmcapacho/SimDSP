@@ -49,8 +49,8 @@ SimDSP::SimDSP(QWidget *parent) :
     ui->tabWidget->setTabEnabled(ui->tabWidget->indexOf(ui->runTab), false);
 
     ui->outputTab->setCurrentIndex(0);
-    ui->appOutput->setFont(QFont("SansSerif"));
-    ui->issuesOutput->setFont(QFont("SansSerif"));
+    ui->appOutput->setFont(QFont("SansSerif", 10));
+    ui->issuesOutput->setFont(QFont("SansSerif", 10));
 
     codeLibrary =  new QLibrary();
 
@@ -158,12 +158,12 @@ void SimDSP::closeEvent(QCloseEvent *event)
  ******************************************/
 void SimDSP::actionLoad()
 {
-    sdcore->loadFile();
+    sdcore->loadMatFile();
 }
 
 void SimDSP::actionSave()
 {
-    sdcore->saveFile();
+    sdcore->saveMatFile();
 }
 
 void SimDSP::actionCloseTab()

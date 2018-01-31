@@ -30,14 +30,14 @@
 #include <QVector>
 #include <QFile>
 
-#include <random>
-
 #include <sdaudio.h>
-
+#include <random>
 #include <fftw3.h>
+#include <matio.h>
 
 #define NBITS 15
 #define MIDVALUE	(1<<(NBITS-1))
+#define MAXFILESIZE 1048576
 
 class SDSignal : public QObject
 {
@@ -82,8 +82,7 @@ public:
 
     void enableMic(int length);
 
-    void loadFile(QFile *file);
-    void saveFile(QFile *file);
+    void saveFile(QString path);
 
     void start();
     void stop();
@@ -91,14 +90,15 @@ public:
     void changeAWGN(bool state);
 
 signals:
-   void newData(const QVector<double> *inTime, const QVector<double> *inFreq,
+    void newData(const QVector<double> *inTime, const QVector<double> *inFreq,
                      const QVector<double> *outTime, const QVector<double> *outFreq);
 
 public slots:
-   void processBlocks();
-   void recordFinish(short* data);
-   void playFinish();
-   void changeSNR(int value);
+    void processBlocks();
+    void recordFinish(short* data);
+    void playFinish();
+    void changeSNR(int value);
+    void loadFile(QString path, QString varName);
 
 private:
 
@@ -147,8 +147,8 @@ private:
     int iFileLength;
     int iFileInIndex;
     int iFileOutIndex;
-    double *pFileInBuffer;
-    double *pFileOutBuffer;
+    QVector<double> pFileInBuffer;
+    QVector<double> pFileOutBuffer;
 
     bool bReadADC;
     bool bProcessBlocks;

@@ -112,28 +112,14 @@ void SimDSPCore::setTextOutput(QTextEdit *textOutput)
 }
 
 
-void SimDSPCore::loadFile()
+void SimDSPCore::loadMatFile()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), QString(), tr("Octave/Matlab Files (*.mat)"));
-
-    if (!fileName.isEmpty()){
-        QFile file(fileName);
-        if (!file.open(QFile::ReadOnly | QFile::Text)) {
-            QMessageBox::warning(this, tr("SimDSP"),
-                                tr("Cannot open file %1:\n%2.")
-                                .arg(QDir::toNativeSeparators(fileName), file.errorString()));
-           return;
-        }
-
-        sd->loadFile(&file);
-
-        file.close();
-    }
+    sdmat->show();
 }
 
-void SimDSPCore::saveFile()
+void SimDSPCore::saveMatFile()
 {
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), QString(),tr("Octave/Matlab Files (*.mat)"));
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), QString(),tr("Matlab/Octave Files (*.mat)"));
 
     if(fileName.isEmpty())
         return;
@@ -146,12 +132,13 @@ void SimDSPCore::saveFile()
         return;
     }
 
-    sd->saveFile(&file);
+    sd->saveFile(file.fileName());
 }
 
 void SimDSPCore::init()
 {
     sd = new SDSignal;
+    sdmat = new SDMat;
 
 #if QT_VERSION >= 0x050700
     connect(ui->inputComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SimDSPCore::changeInput );
@@ -162,6 +149,8 @@ void SimDSPCore::init()
 
     connect(ui->awgnCheckBox, QOverload<bool>::of(&QCheckBox::toggled), this, &SimDSPCore::changeAWGN);
     connect(ui->snrSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), sd, &SDSignal::changeSNR);
+
+    connect(sdmat, QOverload<QString, QString>::of(&SDMat::loadVariable), sd, &SDSignal::loadFile);
 #else
     connect(ui->inputComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(changeInput(int)));
     connect(ui->frequencySpinBox, SIGNAL(valueChanged(int)), this, SLOT(changeFrequency(int)));
@@ -171,6 +160,8 @@ void SimDSPCore::init()
 
     connect(ui->awgnCheckBox, SIGNAL(toggled(bool)), this, SLOT(changeAWGN(bool)));
     connect(ui->snrSpinBox, SIGNAL(valueChanged(int)), sd, SLOT(changeSNR(int)));
+
+    connect(sdmat, SIGNAL(loadVariable(QString,QString)), sd, SLOT(loadFile(QString,QString)));
 #endif
 
     connect(sd, &SDSignal::newData, this, &SimDSPCore::newData);

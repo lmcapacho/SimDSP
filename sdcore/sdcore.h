@@ -31,6 +31,7 @@
 #include "sdcore_global.h"
 
 #include "sdsignal.h"
+#include "sdmat.h"
 
 using namespace std;
 
@@ -64,8 +65,8 @@ public:
     void init();
     void start();
     void stop();
-    void loadFile();
-    void saveFile();
+    void loadMatFile();
+    void saveMatFile();
 
 public slots:
     void keyboardClicked();
@@ -89,6 +90,7 @@ private:
 
     void (*sdKeyboardISRFnc)();
 
+    SDMat *sdmat;
     SDSignal *sd;
 };
 

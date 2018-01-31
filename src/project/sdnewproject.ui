@@ -30,7 +30,7 @@
    <item row="0" column="0">
     <layout class="QFormLayout" name="formLayout">
      <item row="1" column="0" colspan="2">
-      <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0">
+      <layout class="QHBoxLayout" name="horizontalLayout2" stretch="0,0">
        <property name="topMargin">
         <number>10</number>
        </property>
@@ -104,7 +104,7 @@
     </layout>
    </item>
    <item row="1" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout_4">
+    <layout class="QHBoxLayout" name="horizontalLayout3">
      <property name="topMargin">
       <number>10</number>
      </property>

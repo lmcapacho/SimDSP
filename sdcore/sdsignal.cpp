@@ -56,9 +56,6 @@ SDSignal::SDSignal()
     planADC = fftw_plan_dft_r2c_1d ( fftWidth, fftInADC, fftOutADC, FFTW_ESTIMATE );
     planDAC = fftw_plan_dft_r2c_1d ( fftWidth, fftInDAC, fftOutDAC, FFTW_ESTIMATE );
 
-    pFileInBuffer = NULL;
-    pFileOutBuffer = NULL;
-
     soundCard = NULL;
 
     bReadADC = false;
@@ -82,11 +79,6 @@ SDSignal::~SDSignal()
 
     fftw_destroy_plan (planADC);
     fftw_destroy_plan (planDAC);
-
-    if( pFileInBuffer )
-        delete pFileInBuffer;
-    if( pFileOutBuffer )
-        delete pFileOutBuffer;
 }
 
 void SDSignal::start()
@@ -149,9 +141,9 @@ void SDSignal::writeDAC(short value)
         (*ys)[n] = (double)value /(double) MIDVALUE;
         if( signalType == SIGNAL_FILE)
         {
-            if( pFileOutBuffer )
+            if( pFileOutBuffer.capacity() > 0 )
             {
-                pFileOutBuffer[ iFileOutIndex++ ] = (double)value /(double) MIDVALUE;
+                pFileOutBuffer.replace(iFileOutIndex++, (double)value /(double) MIDVALUE);
                 if ( iFileOutIndex == iFileLength )
                     iFileOutIndex = 0;
             }
@@ -252,14 +244,11 @@ double SDSignal::getSample()
         break;
 
         case SIGNAL_FILE:
-            if( pFileInBuffer )
-            {
-                sample = pFileInBuffer[ iFileInIndex++ ];
+            if( !pFileInBuffer.isEmpty() ){
+                sample = pFileInBuffer.at(iFileInIndex++);
                 if ( iFileInIndex == iFileLength )
                     iFileInIndex = 0;
-            }
-            else
-            {
+            }else{
                 sample = 0;
             }
         break;
@@ -342,40 +331,53 @@ void SDSignal::setBaseTime(int bt)
     baseTime = bt;
 }
 
-/**************************
- * Load File
- **************************/
-void SDSignal::loadFile(QFile *file)
+void SDSignal::loadFile(QString path, QString varName)
 {
     iFileInIndex = 0;
     iFileOutIndex = 0;
     iFileLength = 0;
 
-    QTextStream in(file);
+    mat_t *matfp;
+    matvar_t *matvar;
+    matfp = Mat_Open(path.toLatin1().data(), MAT_ACC_RDONLY);
 
-    if ( pFileInBuffer ) delete pFileInBuffer;
-    if ( pFileOutBuffer ) delete pFileOutBuffer;
+    matvar = Mat_VarRead(matfp, varName.toLatin1().data());
 
-    pFileInBuffer = new double[64000];
-    pFileOutBuffer = new double[64000];
+    pFileInBuffer.clear();
+    pFileInBuffer.squeeze();
+    pFileOutBuffer.clear();
+    pFileOutBuffer.squeeze();
 
-    while (!in.atEnd())
-    {
-        in >> pFileInBuffer[iFileLength++];
+    if( matvar->dims[0] > 1 )
+        iFileLength = matvar->dims[0];
+    else
+        iFileLength = matvar->dims[1];
 
-        if (iFileLength == 64000)
-            break;
-    }
+    if( iFileLength > MAXFILESIZE ) iFileLength = MAXFILESIZE;
+
+    pFileInBuffer.reserve(iFileLength);
+    pFileOutBuffer.reserve(iFileLength);
+
+    double* data = (double*)matvar->data;
+    std::copy(data, data+iFileLength, std::back_inserter(pFileInBuffer));
 }
 
-void SDSignal::saveFile(QFile *file)
+void SDSignal::saveFile(QString path)
 {
-    QTextStream out(file);
-    int index = 0;
+    mat_t *matfp;
+    matvar_t *matvar;
 
-    if ( pFileOutBuffer )
-        while ( index < iFileLength )
-            out << pFileOutBuffer[index++] << " ";
+    size_t dims[2] = {1, (size_t)iFileLength};
+
+    matfp = Mat_CreateVer(path.toLatin1().data(), NULL, MAT_FT_DEFAULT);
+
+    matvar = Mat_VarCreate("sdout", MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, pFileOutBuffer.data(), 0);
+    if ( NULL != matvar ) {
+        Mat_VarWrite(matfp, matvar, MAT_COMPRESSION_NONE);
+        Mat_VarFree(matvar);
+    }
+
+    Mat_Close(matfp);
 }
 
 void SDSignal::changeAWGN(bool state)
@@ -492,12 +494,12 @@ void SDSignal::playBlockFnc(sdBlock *block)
             ys->replace(i, 0.0);
     }
 
-    if( signalType == SIGNAL_FILE && pFileOutBuffer )
+    if( signalType == SIGNAL_FILE && !pFileOutBuffer.isEmpty() )
     {
         for (iFileOutIndex=0; iFileOutIndex<block->length; iFileOutIndex++)
         {
             if( iFileOutIndex < iFileLength )
-                pFileOutBuffer[ iFileOutIndex ] = (double)block->pBuffer[iFileOutIndex] /(double) MIDVALUE;
+                pFileOutBuffer.replace(iFileOutIndex, (double)block->pBuffer[iFileOutIndex] /(double) MIDVALUE);
             else
                 break;
         }
