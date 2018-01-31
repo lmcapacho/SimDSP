@@ -7,6 +7,8 @@ before_script:
   - sleep 3
 
 install:
+  - sudo apt-get install -y qt5-default qttools5-dev-tools libqt5multimedia5 qtmultimedia5-dev libfftw3-3 libfftw3-dev libegl1-mesa
+  
   - mkdir matio
   - cd matio
   - git clone --depth 5 https://github.com/madler/zlib
@@ -25,8 +27,7 @@ install:
   - ./configure --enable-mat73=yes --with-hdf5=$TRAVIS_BUILD_DIR/matio/hdf5_1_10_1/hdf5
   - make 
   - sudo make install
-  
-  - sudo apt-get install -y qt5-default qttools5-dev-tools libqt5multimedia5 qtmultimedia5-dev libfftw3-3 libfftw3-dev libegl1-mesa
+  - cd $TRAVIS_BUILD_DIR
 
 script:
   - cd sdcore
