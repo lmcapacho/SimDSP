@@ -19,7 +19,7 @@ SDMat::SDMat(QWidget *parent) :
 #if QT_VERSION >= 0x050700
     connect(ui->variables, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SDMat::changeVariable);
 #else
-    connect(ui->variables, SIGNAL(currentIndexChanged(int)), this, SLOT(changeVariable(int));
+    connect(ui->variables, SIGNAL(currentIndexChanged(int)), this, SLOT(changeVariable(int)));
 #endif
 }
 
