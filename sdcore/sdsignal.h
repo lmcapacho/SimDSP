@@ -92,6 +92,7 @@ public:
 signals:
     void newData(const QVector<double> *inTime, const QVector<double> *inFreq,
                      const QVector<double> *outTime, const QVector<double> *outFreq);
+    void changeSizeWindow(int size);
 
 public slots:
     void processBlocks();

@@ -60,15 +60,18 @@ public:
     void playBlock( short* pBuffer, int length, void (*callback)() );
     void enableMic(int length);
 
-    void setTextOutput(QTextEdit *textOutput);
+    void clearOutput();
 
     void init();
     void start();
     void stop();
+
+public slots:
+    void autoScale();
+    void resetZoom();
     void loadMatFile();
     void saveMatFile();
 
-public slots:
     void keyboardClicked();
 
     void changeInput(int inputIndex);
@@ -79,6 +82,8 @@ public slots:
     void changeInOutSelect(QAbstractButton *button);
 
     void changeAWGN(bool checked);
+
+    void changeSizeWindow(int size);
 
     void newData(const QVector<double> *inTime, const QVector<double> *inFreq,
                  const QVector<double> *outTime, const QVector<double> *outFreq);

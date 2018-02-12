@@ -1,5 +1,6 @@
 #include "simdsp.h"
 #include <QApplication>
+#include <QSplashScreen>
 
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg);
 
@@ -17,8 +18,15 @@ int main(int argc, char *argv[])
 
     QApplication a(argc, argv);
 
+    QSplashScreen *splash = new QSplashScreen;
+    splash->setPixmap(QPixmap(":/resources/images/splash.png"));
+    splash->show();
+    a.processEvents();
+
     SimDSP w;
     w.showMaximized();
+
+    splash->finish(&w);
 
     a.setStyleSheet(styleSheet);
 

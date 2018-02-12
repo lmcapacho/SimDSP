@@ -22,4 +22,4 @@ export LIBRARY_PATH
 CPATH="${dirname}/include"
 export CPATH
 
-"$dirname/$appname" $*
+"$dirname/lib/$appname" $*

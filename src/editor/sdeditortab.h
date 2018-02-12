@@ -65,6 +65,8 @@ public:
 
 public slots:
     void selectAll();
+    void undo();
+    void redo();
 
 signals:
     void tabCloseRequested();

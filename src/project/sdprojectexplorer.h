@@ -50,6 +50,7 @@ public:
     void setProjectName(QString name);
     void sortProject();
     int  removeProject();
+    int  removeActiveProject();
     void removeAllProjects();
     bool isExample();
 
@@ -58,6 +59,7 @@ signals:
     void cleanProject();
     void runProject();
     void closeProject();
+    void closeActiveProject();
     void changePath();
 
     void newFile();

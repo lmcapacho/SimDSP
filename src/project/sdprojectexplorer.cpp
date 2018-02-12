@@ -152,6 +152,25 @@ int SDProjectexplorer::removeProject()
     return index;
 }
 
+int SDProjectexplorer::removeActiveProject()
+{
+    int index = -1;
+
+    if(currentProject){
+        delete currentProject;
+        index = ui->projectTreeWidget->topLevelItemCount()-1;
+        if( index >= 0 ){
+            currentProject = ui->projectTreeWidget->topLevelItem( index );
+            currentProject->setTextColor(0, QColor("#FFFFFF"));
+            for( int i = 0; i < currentProject->childCount(); ++i )
+                currentProject->child(i)->setTextColor(0, QColor("#FFFFFF"));
+            QDir::setCurrent(currentProject->text(1));
+        }
+    }
+
+    return index;
+}
+
 void SDProjectexplorer::removeAllProjects()
 {
     ui->projectTreeWidget->clear();
@@ -204,65 +223,64 @@ void SDProjectexplorer::showContextMenu(const QPoint &pos)
 
     selectItem = item;
 
-    if( !item->parent() ){
+    QMenu *menu = new QMenu(this);
+    menu->setAttribute(Qt::WA_DeleteOnClose);
 
-        QMenu menu(this);
+    if( !item->parent() ){
 
         if( ui->projectTreeWidget->indexOfTopLevelItem(currentProject) !=
                 ui->projectTreeWidget->indexOfTopLevelItem(item) ) {
 
             QAction* m_active = new QAction(tr("Set as Active Project"), this);
             connect(m_active, &QAction::triggered, this, &SDProjectexplorer::activateProject);
-            menu.addAction(m_active);
+            menu->addAction(m_active);
         }else{
 
             QAction* m_build = new QAction(QIcon(":/resources/images/icons/builder.png"), tr("Build"), this);
             connect(m_build, &QAction::triggered, this, &SDProjectexplorer::buildProject);
-            menu.addAction(m_build);
+            menu->addAction(m_build);
 
             QAction* m_clean = new QAction(tr("Clean"), this);
             connect(m_clean, &QAction::triggered, this, &SDProjectexplorer::cleanProject);
-            menu.addAction(m_clean);
+            menu->addAction(m_clean);
 
             QAction* m_run = new QAction(QIcon(":/resources/images/icons/play.png"), tr("Run"), this);
             connect(m_run, &QAction::triggered, this, &SDProjectexplorer::runProject);
-            menu.addAction(m_run);
+            menu->addAction(m_run);
 
-            menu.addSeparator();
+            menu->addSeparator();
 
             if( item->text(2).isEmpty() ){
                 QAction* m_new_file = new QAction(QIcon(":/resources/images/icons/new_file.png"), tr("New File"), this);
                 connect(m_new_file, &QAction::triggered, this, &SDProjectexplorer::newFile);
-                menu.addAction(m_new_file);
+                menu->addAction(m_new_file);
             }
         }
 
         QString m_closeName = tr("Close Project") + " '" + item->text(0) + "'";
         QAction* m_close = new QAction(m_closeName, this);
-        connect(m_close, &QAction::triggered, this, &SDProjectexplorer::closeProject);
-        menu.addAction(m_close);
+        connect(m_close, &QAction::triggered, this, &SDProjectexplorer::closeActiveProject);
+        menu->addAction(m_close);
 
-        menu.exec( ui->projectTreeWidget->mapToGlobal(pos) );
+        menu->exec( ui->projectTreeWidget->mapToGlobal(pos) );
     }else{
-
-        QMenu menu(this);
 
         QAction* m_open = new QAction(tr("Open File"), this);
         connect(m_open, &QAction::triggered, this, &SDProjectexplorer::openFile);
-        menu.addAction(m_open);
+        menu->addAction(m_open);
 
         QAction* m_show_folder = new QAction(tr("Show Containing Folder"), this);
         connect(m_show_folder, &QAction::triggered, this, &SDProjectexplorer::showContainingFolder);
-        menu.addAction(m_show_folder);
+        menu->addAction(m_show_folder);
 
         if( item->parent()->text(2).isNull() ){
             if( item->parent()->text(0) != item->text(0) ){
                 QAction* m_remove = new QAction(tr("Remove File"), this);
                 connect(m_remove, &QAction::triggered, this, &SDProjectexplorer::removeFile);
-                menu.addAction(m_remove);
+                menu->addAction(m_remove);
             }
         }
 
-        menu.exec( ui->projectTreeWidget->mapToGlobal(pos) );
+        menu->exec( ui->projectTreeWidget->mapToGlobal(pos) );
     }
 }

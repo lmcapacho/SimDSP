@@ -92,6 +92,7 @@ bool SDEditor::saveFile(const QString &fileName)
     }
 
     QTextStream out(&file);
+    out.setCodec(QTextCodec::codecForName("UTF-8"));
     QApplication::setOverrideCursor(Qt::WaitCursor);
     out << toPlainText();
     QApplication::restoreOverrideCursor();
@@ -156,6 +157,12 @@ bool SDEditor::loadFile(const QString &fileName, bool readOnly)
     QApplication::setOverrideCursor(Qt::WaitCursor);
     setPlainText(in.readAll());
     QApplication::restoreOverrideCursor();
+
+    /*QByteArray in = file.readAll();
+    QTextCodec *codec = QTextCodec::codecForUtfText(in);
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    setPlainText(codec->toUnicode(in));
+    QApplication::restoreOverrideCursor();*/
 
     setCurrentFile(name);
 

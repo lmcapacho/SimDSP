@@ -398,6 +398,9 @@ void SDSignal::captureBlock(short *pBuffer, int length, void (*callback)())
     tmpblockADC.length = length;
     tmpblockADC.callback = callback;
 
+    if(length <= screenWidth)
+        emit changeSizeWindow(length);
+
     block_capture = &tmpblockADC;
 
     if ( signalType == SIGNAL_MIC )

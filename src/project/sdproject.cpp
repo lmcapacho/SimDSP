@@ -155,6 +155,13 @@ bool SDProject::openExample(QString examplePath)
     return true;
 }
 
+int SDProject::closeActiveProject()
+{
+    int index = projectExplorer->removeActiveProject();
+    path = QDir::currentPath();
+    return index;
+}
+
 int SDProject::closeProject()
 {
     int index = projectExplorer->removeProject();
