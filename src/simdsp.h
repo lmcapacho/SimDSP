@@ -62,11 +62,13 @@ public slots:
     void actionCloseTab();
     void actionCloseAll();
 
-    // Build slots
+    // SDCore slots
     void actionRun();
     void actionStop();
     void actionLoad();
     void actionSave();
+    void actionAutoScale();
+    void actionResetZoom();
 
     // Project slots
     void actionNewProject();
@@ -74,6 +76,7 @@ public slots:
     void actionBuildProject();
     void actionCleanProject();
     void actionCloseProject();
+    void actionCloseActiveProject();
     void actionCloseAllProjectsEditors();
     void actionChangePath();
 
@@ -121,6 +124,7 @@ private:
     loopFunction dsp_loop;
 
     SimDSPCore* sdcore;
+    bool isRun;
 };
 
 #endif // SIMDSP_H

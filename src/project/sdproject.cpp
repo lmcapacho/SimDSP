@@ -33,10 +33,17 @@ SDProject::SDProject(SDProjectexplorer *explorer, SDEditortab *editorTab,
 
     msgRegExp.setPattern(QLatin1String("^(([A-Za-z]:)?[^:]+):(\\d+):(\\d+:)?\\s+((fatal |#)?(warning|error|note):?\\s)?([^\\s].+)$"));
 
+#if QT_VERSION >= 0x050700
     connect(builder, QOverload<QByteArray>::of(&SDBuilder::errorOutput), this, &SDProject::builderOutput);
     connect(builder, QOverload<QByteArray>::of(&SDBuilder::msgOutput), this, &SDProject::builderOutput);
     connect(projectExplorer, QOverload<QString, bool>::of(&SDProjectexplorer::itemActivated), this, &SDProject::itemActivated);
     connect(projectExplorer, QOverload<QString>::of(&SDProjectexplorer::deleteFile), this, &SDProject::removeFile);
+#else
+    connect(builder, SIGNAL(errorOutput(QByteArray)), this, SLOT(builderOutput(QByteArray)));
+    connect(builder, SIGNAL(msgOutput(QByteArray)), this, SLOT(builderOutput(QByteArray)));
+    connect(projectExplorer, SIGNAL(itemActivated(QString,bool)), this, SLOT(itemActivated(QString,bool)));
+    connect(projectExplorer, SIGNAL(deleteFile(QString)), this, SLOT(removeFile(QString)));
+#endif
 }
 
 void SDProject::newProject(QString projectName, QString projectPath)
@@ -146,6 +153,13 @@ bool SDProject::openExample(QString examplePath)
     editor->activeEditor()->loadFile(mainFile, true);
 
     return true;
+}
+
+int SDProject::closeActiveProject()
+{
+    int index = projectExplorer->removeActiveProject();
+    path = QDir::currentPath();
+    return index;
 }
 
 int SDProject::closeProject()

@@ -21,6 +21,7 @@
 #######################################################################
 
 QT       += widgets multimedia printsupport
+CONFIG   += c++11
 
 TARGET = sdcore
 TEMPLATE = lib
@@ -39,7 +40,8 @@ SOURCES += sdcore.cpp \
     sdfunctions.cpp \
     sdsignal.cpp \
     sdaudio.cpp \
-    sdplot.cpp
+    sdplot.cpp \
+    sdmat.cpp
 
 HEADERS += sdcore.h\
     sdcore_global.h \
@@ -48,13 +50,14 @@ HEADERS += sdcore.h\
     sdfunctions.h \
     sdsignal.h \
     sdaudio.h \
-    sdplot.h
+    sdplot.h \
+    sdmat.h
 
 unix {
     target.path = /usr/lib
     INSTALLS += target
 
-    LIBS += -lfftw3 -lm
+    LIBS += -lfftw3 -lm -lmatio
 }
 
 win32 {
@@ -65,4 +68,5 @@ win32 {
 FORMS += \
     sdkeyboard.ui \
     sdcore.ui \
-    sdplot.ui
+    sdplot.ui \
+    sdmat.ui

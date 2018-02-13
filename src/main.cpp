@@ -1,5 +1,6 @@
 #include "simdsp.h"
 #include <QApplication>
+#include <QSplashScreen>
 
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg);
 
@@ -17,8 +18,15 @@ int main(int argc, char *argv[])
 
     QApplication a(argc, argv);
 
+    QSplashScreen *splash = new QSplashScreen;
+    splash->setPixmap(QPixmap(":/resources/images/splash.png"));
+    splash->show();
+    a.processEvents();
+
     SimDSP w;
     w.showMaximized();
+
+    splash->finish(&w);
 
     a.setStyleSheet(styleSheet);
 
@@ -32,9 +40,6 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
         case QtDebugMsg:
             fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
             break;
-        case QtInfoMsg:
-            fprintf(stderr, "Info: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-            break;
         case QtWarningMsg:
             fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
             break;
@@ -44,5 +49,10 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
         case QtFatalMsg:
             fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
             abort();
+    #if QT_VERSION >= 0x050700
+        case QtInfoMsg:
+            fprintf(stderr, "Info: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+            break;
+    #endif
     }
 }

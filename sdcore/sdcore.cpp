@@ -46,20 +46,17 @@ void SimDSPCore::attachInterrupt(void (*callback)())
 
 void SimDSPCore::println(string text)
 {
-    if(output)
-        output->append(QString::fromStdString(text));
+    ui->appOutput->append(QString::fromStdString(text));
 }
 
 void SimDSPCore::println(short number)
 {
-    if(output)
-        output->append(QString::number(number));
+    ui->appOutput->append(QString::number(number));
 }
 
 void SimDSPCore::println(double number)
 {
-    if(output)
-        output->append(QString::number(number));
+    ui->appOutput->append(QString::number(number));
 }
 
 int SimDSPCore::readKeyboard()
@@ -106,53 +103,17 @@ void SimDSPCore::enableMic(int length)
     ui->inputComboBox->setDisabled(true);
 }
 
-void SimDSPCore::setTextOutput(QTextEdit *textOutput)
+void SimDSPCore::clearOutput()
 {
-    output = textOutput;
-}
-
-
-void SimDSPCore::loadFile()
-{
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), QString(), tr("Octave/Matlab Files (*.mat)"));
-
-    if (!fileName.isEmpty()){
-        QFile file(fileName);
-        if (!file.open(QFile::ReadOnly | QFile::Text)) {
-            QMessageBox::warning(this, tr("SimDSP"),
-                                tr("Cannot open file %1:\n%2.")
-                                .arg(QDir::toNativeSeparators(fileName), file.errorString()));
-           return;
-        }
-
-        sd->loadFile(&file);
-
-        file.close();
-    }
-}
-
-void SimDSPCore::saveFile()
-{
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), QString(),tr("Octave/Matlab Files (*.mat)"));
-
-    if(fileName.isEmpty())
-        return;
-
-    QFile file(fileName);
-    if (!file.open(QFile::WriteOnly | QFile::Text)) {
-        QMessageBox::warning(this, tr("SimDSP"),
-                             tr("Cannot write file %1:\n%2.")
-                             .arg(QDir::toNativeSeparators(fileName), file.errorString()));
-        return;
-    }
-
-    sd->saveFile(&file);
+    ui->appOutput->clear();
 }
 
 void SimDSPCore::init()
 {
     sd = new SDSignal;
+    sdmat = new SDMat;
 
+#if QT_VERSION >= 0x050700
     connect(ui->inputComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SimDSPCore::changeInput );
     connect(ui->frequencySpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &SimDSPCore::changeFrequency);
     connect(ui->amplitudeDial, QOverload<int>::of(&QDial::valueChanged), this, &SimDSPCore::changeAmplitude);
@@ -161,6 +122,24 @@ void SimDSPCore::init()
 
     connect(ui->awgnCheckBox, QOverload<bool>::of(&QCheckBox::toggled), this, &SimDSPCore::changeAWGN);
     connect(ui->snrSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), sd, &SDSignal::changeSNR);
+
+    connect(sd, QOverload<int>::of(&SDSignal::changeSizeWindow), this, &SimDSPCore::changeSizeWindow);
+
+    connect(sdmat, QOverload<QString, QString>::of(&SDMat::loadVariable), sd, &SDSignal::loadFile);
+#else
+    connect(ui->inputComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(changeInput(int)));
+    connect(ui->frequencySpinBox, SIGNAL(valueChanged(int)), this, SLOT(changeFrequency(int)));
+    connect(ui->amplitudeDial, SIGNAL(valueChanged(int)), this, SLOT(changeAmplitude(int)));
+    connect(ui->timeBaseDial, SIGNAL(valueChanged(int)), this, SLOT(changeBaseTime(int)));
+    connect(ui->timeFreqGroup, SIGNAL(buttonClicked(QAbstractButton*)), this, SLOT(changeInOutSelect(QAbstractButton*)));
+
+    connect(ui->awgnCheckBox, SIGNAL(toggled(bool)), this, SLOT(changeAWGN(bool)));
+    connect(ui->snrSpinBox, SIGNAL(valueChanged(int)), sd, SLOT(changeSNR(int)));
+
+    connect(sd, SIGNAL(changeSizeWindow(int)), this, SLOT(changeSizeWindow(int)));
+
+    connect(sdmat, SIGNAL(loadVariable(QString,QString)), sd, SLOT(loadFile(QString,QString)));
+#endif
 
     connect(sd, &SDSignal::newData, this, &SimDSPCore::newData);
 
@@ -176,6 +155,40 @@ void SimDSPCore::init()
 /******************************************
  * Public slots
  ******************************************/
+void SimDSPCore::autoScale()
+{
+    ui->PlotA->setAutoScale();
+    ui->PlotB->setAutoScale();
+}
+
+void SimDSPCore::resetZoom()
+{
+    ui->PlotA->resetZoom();
+    ui->PlotB->resetZoom();
+}
+
+void SimDSPCore::loadMatFile()
+{
+    sdmat->show();
+}
+
+void SimDSPCore::saveMatFile()
+{
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), QString(),tr("Matlab/Octave Files (*.mat)"));
+
+    if(fileName.isEmpty())
+        return;
+
+    QFile file(fileName);
+    if (!file.open(QFile::WriteOnly | QFile::Text)) {
+        QMessageBox::warning(this, tr("SimDSP"),
+                             tr("Cannot write file %1:\n%2.")
+                             .arg(QDir::toNativeSeparators(fileName), file.errorString()));
+        return;
+    }
+
+    sd->saveFile(file.fileName());
+}
 
 void SimDSPCore::keyboardClicked()
 {
@@ -244,6 +257,9 @@ void SimDSPCore::changeInOutSelect(QAbstractButton *button)
         ui->inputBox->setTitle("Output (DAC) - Time");
         ui->outputBox->setTitle("Output (DAC) - Frequency");
     }
+
+    ui->PlotA->resetZoom();
+    ui->PlotB->resetZoom();
 }
 
 void SimDSPCore::changeAWGN(bool checked)
@@ -256,6 +272,14 @@ void SimDSPCore::changeAWGN(bool checked)
         ui->snrLabel->setDisabled(true);
         ui->snrSpinBox->setDisabled(true);
     }
+}
+
+void SimDSPCore::changeSizeWindow(int size)
+{
+    ui->PlotA->setMaxSizeWindow(size);
+    ui->PlotB->setMaxSizeWindow(size);
+    ui->PlotA->setSizeWindow(ui->timeBaseDial->value());
+    ui->PlotB->setSizeWindow(ui->timeBaseDial->value());
 }
 
 void SimDSPCore::newData(const QVector<double> *inTime, const QVector<double> *inFreq,

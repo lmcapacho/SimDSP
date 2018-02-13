@@ -270,3 +270,15 @@ void SDEditortab::selectAll()
 {
     activeEditor()->selectAll();
 }
+
+void SDEditortab::undo()
+{
+    if(activeEditor())
+        activeEditor()->undo();
+}
+
+void SDEditortab::redo()
+{
+    if(activeEditor())
+        activeEditor()->redo();
+}

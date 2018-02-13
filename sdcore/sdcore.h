@@ -31,6 +31,7 @@
 #include "sdcore_global.h"
 
 #include "sdsignal.h"
+#include "sdmat.h"
 
 using namespace std;
 
@@ -59,15 +60,18 @@ public:
     void playBlock( short* pBuffer, int length, void (*callback)() );
     void enableMic(int length);
 
-    void setTextOutput(QTextEdit *textOutput);
+    void clearOutput();
 
     void init();
     void start();
     void stop();
-    void loadFile();
-    void saveFile();
 
 public slots:
+    void autoScale();
+    void resetZoom();
+    void loadMatFile();
+    void saveMatFile();
+
     void keyboardClicked();
 
     void changeInput(int inputIndex);
@@ -79,6 +83,8 @@ public slots:
 
     void changeAWGN(bool checked);
 
+    void changeSizeWindow(int size);
+
     void newData(const QVector<double> *inTime, const QVector<double> *inFreq,
                  const QVector<double> *outTime, const QVector<double> *outFreq);
 
@@ -89,6 +95,7 @@ private:
 
     void (*sdKeyboardISRFnc)();
 
+    SDMat *sdmat;
     SDSignal *sd;
 };
 

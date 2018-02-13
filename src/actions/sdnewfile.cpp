@@ -31,8 +31,14 @@ SDNewFile::SDNewFile(QWidget *parent) :
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 
     loadTemplate(SOURCE);
+
+#if QT_VERSION >= 0x050700
     connect(ui->templateSelect, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SDNewFile::changeTemplateSelect);
     connect(ui->fileName, QOverload<const QString&>::of(&QLineEdit::textChanged), this, &SDNewFile::changeFileName);
+#else
+    connect(ui->templateSelect, SIGNAL(currentIndexChanged(int)), this, SLOT(changeTemplateSelect(int)));
+    connect(ui->fileName, SIGNAL(textChanged(QString)), this, SLOT(changeFileName(QString)));
+#endif
     connect(ui->buttonBox,&QDialogButtonBox::accepted, this, &SDNewFile::accepted);
 }
 

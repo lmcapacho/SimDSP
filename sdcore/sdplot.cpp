@@ -49,11 +49,17 @@ SDPlot::SDPlot(QWidget *parent) :
     cursorLabel->setColor(QColor(Qt::white));
     cursorLabel->position->setCoords(0, ui->customPlot->yAxis->range().lower);
 
+#if QT_VERSION >= 0x050700
     connect(ui->customPlot, QOverload<QMouseEvent*>::of(&QCustomPlot::mousePress), this, &SDPlot::plotMouseMove);
     connect(ui->customPlot, QOverload<QMouseEvent*>::of(&QCustomPlot::mouseMove), this, &SDPlot::plotMouseMove);
     connect(ui->customPlot, QOverload<QMouseEvent*>::of(&QCustomPlot::mouseRelease), this, &SDPlot::plotMouseRelease);
+#else
+    connect(ui->customPlot, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(plotMouseMove(QMouseEvent*)));
+    connect(ui->customPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(plotMouseMove(QMouseEvent*)));
+    connect(ui->customPlot, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(plotMouseRelease(QMouseEvent*)));
+#endif
 
-    sizeWindow = 850;
+    sizeWindow = maxSizeWindow = 850;
 
     keysTime = new QVector<double>(sizeWindow);
 
@@ -70,6 +76,9 @@ SDPlot::SDPlot(QWidget *parent) :
     cursorMove = false;
     x = y = 0;
     fs = 8000.0;
+
+    yMax = 1.2;
+    bAutoScale = false;
 }
 
 SDPlot::~SDPlot()
@@ -77,10 +86,16 @@ SDPlot::~SDPlot()
     delete ui;
 }
 
+void SDPlot::setMaxSizeWindow(int size)
+{
+    if( size <= 850 ){
+        maxSizeWindow = size;
+    }
+}
 
 void SDPlot::setSizeWindow(int size)
 {
-    sizeWindow = (850/size)-1;
+    sizeWindow = (maxSizeWindow/size)-1;
 }
 
 void SDPlot::clearPlot()
@@ -94,6 +109,15 @@ void SDPlot::setfs(double fsValue)
     fs = fsValue;
 }
 
+void SDPlot::setAutoScale()
+{
+    bAutoScale = true;
+}
+
+void SDPlot::resetZoom()
+{
+    yMax = 1.2;
+}
 
 /************************************************************
  * Public slots
@@ -118,11 +142,17 @@ void SDPlot::plotMouseRelease(QMouseEvent *event)
 
 void SDPlot::updatePlotTime(const QVector<double> *data)
 {
+    if(bAutoScale){
+        yMax = *std::max_element(data->begin(), data->end());
+        yMax += yMax*0.2;
+        bAutoScale = false;
+    }
+
     ui->customPlot->graph()->setPen(QPen(QColor(229, 217, 11)));
 
     ui->customPlot->graph()->setData(*keysTime, *data);
     ui->customPlot->xAxis->setRange(0,sizeWindow);
-    ui->customPlot->yAxis->setRange(-1.2, 1.2);
+    ui->customPlot->yAxis->setRange(-yMax, yMax);
 
     cursor->start->setCoords(QCPRange::minRange, y);
     cursor->end->setCoords(QCPRange::maxRange, y);
@@ -136,11 +166,17 @@ void SDPlot::updatePlotTime(const QVector<double> *data)
 
 void SDPlot::updatePlotFreq(const QVector<double> *data)
 {
+    if(bAutoScale){
+        yMax = *std::max_element(data->begin(), data->end());
+        yMax += yMax*0.2;
+        bAutoScale = false;
+    }
+
     ui->customPlot->graph()->setPen(QPen(QColor(64, 186, 225)));
 
     ui->customPlot->graph()->setData(*keysFreq, *data);
     ui->customPlot->xAxis->setRange(0,512);
-    ui->customPlot->yAxis->setRange(0, 1.2);
+    ui->customPlot->yAxis->setRange(0, yMax);
 
     cursor->start->setCoords(x, QCPRange::minRange);
     cursor->end->setCoords(x, QCPRange::maxRange);

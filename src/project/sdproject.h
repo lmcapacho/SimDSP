@@ -45,6 +45,7 @@ public:
     bool openProject(QString projectPath);
     bool openExample(QString examplePath);
     int  closeProject();
+    int  closeActiveProject();
     bool buildProject();
     void cleanProject();
     void closeAll();

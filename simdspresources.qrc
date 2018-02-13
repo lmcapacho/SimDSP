@@ -18,5 +18,8 @@
         <file>resources/templates/Makefile_win</file>
         <file>resources/images/icons/simdsp.png</file>
         <file>resources/files/SDWords.txt</file>
+        <file>resources/images/splash.png</file>
+        <file>resources/images/icons/autoscale.png</file>
+        <file>resources/images/icons/resetzoom.png</file>
     </qresource>
 </RCC>

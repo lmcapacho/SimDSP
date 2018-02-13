@@ -66,7 +66,7 @@ void SDAudio::initSoundCard(int bSize, double fs)
     QAudioDeviceInfo infoInput(QAudioDeviceInfo::defaultInputDevice());
     if (!infoInput.isFormatSupported(audioFormat))
     {
-        qInfo() << "Default format not supported - trying to use nearest";
+        qDebug() << "Default format not supported - trying to use nearest";
         audioFormat = infoInput.nearestFormat(audioFormat);
     }
 
@@ -74,7 +74,7 @@ void SDAudio::initSoundCard(int bSize, double fs)
 
     if (!infoOutput.isFormatSupported(audioFormat))
     {
-        qInfo() << "Default format not supported - trying to use nearest";
+        qDebug() << "Default format not supported - trying to use nearest";
         audioFormat = infoOutput.nearestFormat(audioFormat);
     }
     createAudioInput();
@@ -101,6 +101,7 @@ void SDAudio::record()
         audioInput->resume();
     }
     inputData->reset();
+
     connect(inputData, &QIODevice::readyRead, this, &SDAudio::readMore);
 }
 
@@ -112,13 +113,21 @@ void SDAudio::play(short *outBuffer)
     charBuffer = reinterpret_cast<char*>(outBuffer);
 
     outputData->write(charBuffer, bufferSize);
+#if QT_VERSION >= 0x050700
     connect(audioOutput, QOverload<QAudio::State>::of(&QAudioOutput::stateChanged), this,  &SDAudio::stateChanged);
+#else
+    connect(audioOutput, SIGNAL(stateChanged(QAudio::State)), this, SLOT(stateChanged(QAudio::State)));
+#endif
 }
 
 void SDAudio::stateChanged(QAudio::State state)
 {
     if(state == QAudio::IdleState ){
+    #if QT_VERSION >= 0x050700
         disconnect(audioOutput, QOverload<QAudio::State>::of(&QAudioOutput::stateChanged), this,  &SDAudio::stateChanged);
+    #else
+        disconnect(audioOutput, SIGNAL(stateChanged(QAudio::State)), this, SLOT(stateChanged(QAudio::State)));
+    #endif
         emit playFinish();
     }
 }

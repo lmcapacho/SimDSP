@@ -30,6 +30,7 @@
 #include <QPlainTextEdit>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QTextCodec>
 #include <QTextStream>
 #include <QApplication>
 #include <QPainter>

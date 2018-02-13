@@ -24,6 +24,9 @@
 
 #include <QWidget>
 #include <QVector>
+
+#include <algorithm>
+
 #include "qcustomplot.h"
 
 namespace Ui {
@@ -38,10 +41,13 @@ public:
     explicit SDPlot(QWidget *parent = 0);
     ~SDPlot();
     void setSizeWindow(int size);
+    void setMaxSizeWindow(int size);
     void updatePlotTime(const QVector<double> *data);
     void updatePlotFreq(const QVector<double> *data);
     void clearPlot();
     void setfs(double fsValue);
+    void setAutoScale();
+    void resetZoom();
 
 public slots:
     void plotMouseRelease(QMouseEvent *event);
@@ -61,7 +67,11 @@ private:
     double fs;
     bool cursorMove;
 
+    double yMax;
+    bool bAutoScale;
+
     int sizeWindow;
+    int maxSizeWindow;
 };
 
 #endif // SDPLOT_H

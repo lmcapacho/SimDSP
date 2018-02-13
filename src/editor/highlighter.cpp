@@ -92,7 +92,7 @@ Highlighter::Highlighter(QTextDocument *parent)
 
     variableFormat.setForeground(QColor("#986801"));
     rule.format = variableFormat;
-    rule.pattern = QRegularExpression("\\b(0[xX][0-9a-fA-F]+|(\\d+)(\\d+(\\.\\d{1,2})?)|0[b][0-1]+)\\b");
+    rule.pattern = QRegularExpression("\\b(0[xX][0-9a-fA-F]+|(\\d+)(\\d+(\\.\\d{1,2})?)|0[b][0-1]+|[0-9]+.[0-9]+|[0-9]+)\\b");
     highlightingRules.append(rule);
 
     QFile fileSD(":/resources/files/SDWords.txt");
