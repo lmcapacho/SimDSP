@@ -72,6 +72,7 @@ unix {
 
 win32 {
     INCLUDEPATH += "$$PWD\resources\dependencies\fftw3"
+    INCLUDEPATH += "$$PWD\resources\dependencies\matio"
 }
 	
 TARGET = SimDSP
