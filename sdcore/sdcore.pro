@@ -53,16 +53,19 @@ HEADERS += sdcore.h\
     sdplot.h \
     sdmat.h
 
+INCLUDEPATH += $$PWD/../resources/dependencies/rtaudio
+
 unix {
     target.path = /usr/lib
     INSTALLS += target
-
     LIBS += -lfftw3 -lm -lmatio
+    LIBS += -L$$PWD/../resources/dependencies/rtaudio/libs/linux-64 -lrtaudio
 }
 
 win32 {
     INCLUDEPATH += "$$PWD\..\resources\dependencies\fftw3"
     LIBS += "$$PWD\..\resources\dependencies\fftw3\libfftw3-3.dll"
+    LIBS += -L$$PWD\..\resources\dependencies\rtaudio\libs\windows-32 -lrtaudio
 }
 
 FORMS += \

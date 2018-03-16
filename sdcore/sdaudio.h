@@ -1,7 +1,7 @@
 /*
  * SimDSP Audio.
  *
- * Copyright (c) 2017 lmcapacho
+ * Copyright (c) 2018 parrado
  *
  * This file is part of SimDSP.
  *
@@ -24,16 +24,17 @@
 #define SDAUDIO_H
 
 #include <QObject>
-
+#include <QMutex>
 #include <QDebug>
 #include <QIODevice>
 #include <QtEndian>
 #include <QBuffer>
 #include <QAudioInput>
 #include <QAudioOutput>
+#include <RtAudio.h>
 #include <QThread>
 
-class SDAudio : public QThread
+class SDAudio : public QObject
 {
     Q_OBJECT
 public:
@@ -42,39 +43,22 @@ public:
 
     void initSoundCard() {initSoundCard(4096, 8000);}
     void initSoundCard(int bSize, double fs);
-    void createAudioInput();
-    void createAudioOutput();
+
 
     void record();
     void play(short *outBuffer);
 
-    void setSampleRate(int sampleRate);
-    void setSampleSize(int sampleSize);
-    void setChannelCount(int channelCount);
-
-    void run();
+    QByteArray *buffer_adc;
+    QByteArray *buffer_dac;
+    QMutex *mutex_adc;
+    QMutex *mutex_dac;
 
 signals:
     void recordFinish( short *inBuffer);
     void playFinish();
 
-public slots:
-    void readMore();
-    void stateChanged(QAudio::State state);
-
 private:
-
-    QAudioDeviceInfo audioInputDevice;
-    QAudioDeviceInfo audioOutputDevice;
-    QAudioInput *audioInput;
-    QAudioOutput *audioOutput;
-    QIODevice *inputData;
-    QAudioFormat audioFormat;
-    QIODevice *outputData;
-    QByteArray *buffer;
-
-    char* charBuffer;
-
+    RtAudio *adc,*dac;
     int bufferSize;
 };
 

@@ -26,6 +26,7 @@ CONFIG   += c++11
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
 INCLUDEPATH += sdcore
+INCLUDEPATH += $$PWD/resources/dependencies/rtaudio
 
 LIBS += -Lsdcore/build -lsdcore
 
@@ -45,33 +46,35 @@ UI_DIR = build/ui
 
 unix {
 
-	isEmpty(PREFIX) {
-		PREFIX = /usr
-	}
-	BINDIR = $$PREFIX/bin
-	INCLUDEDIR = $$PREFIX/include
-	DATADIR = $$PREFIX/share
-	PKGDATADIR = $$DATADIR/simdsp
-  
-	target.path = $$BINDIR
-	
-	bin.path = $$PKGDATADIR
-	bin.files = simdsp
-	
-	include.path = $$INCLUDEDIR
-	include.files += sdcore/simdsp.h sdcore/sdfunctions.h
-	
-	desktop.path = $$DATADIR/applications
-	desktop.files += simdsp.desktop
-  
-	icon.path = $$DATADIR/icons
-	icon.extra = install -D -m 0644 $$PWD/resources/images/simdsp_icon.png $(INSTALL_ROOT)$$DATADIR/icons/simdsp.png
-	
-	INSTALLS += target bin include desktop icon 
+    isEmpty(PREFIX) {
+            PREFIX = /usr
+    }
+    BINDIR = $$PREFIX/bin
+    INCLUDEDIR = $$PREFIX/include
+    DATADIR = $$PREFIX/share
+    PKGDATADIR = $$DATADIR/simdsp
+
+    target.path = $$BINDIR
+
+    bin.path = $$PKGDATADIR
+    bin.files = simdsp
+
+    include.path = $$INCLUDEDIR
+    include.files += sdcore/simdsp.h sdcore/sdfunctions.h
+
+    desktop.path = $$DATADIR/applications
+    desktop.files += simdsp.desktop
+
+    icon.path = $$DATADIR/icons
+    icon.extra = install -D -m 0644 $$PWD/resources/images/simdsp_icon.png $(INSTALL_ROOT)$$DATADIR/icons/simdsp.png
+
+    INSTALLS += target bin include desktop icon
+    LIBS += -L$$PWD/resources/dependencies/rtaudio/libs/linux-64 -lrtaudio
 }
 
 win32 {
     INCLUDEPATH += "$$PWD\resources\dependencies\fftw3"
+    LIBS += -L$$PWD\resources\dependencies\rtaudio\libs\windows-32 -lrtaudio
 }
 	
 TARGET = SimDSP

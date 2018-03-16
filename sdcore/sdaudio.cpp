@@ -1,7 +1,7 @@
 /*
  * SimDSP Audio.
  *
- * Copyright (c) 2017 lmcapacho
+ * Copyright (c) 2018 parrado
  *
  * This file is part of SimDSP.
  *
@@ -19,150 +19,136 @@
  * along with SimDSP.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "sdaudio.h"
 
 SDAudio::SDAudio(QObject *parent) :
-    QThread(parent)
-    , audioInputDevice(QAudioDeviceInfo::defaultInputDevice())
-    , audioOutputDevice(QAudioDeviceInfo::defaultOutputDevice())
-    , audioInput(0)
-    , audioOutput(0)
-    , inputData(0)
-    , outputData(0)
+    QObject(parent)
 {
-    audioFormat.setSampleSize(16);
-    audioFormat.setSampleRate(8000);
-    audioFormat.setChannelCount(1);
-    audioFormat.setCodec("audio/pcm");
-    audioFormat.setSampleType(QAudioFormat::SignedInt);
-    audioFormat.setByteOrder(QAudioFormat::LittleEndian);
-
-    start();
+    adc = new RtAudio();
+    dac = new RtAudio();
+    mutex_adc=new QMutex();
+    mutex_dac=new QMutex();
 }
 
 SDAudio::~SDAudio()
 {
-    delete buffer;
-    audioInput->stop();
-    audioOutput->stop();
+    adc->stopStream();
+    dac->stopStream();
+    adc->closeStream();
+    dac->closeStream();
 
-    quit();
-    wait();
+    delete buffer_adc;
+    delete buffer_dac;
+    delete mutex_adc;
+    delete mutex_dac;
 }
 
-void SDAudio::run()
+//Callback de captura de la tarjeta de sonido
+int in( void  * /*outputBuffer*/, void *inputBuffer, unsigned int nBufferFrames,
+           double /*streamTime*/, RtAudioStreamStatus /*status*/, void * data )
 {
-    exec();
+    SDAudio *sda;
+
+    sda=(SDAudio*)data;
+
+    QMutex *mtx_adc=sda->mutex_adc;
+
+    QByteArray *bufferin=sda->buffer_adc;
+
+    //Se copian los datos al buffer de captura de SimDSP (exclusión mútua)
+    mtx_adc->lock();
+     memcpy(bufferin->data(),inputBuffer,nBufferFrames*sizeof(short));
+    mtx_adc->unlock();
+
+    //Se emite la señal de final de captura a la GUI
+    emit sda->recordFinish((short*)bufferin->data()) ;
+
+    return 0;
 }
 
+//Callback de reproducción de la tarjeta de sonido
+int out( void *outputBuffer, void * /*inputBuffer*/, unsigned int nBufferFrames,
+           double /*streamTime*/, RtAudioStreamStatus /*status*/, void * data )
+{
+    SDAudio *sda;
+
+    sda=(SDAudio*)data;
+
+    QMutex *mtx_dac=sda->mutex_dac;
+
+    QByteArray *bufferout=sda->buffer_dac;
+    short *outaux=(short *)outputBuffer;
+    short *bufferoutaux=(short *)bufferout->constData();
+
+    //Se copian los datos mezclados a los canales estereo usando exclusión mútua.
+    mtx_dac->lock();
+    for(unsigned int i=0;i<nBufferFrames;i++){
+        outaux[2*i]=bufferoutaux[i];
+        outaux[2*i+1]=bufferoutaux[i];
+    }
+    mtx_dac->unlock();
+
+    //Emite señal de final de reproducción a la GUI
+    emit sda->playFinish();
+
+    return 0;
+}
+
+//Inicializa tarjeta de sonido con rtaudio
 void SDAudio::initSoundCard(int bSize, double fs)
 {
-    bufferSize = bSize<<1;
-    buffer =  new QByteArray(bufferSize, 0);
 
-    setSampleRate(fs);
+    bufferSize = bSize*sizeof(short);
+    buffer_adc =  new QByteArray(bufferSize, 0);
+    buffer_dac =  new QByteArray(bufferSize, 0);
 
-    QAudioDeviceInfo infoInput(QAudioDeviceInfo::defaultInputDevice());
-    if (!infoInput.isFormatSupported(audioFormat))
-    {
-        qDebug() << "Default format not supported - trying to use nearest";
-        audioFormat = infoInput.nearestFormat(audioFormat);
+    unsigned int fsl = fs;
+
+    unsigned int bufferFrames = bSize;
+    RtAudio::StreamParameters iParams, oParams;
+    iParams.deviceId = 0;
+    iParams.nChannels = 1;
+    iParams.firstChannel = 0;
+
+    oParams.deviceId = 0;
+    oParams.nChannels = 2;
+    oParams.firstChannel = 0;
+
+
+    iParams.deviceId = adc->getDefaultInputDevice();
+
+    oParams.deviceId = dac->getDefaultOutputDevice();
+
+    RtAudio::StreamOptions options;
+
+
+    if(adc->isStreamOpen()){
+        if(adc->isStreamRunning())
+            adc->stopStream();
+        adc->closeStream();
     }
-
-    QAudioDeviceInfo infoOutput(QAudioDeviceInfo::defaultOutputDevice());
-
-    if (!infoOutput.isFormatSupported(audioFormat))
-    {
-        qDebug() << "Default format not supported - trying to use nearest";
-        audioFormat = infoOutput.nearestFormat(audioFormat);
+    if(dac->isStreamOpen()){
+        if(dac->isStreamRunning())
+            dac->stopStream();
+        dac->closeStream();
     }
-    createAudioInput();
-    createAudioOutput();
-}
+    adc->openStream( NULL, &iParams, RTAUDIO_SINT16, fsl, &bufferFrames, &in, (void *)this, &options );
+    dac->openStream( &oParams, NULL, RTAUDIO_SINT16, fsl, &bufferFrames, &out, (void *)this, &options );
 
-void SDAudio::createAudioOutput()
-{
-    audioOutput = new QAudioOutput(audioOutputDevice, audioFormat, this);
-    audioOutput->setBufferSize(bufferSize);
-}
-
-void SDAudio::createAudioInput()
-{
-    audioInput = new QAudioInput(audioInputDevice, audioFormat, this);
-    audioInput->setBufferSize(bufferSize);
 }
 
 void SDAudio::record()
 {
-    if(!inputData){
-        inputData = audioInput->start();
-    }else{
-        audioInput->resume();
-    }
-    inputData->reset();
-
-    connect(inputData, &QIODevice::readyRead, this, &SDAudio::readMore);
+    if(adc->isStreamRunning()==false)
+    adc->startStream();
 }
 
 void SDAudio::play(short *outBuffer)
 {
-    if(!outputData){
-        outputData = audioOutput->start();
-    }
-    charBuffer = reinterpret_cast<char*>(outBuffer);
+    if(dac->isStreamRunning()==false)
+    dac->startStream();
 
-    outputData->write(charBuffer, bufferSize);
-#if QT_VERSION >= 0x050700
-    connect(audioOutput, QOverload<QAudio::State>::of(&QAudioOutput::stateChanged), this,  &SDAudio::stateChanged);
-#else
-    connect(audioOutput, SIGNAL(stateChanged(QAudio::State)), this, SLOT(stateChanged(QAudio::State)));
-#endif
-}
-
-void SDAudio::stateChanged(QAudio::State state)
-{
-    if(state == QAudio::IdleState ){
-    #if QT_VERSION >= 0x050700
-        disconnect(audioOutput, QOverload<QAudio::State>::of(&QAudioOutput::stateChanged), this,  &SDAudio::stateChanged);
-    #else
-        disconnect(audioOutput, SIGNAL(stateChanged(QAudio::State)), this, SLOT(stateChanged(QAudio::State)));
-    #endif
-        emit playFinish();
-    }
-}
-
-void SDAudio::readMore()
-{
-    if(!audioInput )
-        return;
-
-    qint64 len = audioInput->bytesReady();
-
-    if(len < bufferSize)
-       return;
-
-    if(len > bufferSize)
-       len = bufferSize;
-
-    qint64 l = inputData->read(buffer->data(), len);
-    if(l > 0){
-       audioInput->suspend();
-       emit recordFinish((short*)buffer->data()) ;
-    }
-}
-
-void SDAudio::setSampleRate(int sampleRate)
-{
-    audioFormat.setSampleRate(sampleRate);
-}
-
-void SDAudio::setSampleSize(int sampleSize)
-{
-    audioFormat.setSampleSize(sampleSize);
-}
-
-void SDAudio::setChannelCount(int channelCount)
-{
-    audioFormat.setChannelCount(channelCount);
+    mutex_dac->lock();
+    memcpy(buffer_dac->data(),outBuffer,bufferSize);
+    mutex_dac->unlock();
 }

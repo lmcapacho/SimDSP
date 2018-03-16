@@ -254,6 +254,10 @@ void SDProjectexplorer::showContextMenu(const QPoint &pos)
                 QAction* m_new_file = new QAction(QIcon(":/resources/images/icons/new_file.png"), tr("New File"), this);
                 connect(m_new_file, &QAction::triggered, this, &SDProjectexplorer::newFile);
                 menu->addAction(m_new_file);
+
+                QAction* m_add_library = new QAction(tr("Add library"), this);
+                //connect(m_add_library, &QAction::triggered, this, &SDProjectexplorer::cleanProject);
+                menu->addAction(m_add_library);
             }
         }
 
