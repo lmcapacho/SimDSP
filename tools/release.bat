@@ -104,12 +104,12 @@ copy %app_folder%\resources\dependencies\fftw3\libfftw3-3.dll
 echo.
 cd %release_folder%
 if not exist resources mkdir resources
+move SimDSP.exe dlls
 move include resources
 move dlls\platforms resources
 move dlls resources
 move examples resources
 move icons resources
-move SimDSP.exe resources
 
 %script_folder%\Bat_To_Exe_Converter\Bat_To_Exe_Converter_x64.exe /bat simdsp.bat /exe SimDSP.exe /icon resources\icons\simdsp.ico
 del simdsp.bat

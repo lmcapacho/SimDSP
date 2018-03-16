@@ -52,7 +52,7 @@ SDProjectexplorer::~SDProjectexplorer()
 
 
 void SDProjectexplorer::addProject(QString path, QString name)
-{    
+{
     QFont font;
     currentProject = new QTreeWidgetItem();
     ui->projectTreeWidget->addTopLevelItem(currentProject);

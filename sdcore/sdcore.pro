@@ -63,9 +63,13 @@ unix {
 }
 
 win32 {
-    INCLUDEPATH += "$$PWD\..\resources\dependencies\fftw3"
-    LIBS += "$$PWD\..\resources\dependencies\fftw3\libfftw3-3.dll"
-    LIBS += -L$$PWD\..\resources\dependencies\rtaudio\libs\windows-32 -lrtaudio
+    INCLUDEPATH += "$$PWD\..\resources\dependencies\fftw3"  \
+                   "$$PWD\..\resources\dependencies\matio"
+    LIBS += "$$PWD\..\resources\dependencies\fftw3\libfftw3-3.dll" \
+            "$$PWD\..\resources\dependencies\matio\libmatio.dll" \
+            "$$PWD\..\resources\dependencies\matio\hdf5.dll" \
+            "$$PWD\..\resources\dependencies\matio\zlib.dll"
+	LIBS += -L$$PWD\..\resources\dependencies\rtaudio\libs\windows-32 -lrtaudio            
 }
 
 FORMS += \

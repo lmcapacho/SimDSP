@@ -74,6 +74,7 @@ unix {
 
 win32 {
     INCLUDEPATH += "$$PWD\resources\dependencies\fftw3"
+	INCLUDEPATH += "$$PWD\resources\dependencies\matio"
     LIBS += -L$$PWD\resources\dependencies\rtaudio\libs\windows-32 -lrtaudio
 }
 	

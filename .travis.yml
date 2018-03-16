@@ -21,7 +21,7 @@ install:
   - ./configure --prefix=/usr/local/hdf5 --quiet --enable-shared --enable-build-mode=debug --disable-deprecated-symbols --disable-hl --disable-strict-format-checks --disable-memory-alloc-sanity-check --disable-instrument --disable-parallel --disable-trace --disable-internal-debug --enable-optimization=debug --disable-asserts --with-pic --with-default-api-version=v110 CFLAGS="-w"
   - sudo make install -C src
   - cd ..
-  - git clone git://git.code.sf.net/p/matio/matio
+  - git clone https://github.com/tbeu/matio.git
   - cd matio
   - ./autogen.sh
   - ./configure --enable-mat73=yes --with-hdf5=/usr/local/hdf5
