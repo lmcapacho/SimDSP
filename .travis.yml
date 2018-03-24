@@ -8,7 +8,10 @@ before_script:
 
 install:
   - sudo apt-get install -y qt5-default qttools5-dev-tools libqt5multimedia5 qtmultimedia5-dev libfftw3-3 libfftw3-dev libegl1-mesa
+  # RtAudio support
+  - sudo apt-get install libasound2-dev libjack-dev libpulse-dev doxygen oss4-dev
   
+  # Install matio
   - mkdir matio
   - cd matio
   - git clone --depth 5 https://github.com/madler/zlib
@@ -26,6 +29,14 @@ install:
   - ./autogen.sh
   - ./configure --enable-mat73=yes --with-hdf5=/usr/local/hdf5
   - make 
+  - sudo make install
+  - cd $TRAVIS_BUILD_DIR
+  
+  # Install RtAudio
+  - git clone https://github.com/thestk/rtaudio.git
+  - cd rtaudio
+  - ./autogen.sh
+  - make
   - sudo make install
   - cd $TRAVIS_BUILD_DIR
 
