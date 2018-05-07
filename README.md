@@ -28,4 +28,4 @@ The SimDSP app is written on top of the [Qt cross-platform framework](http://qt-
 
 # Licensing
 
-This software is available under an open source GNU license available on GitHub.
+This software is available under an open source GNU license available on [GitHub](https://github.com/lmcapacho/SimDSP).
