@@ -1,0 +1,19 @@
+
+  name: simdsp
+  version: '1.0.0'
+  summary: Simulation software for Digital Signal Processing
+  description: |
+    SimDSP provides simulation of DSP algorithms written in C/C++ 
+    language by generating the necessary signals of 15-bit ADC and DAC. 
+    The programs under debugging must be written using the editor included in this software. 
+    It is not necessary to install any compiler for compiling or debugging purposes, 
+    since installers are boundle versions that includes editor, compiler and debugger.
+
+  grade: stable 
+  confinement: devmode 
+
+  parts:
+    my-part:
+      # See 'snapcraft plugins'
+      plugin: nil
+  
