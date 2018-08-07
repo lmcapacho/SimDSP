@@ -41,8 +41,8 @@ public:
     explicit SDAudio(QObject *parent = 0);
     ~SDAudio();
 
-    void initSoundCard() {initSoundCard(4096, 8000);}
-    void initSoundCard(int bSize, double fs);
+    int initSoundCard() { return initSoundCard(4096, 8000);}
+    int initSoundCard(int bSize, double fs);
 
 
     void record();

@@ -23,15 +23,21 @@
 HEADERS += \
     src/project/sdproject.h \
     src/project/sdprojectexplorer.h \
-    src/project/sdnewproject.h    
+    src/project/sdnewproject.h \
+    src/project/sdbuildoptions.h \
+    src/project/sdeditlib.h
     
 SOURCES += \
     src/project/sdproject.cpp \
-    src/project/sdnewproject.cpp \     
-    $$PWD/../src/project/sdprojectexplorer.cpp
+    src/project/sdnewproject.cpp \
+    src/project/sdprojectexplorer.cpp \
+    src/project/sdbuildoptions.cpp \
+    src/project/sdeditlib.cpp
     
 FORMS    += \
     src/project/sdprojectexplorer.ui \
-    src/project/sdnewproject.ui 
+    src/project/sdnewproject.ui \
+    src/project/sdbuildoptions.ui \
+    src/project/sdeditlib.ui
 
 

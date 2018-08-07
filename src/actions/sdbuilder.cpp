@@ -32,21 +32,13 @@ SDBuilder::SDBuilder()
 bool SDBuilder::build()
 {
     QDir build(QDir::currentPath()+"/build");
+    QDir currentPath(QDir::currentPath());
+    QString mkName = currentPath.dirName()+".mk";
 
-#ifdef Q_OS_LINUX
-    QString mkName = "Makefile_linux";
-#elif defined(Q_OS_WIN32)
-    QString mkName = "Makefile_win";
-#endif
-
-    if( ! build.exists() )
+    if( !build.exists() )
         create();
     else{
-    #ifdef Q_OS_LINUX
-        QFile makefile("build/Makefile_linux");
-    #elif defined(Q_OS_WIN32)
-        QFile makefile("build/Makefile_win");
-    #endif
+        QFile makefile(mkName);
         if( !makefile.exists() )
             createMakefile();
     }
@@ -56,10 +48,10 @@ bool SDBuilder::build()
 
 #ifdef Q_OS_LINUX
     QFile::remove(QDir::currentPath()+"/build/libsdcode.so");
-    process->start("make", QStringList() << "-C" << "build" << "-f" << mkName);
+    process->start("make", QStringList() << "-f" << mkName);
 #elif defined(Q_OS_WIN32)
     QFile::remove(QDir::currentPath()+"/build/libsdcode.dll");
-    process->start("mingw32-make", QStringList() << "-C" << "build" << "-f" << mkName);
+    process->start("mingw32-make", QStringList() << "-f" << mkName);
 #endif
 
     process->waitForStarted();
@@ -80,29 +72,22 @@ bool SDBuilder::build()
 void SDBuilder::clean()
 {
     QDir build(QDir::currentPath()+"/build");
-
-#ifdef Q_OS_LINUX
-    QString mkName = "Makefile_linux";
-#elif defined(Q_OS_WIN32)
-    QString mkName = "Makefile_win";
-#endif
+    QDir currentPath(QDir::currentPath());
+    QString mkName = currentPath.dirName()+".mk";
 
     if( ! build.exists() )
         return;
     else{
-#ifdef Q_OS_LINUX
-    QFile makefile("build/Makefile_linux");
-#elif defined(Q_OS_WIN32)
-    QFile makefile("build/Makefile_win");
-#endif
+        QFile makefile(mkName);
+
         if( !makefile.exists() )
             createMakefile();
     }
 
 #ifdef Q_OS_LINUX
-    process->start("make", QStringList() << "-C" << "build" << "-f" << mkName << "clean");
+    process->start("make", QStringList() << "-f" << mkName << "clean");
 #elif defined(Q_OS_WIN32)
-    process->start("mingw32-make", QStringList() << "-C" << "build" << "-f" << mkName << "clean");
+    process->start("mingw32-make", QStringList() << "-f" << mkName << "clean");
 #endif
     process->waitForStarted();
     process->waitForFinished();
@@ -118,13 +103,11 @@ void SDBuilder::create()
 
 void SDBuilder::createMakefile()
 {
-#ifdef Q_OS_LINUX
-    QFile::copy(":/resources/templates/Makefile_linux", "build/Makefile_linux");
-    QFile makefile("build/Makefile_linux");
-#elif defined(Q_OS_WIN32)
-    QFile::copy(":/resources/templates/Makefile_win", "build/Makefile_win");
-    QFile makefile("build/Makefile_win");
-#endif
+    QDir currentPath(QDir::currentPath());
+    QString mkName = currentPath.dirName()+".mk";
+
+    QFile::copy(":/resources/templates/Makefile_simdsp", mkName);
+    QFile makefile(mkName);
     makefile.setPermissions(QFile::WriteUser | QFile::ReadUser);
 }
 

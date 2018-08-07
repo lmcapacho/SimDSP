@@ -1,7 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>resources/files/keyWords.txt</file>
-        <file>resources/templates/Makefile_linux</file>
         <file>resources/templates/sdBaseTPL.txt</file>
         <file>resources/templates/sdSourceTPL.txt</file>
         <file>resources/templates/sdHeaderTPL.txt</file>
@@ -15,11 +14,14 @@
         <file>resources/images/icons/builder.png</file>
         <file>resources/images/icons/new_file.png</file>
         <file>resources/images/icons/save.png</file>
-        <file>resources/templates/Makefile_win</file>
         <file>resources/images/icons/simdsp.png</file>
         <file>resources/files/SDWords.txt</file>
         <file>resources/images/splash.png</file>
         <file>resources/images/icons/autoscale.png</file>
         <file>resources/images/icons/resetzoom.png</file>
+        <file>resources/templates/Makefile_simdsp</file>
+        <file>resources/images/icons/add.png</file>
+        <file>resources/images/icons/edit.png</file>
+        <file>resources/images/icons/remove.png</file>
     </qresource>
 </RCC>

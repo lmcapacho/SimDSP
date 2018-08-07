@@ -32,6 +32,8 @@
 #include <QDebug>
 #include <QUrl>
 
+#include "sdbuildoptions.h"
+
 namespace Ui {
 class SDProjectexplorer;
 }
@@ -73,6 +75,7 @@ public slots:
     void showContainingFolder();
     void openFile();
     void removeFile();
+    void buildOptions();
 
 private:
 

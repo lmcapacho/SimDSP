@@ -95,7 +95,7 @@ int out( void *outputBuffer, void * /*inputBuffer*/, unsigned int nBufferFrames,
 }
 
 //Inicializa tarjeta de sonido con rtaudio
-void SDAudio::initSoundCard(int bSize, double fs)
+int SDAudio::initSoundCard(int bSize, double fs)
 {
 
     bufferSize = bSize*sizeof(short);
@@ -114,13 +114,10 @@ void SDAudio::initSoundCard(int bSize, double fs)
     oParams.nChannels = 2;
     oParams.firstChannel = 0;
 
-
     iParams.deviceId = adc->getDefaultInputDevice();
-
     oParams.deviceId = dac->getDefaultOutputDevice();
 
     RtAudio::StreamOptions options;
-
 
     if(adc->isStreamOpen()){
         if(adc->isStreamRunning())
@@ -132,9 +129,15 @@ void SDAudio::initSoundCard(int bSize, double fs)
             dac->stopStream();
         dac->closeStream();
     }
-    adc->openStream( NULL, &iParams, RTAUDIO_SINT16, fsl, &bufferFrames, &in, (void *)this, &options );
-    dac->openStream( &oParams, NULL, RTAUDIO_SINT16, fsl, &bufferFrames, &out, (void *)this, &options );
 
+    try{
+        adc->openStream( NULL, &iParams, RTAUDIO_SINT16, fsl, &bufferFrames, &in, (void *)this, &options );
+        dac->openStream( &oParams, NULL, RTAUDIO_SINT16, fsl, &bufferFrames, &out, (void *)this, &options );
+    }catch(...){
+        return -1;
+    }
+
+    return 0;
 }
 
 void SDAudio::record()

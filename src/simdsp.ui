@@ -67,7 +67,7 @@
        <enum>QTabWidget::East</enum>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <property name="movable">
        <bool>false</bool>
@@ -203,9 +203,6 @@
                </property>
                <property name="autoFillBackground">
                 <bool>false</bool>
-               </property>
-               <property name="styleSheet">
-                <string notr="true"/>
                </property>
                <property name="lineWidth">
                 <number>1</number>

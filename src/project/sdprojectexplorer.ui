@@ -43,6 +43,9 @@
      <property name="dragEnabled">
       <bool>false</bool>
      </property>
+     <property name="alternatingRowColors">
+      <bool>false</bool>
+     </property>
      <property name="columnCount">
       <number>3</number>
      </property>

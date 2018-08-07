@@ -5,8 +5,8 @@ QMainWindow {
 
 /* ------------ Menu Bar ------------- */
 QMenuBar {
-    background-color: #131418;
-    color: #FFFFFF;
+    background-color: #f1d204;
+    color: #131418;
     left:5px;
 }
 
@@ -17,12 +17,12 @@ QMenuBar::item {
 
 QMenuBar::item:selected {
     color: #000000;
-    background: #E4E49D;
+    background: #FFFFFF;
 }
 
 QMenuBar::item:pressed {
     color: #000000;
-    background: #E4E49D;
+    background: #FFFFFF;
 }
 
 /* ---------- Menu dropdowns ---------- */
@@ -43,7 +43,7 @@ QMenu::item {
 
 QMenu::item:selected {
     color: #000000;
-    background: #E4E49D;
+    background: #f1d204;
 }
 
 QMenu::separator {
@@ -98,6 +98,11 @@ QTextEdit#appOutput{
 QTreeWidget{
     background-color: #47484B;
     color:	#FFFFFF;
+}
+
+QTreeWidget::item:selected{
+    background-color: white;
+    color: black;
 }
 
 QTabWidget {

@@ -214,6 +214,13 @@ void SDProjectexplorer::itemActivatedSD(QTreeWidgetItem *item, int column)
     }
 }
 
+void SDProjectexplorer::buildOptions()
+{
+    SDBuildOptions *options = new SDBuildOptions(selectItem->text(1));
+
+    options->show();
+}
+
 void SDProjectexplorer::showContextMenu(const QPoint &pos)
 {
     QTreeWidgetItem *item = ui->projectTreeWidget->itemAt(pos);
@@ -255,9 +262,9 @@ void SDProjectexplorer::showContextMenu(const QPoint &pos)
                 connect(m_new_file, &QAction::triggered, this, &SDProjectexplorer::newFile);
                 menu->addAction(m_new_file);
 
-                QAction* m_add_library = new QAction(tr("Add library"), this);
-                //connect(m_add_library, &QAction::triggered, this, &SDProjectexplorer::cleanProject);
-                menu->addAction(m_add_library);
+                QAction* m_build_options = new QAction(tr("Build options"), this);
+                connect(m_build_options, &QAction::triggered, this, &SDProjectexplorer::buildOptions);
+                menu->addAction(m_build_options);
             }
         }
 
