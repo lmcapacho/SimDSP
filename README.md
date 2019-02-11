@@ -1,4 +1,4 @@
-# SimDSP
+# SimDSP [![Build Status](https://travis-ci.org/lmcapacho/SimDSP.svg?branch=master)](https://travis-ci.org/lmcapacho/SimDSP)
 
 **Sim**ulation software for **D**igital **S**ignal **P**rocessing
 
