@@ -360,10 +360,9 @@ void SimDSP::actionRun()
         }
 
         getSDCoreFunction getSDCore = (getSDCoreFunction) codeLibrary->resolve("getSDCore");
-        if(getSDCore){            
+        if(getSDCore){
             sdcore = reinterpret_cast<SimDSPCore*>(getSDCore());
             ui->runLayout->addWidget(sdcore);
-            sdcore->clearOutput();
             sdcore->show();
         }else{
             ui->compileOutput->append(tr("<b>Running SimDSP Project...</b><br>"));
@@ -415,6 +414,7 @@ void SimDSP::actionStop()
     ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->codeTab));
 
     SimDSPTimer->stop();
+    sdcore->clearOutput();
     sdcore->stop();
     if( codeLibrary->isLoaded() ) codeLibrary->unload();
 

@@ -69,7 +69,7 @@ win32 {
             "$$PWD\..\resources\dependencies\matio\libmatio.dll" \
             "$$PWD\..\resources\dependencies\matio\hdf5.dll" \
             "$$PWD\..\resources\dependencies\matio\zlib.dll"
-	LIBS += -L$$PWD\..\resources\dependencies\rtaudio\libs\windows-32 -lrtaudio            
+    LIBS += -L$$PWD\..\resources\dependencies\rtaudio\libs\windows-32 -lrtaudio
 }
 
 FORMS += \
