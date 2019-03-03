@@ -49,9 +49,9 @@ public:
     void attachInterrupt(void (*callback)());
     void println( string text );
     void println( short number );
-    void println( int number ){ println((short)number);}
+    void println( int number ){ println(static_cast<short>(number));}
     void println( double number );
-    void println( float number ){ println((double)number);}
+    void println( float number ){ println(static_cast<double>(number));}
     int  readKeyboard();
     void setfs(double fs);
     short readADC();

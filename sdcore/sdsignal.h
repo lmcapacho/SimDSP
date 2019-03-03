@@ -158,8 +158,8 @@ private:
 
     SDAudio *soundCard;
 
-    sdBlock* block_capture = NULL;
-    sdBlock* block_play = NULL;
+    sdBlock* block_capture = nullptr;
+    sdBlock* block_play = nullptr;
 };
 
 #endif // QSDSIGNAL_H

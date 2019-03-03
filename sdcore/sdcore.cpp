@@ -28,8 +28,8 @@ SimDSPCore::SimDSPCore() :
     ui = new Ui::SimDSPCore;
     ui->setupUi(this);
 
-    output = NULL;
-    sdKeyboardISRFnc = NULL;
+    output = nullptr;
+    sdKeyboardISRFnc = nullptr;
 
     init();
 }
@@ -67,12 +67,12 @@ int SimDSPCore::readKeyboard()
 void SimDSPCore::setfs(double fs)
 {
     sd->setfs(fs);
-    ui->frequencySpinBox->setSingleStep(fs/200.0);
-    ui->frequencySpinBox->setMaximum(fs/2.0);
+    ui->frequencySpinBox->setSingleStep(static_cast<int>(fs/200.0));
+    ui->frequencySpinBox->setMaximum(static_cast<int>(fs/2.0));
     ui->fsValue->setText(QString::number(fs, 'f', 1) + " Hz");
     ui->PlotA->setfs(fs);
     ui->PlotB->setfs(fs);
-    ui->frequencySpinBox->setValue(sd->getSignalFrequency());
+    ui->frequencySpinBox->setValue(static_cast<int>(sd->getSignalFrequency()));
 }
 
 short SimDSPCore::readADC()

@@ -34,7 +34,7 @@ class SDKeyboard : public QWidget
     Q_OBJECT
 
 public:
-    explicit SDKeyboard(QWidget *parent = 0);
+    explicit SDKeyboard(QWidget *parent = nullptr);
     ~SDKeyboard();
 
     int keyboardStatus();

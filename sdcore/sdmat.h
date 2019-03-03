@@ -17,7 +17,7 @@ class SDMat : public QDialog
     Q_OBJECT
 
 public:
-    explicit SDMat(QWidget *parent = 0);
+    explicit SDMat(QWidget *parent = nullptr);
     ~SDMat();
 
 signals:

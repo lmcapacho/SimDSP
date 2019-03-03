@@ -38,7 +38,7 @@ class SDPlot : public QWidget
     Q_OBJECT
 
 public:
-    explicit SDPlot(QWidget *parent = 0);
+    explicit SDPlot(QWidget *parent = nullptr);
     ~SDPlot();
     void setSizeWindow(int size);
     void setMaxSizeWindow(int size);

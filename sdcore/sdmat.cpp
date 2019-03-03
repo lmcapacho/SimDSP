@@ -44,17 +44,17 @@ void SDMat::browseFile()
         types.clear();
         ui->variables->clear();
 
-        if ( NULL == matfp ) {
+        if ( nullptr == matfp ) {
             ui->error->setText("Error opening MAT file");
             ui->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);
             return;
         }
 
-        while ( (matvar = Mat_VarReadNextInfo(matfp)) != NULL ) {
-            types.append(mat_types[(int)matvar->class_type] + (matvar->isComplex ? " - Complex" : "" ) );
+        while ( (matvar = Mat_VarReadNextInfo(matfp)) != nullptr ) {
+            types.append(mat_types[static_cast<int>(matvar->class_type)] + (matvar->isComplex ? " - Complex" : "" ) );
             ui->variables->addItem(matvar->name);
             Mat_VarFree(matvar);
-            matvar = NULL;
+            matvar = nullptr;
         }
 
         if( !types.isEmpty() ){

@@ -40,10 +40,10 @@ SDSignal::SDSignal()
     fftWidth =  1024;
     n = 0;
 
-    fftInADC = fftw_alloc_real(fftWidth);
-    fftOutADC = fftw_alloc_complex((fftWidth/2)+1);
-    fftInDAC = fftw_alloc_real(fftWidth);
-    fftOutDAC = fftw_alloc_complex((fftWidth/2)+1);
+    fftInADC = fftw_alloc_real(static_cast<size_t>(fftWidth));
+    fftOutADC = fftw_alloc_complex(static_cast<size_t>((fftWidth/2)+1));
+    fftInDAC = fftw_alloc_real(static_cast<size_t>(fftWidth));
+    fftOutDAC = fftw_alloc_complex(static_cast<size_t>((fftWidth/2)+1));
 
     xs = new QVector<double>(screenWidth);
     ys = new QVector<double>(screenWidth);
@@ -56,7 +56,7 @@ SDSignal::SDSignal()
     planADC = fftw_plan_dft_r2c_1d ( fftWidth, fftInADC, fftOutADC, FFTW_ESTIMATE );
     planDAC = fftw_plan_dft_r2c_1d ( fftWidth, fftInDAC, fftOutDAC, FFTW_ESTIMATE );
 
-    soundCard = NULL;
+    soundCard = nullptr;
 
     bReadADC = false;
     bProcessBlocks = false;
@@ -92,12 +92,12 @@ void SDSignal::start()
 void SDSignal::stop()
 {
     timer->stop();
-    block_capture = NULL;
-    block_play = NULL;
+    block_capture = nullptr;
+    block_play = nullptr;
 
     if( bMicEnabled ) {
         if(soundCard) delete soundCard;
-        soundCard = NULL;
+        soundCard = nullptr;
         bMicEnabled = false;
     }
 }
@@ -107,7 +107,7 @@ short SDSignal::readADC()
     double value = getSample();
 
     if ( bReadADC ){
-        writeDAC( ys->value(n) );
+        writeDAC( static_cast<short>(ys->value(n)) );
     }
     bReadADC = true;
 
@@ -126,7 +126,7 @@ short SDSignal::readADC()
       }
     }
 
-    return value * MIDVALUE;
+    return static_cast<short>(value * MIDVALUE);
 }
 
 void SDSignal::writeDAC(short value)
@@ -138,12 +138,12 @@ void SDSignal::writeDAC(short value)
 
     if( bSyncronize )
     {
-        (*ys)[n] = (double)value /(double) MIDVALUE;
+        (*ys)[n] = static_cast<double>(value) / static_cast<double>(MIDVALUE);
         if( signalType == SIGNAL_FILE)
         {
             if( pFileOutBuffer.capacity() > 0 )
             {
-                pFileOutBuffer.replace(iFileOutIndex++, (double)value /(double) MIDVALUE);
+                pFileOutBuffer.replace(iFileOutIndex++, static_cast<short>(value) / static_cast<short>(MIDVALUE));
                 if ( iFileOutIndex == iFileLength )
                     iFileOutIndex = 0;
             }
@@ -235,7 +235,7 @@ double SDSignal::getSample()
 
 
         case SIGNAL_SAWTOOTH:
-            if (signalFrequency != 0)
+            if (signalFrequency != 0.0)
                 sample = -1.0 + (omegafq/M_PI);
         break;
 
@@ -263,7 +263,7 @@ double SDSignal::getSample()
     if ( sample >  1.0 ) sample =  1.0;
     if ( sample < -1.0 ) sample = -1.0;
 
-    if ( (signalFrequency == 0) || (signalType == SIGNAL_FILE) )
+    if ( (signalFrequency == 0.0) || (signalType == SIGNAL_FILE) )
     {
         omegafq += 2*M_PI;
     }
@@ -292,17 +292,6 @@ double SDSignal::getSample()
 void SDSignal::setSignalType(int st)
 {
     signalType = static_cast<SignalTypes>(st);
-
-    /*if(signalType == SIGNAL_MIC){
-
-    }else{
-        if(soundCard){
-            disconnect(soundCard, 0, this, 0);
-            delete soundCard;
-        }
-        soundCard = NULL;
-    }*/
-
 }
 
 /**************************
@@ -349,16 +338,16 @@ void SDSignal::loadFile(QString path, QString varName)
     pFileOutBuffer.squeeze();
 
     if( matvar->dims[0] > 1 )
-        iFileLength = matvar->dims[0];
+        iFileLength = static_cast<int>(matvar->dims[0]);
     else
-        iFileLength = matvar->dims[1];
+        iFileLength = static_cast<int>(matvar->dims[1]);
 
     if( iFileLength > MAXFILESIZE ) iFileLength = MAXFILESIZE;
 
     pFileInBuffer.reserve(iFileLength);
     pFileOutBuffer.reserve(iFileLength);
 
-    double* data = (double*)matvar->data;
+    double* data = reinterpret_cast<double*>(matvar->data);
     std::copy(data, data+iFileLength, std::back_inserter(pFileInBuffer));
 }
 
@@ -367,12 +356,12 @@ void SDSignal::saveFile(QString path)
     mat_t *matfp;
     matvar_t *matvar;
 
-    size_t dims[2] = {1, (size_t)iFileLength};
+    size_t dims[2] = {1, static_cast<size_t>(iFileLength)};
 
-    matfp = Mat_CreateVer(path.toLatin1().data(), NULL, MAT_FT_DEFAULT);
+    matfp = Mat_CreateVer(path.toLatin1().data(), nullptr, MAT_FT_DEFAULT);
 
     matvar = Mat_VarCreate("sdout", MAT_C_DOUBLE, MAT_T_DOUBLE, 2, dims, pFileOutBuffer.data(), 0);
-    if ( NULL != matvar ) {
+    if ( nullptr != matvar ) {
         Mat_VarWrite(matfp, matvar, MAT_COMPRESSION_NONE);
         Mat_VarFree(matvar);
     }
@@ -387,7 +376,7 @@ void SDSignal::changeAWGN(bool state)
 
 void SDSignal::changeSNR(int value)
 {
-    snr = (double) value;
+    snr = static_cast<double>(value);
 }
 
 void SDSignal::captureBlock(short *pBuffer, int length, void (*callback)())
@@ -438,7 +427,7 @@ void SDSignal::processBlocks()
         if (block_capture)
         {
             block = block_capture;
-            block_capture = NULL;
+            block_capture = nullptr;
             captureBlockFnc(block);
         }
         /*else
@@ -449,7 +438,7 @@ void SDSignal::processBlocks()
         if (block_play)
         {
             block = block_play;
-            block_play = NULL;
+            block_play = nullptr;
             playBlockFnc(block);
         }
         /*else
@@ -469,7 +458,7 @@ void SDSignal::captureBlockFnc(sdBlock *block)
     for (i=0; i<block->length; i++)
     {
         double val = getSample();
-        block->pBuffer[i] = val * MIDVALUE;
+        block->pBuffer[i] = static_cast<short>(val * MIDVALUE);
         if ( i < screenWidth )
         {
             xs->replace(i, val);
@@ -492,7 +481,7 @@ void SDSignal::playBlockFnc(sdBlock *block)
     for (int i=0; i<screenWidth; i++)
     {
         if ( i < block->length )
-            ys->replace(i, (double)block->pBuffer[i] /(double) MIDVALUE);
+            ys->replace(i, static_cast<double>(block->pBuffer[i]) / static_cast<double>(MIDVALUE));
         else
             ys->replace(i, 0.0);
     }
@@ -502,7 +491,7 @@ void SDSignal::playBlockFnc(sdBlock *block)
         for (iFileOutIndex=0; iFileOutIndex<block->length; iFileOutIndex++)
         {
             if( iFileOutIndex < iFileLength )
-                pFileOutBuffer.replace(iFileOutIndex, (double)block->pBuffer[iFileOutIndex] /(double) MIDVALUE);
+                pFileOutBuffer.replace(iFileOutIndex, static_cast<double>(block->pBuffer[iFileOutIndex]) / static_cast<double>(MIDVALUE));
             else
                 break;
         }
@@ -535,10 +524,10 @@ void SDSignal::enableMic(int length)
 
 void SDSignal::recordFinish(short *data)
 {
-  if ( block_capture == NULL )
+  if ( block_capture == nullptr )
   return;
 
-  memcpy(block_capture->pBuffer, data, block_capture->length*2);
+  memcpy(block_capture->pBuffer, data, static_cast<size_t>(block_capture->length*2));
 
   updateBuffer(block_capture, xs);
 
@@ -550,7 +539,7 @@ void SDSignal::recordFinish(short *data)
 
 void SDSignal::playFinish()
 {
-  if ( block_play == NULL )
+  if ( block_play == nullptr )
   return;
 
   updateBuffer(block_play, ys);
@@ -566,7 +555,7 @@ void SDSignal::updateBuffer(sdBlock *block, QVector<double> *values)
     for (int i=0; i<screenWidth; i++)
     {
         if ( i < block->length )
-            values->replace(i, (double)block->pBuffer[i] /(double) MIDVALUE);
+            values->replace(i, static_cast<double>(block->pBuffer[i]) / static_cast<double>(MIDVALUE));
         else
             values->replace(i, 0.0);
     }

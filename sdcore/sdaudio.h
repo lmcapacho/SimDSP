@@ -38,7 +38,7 @@ class SDAudio : public QObject
 {
     Q_OBJECT
 public:
-    explicit SDAudio(QObject *parent = 0);
+    explicit SDAudio(QObject *parent = nullptr);
     ~SDAudio();
 
     int initSoundCard() { return initSoundCard(4096, 8000);}
