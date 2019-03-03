@@ -148,9 +148,9 @@ void SDEditortab::asterisk()
 
 SDEditor *SDEditortab::activeEditor()
 {
-    if ((ui->tabWidget->currentWidget()) != NULL)
+    if ((ui->tabWidget->currentWidget()) != nullptr)
         return qobject_cast<SDEditor *>(ui->tabWidget->currentWidget());
-    return 0;
+    return nullptr;
 }
 
 SDEditor *SDEditortab::createEditor()

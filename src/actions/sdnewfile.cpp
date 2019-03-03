@@ -82,7 +82,7 @@ void SDNewFile::changeFileName(const QString &fileName)
     ui->path->setText(QDir::currentPath() + QDir::separator() + fileName);
 
     int pos = 0;
-    if( validator->validate((QString&)fileName, pos) == QValidator::Acceptable ){
+    if( validator->validate(const_cast<QString&>(fileName), pos) == QValidator::Acceptable ){
         QFileInfo fi(QDir::currentPath() + QDir::separator() + fileName);
         if( fi.exists() ){
             ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);

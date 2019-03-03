@@ -30,12 +30,12 @@ SimDSP::SimDSP(QWidget *parent) :
 
     SimDSPTimer = new QTimer();
 
-    int widthProject = (int)(width()*0.2);
-    int widthCode = (int)(width()*0.8);
+    int widthProject = static_cast<int>(width()*0.2);
+    int widthCode = static_cast<int>(width()*0.8);
     ui->codeSplitter->setSizes(QList<int>({widthProject, widthCode}));
 
-    int heightTabs = (int)(height()*0.7);
-    int heightOutput = (int)(height()*0.3);
+    int heightTabs = static_cast<int>(height()*0.7);
+    int heightOutput = static_cast<int>(height()*0.3);
     ui->mainSplitter->setSizes(QList<int>({heightTabs, heightOutput}));
 
     ui->widgetEditor->addAction(ui->actionIncreaseFontSize);
@@ -201,7 +201,7 @@ void SimDSP::actionCloseAll()
 void SimDSP::actionNewFile()
 {
     if(ui->widgetProject->isExample()){
-        QMessageBox::information(0, "SimDSP", tr("This is an example. Examples are read-only\n"));
+        QMessageBox::information(nullptr, "SimDSP", tr("This is an example. Examples are read-only\n"));
     }else{
         SDNewFile* newFile =  new SDNewFile(this);
 
@@ -217,7 +217,7 @@ void SimDSP::actionNewFile()
 void SimDSP::actionSaveFile()
 {
     if(ui->widgetProject->isExample()){
-        QMessageBox::information(0, "SimDSP", tr("This is an example. Examples are read-only\n"));
+        QMessageBox::information(nullptr, "SimDSP", tr("This is an example. Examples are read-only\n"));
     }else{
         sdproject->saveFile();
     }
@@ -339,7 +339,7 @@ void SimDSP::actionRun()
         ui->issuesOutput->clear();
         ui->outputTab->setTabText(1, "Issues");
 
-        setupFunction dsp_setup = (setupFunction) codeLibrary->resolve("dsp_setup");
+        setupFunction dsp_setup = static_cast<setupFunction>(codeLibrary->resolve("dsp_setup"));
         if(!dsp_setup){
             ui->compileOutput->append(tr("<b>Running SimDSP Project...</b><br>"));
             ui->compileOutput->append(codeLibrary->errorString());
@@ -348,7 +348,7 @@ void SimDSP::actionRun()
             return;
         }
 
-        initFunction dsp_init = (initFunction) codeLibrary->resolve("dsp_init");
+        initFunction dsp_init = static_cast<initFunction>(codeLibrary->resolve("dsp_init"));
         if(dsp_init){
             dsp_init();
         }else{
@@ -359,7 +359,7 @@ void SimDSP::actionRun()
             return;
         }
 
-        getSDCoreFunction getSDCore = (getSDCoreFunction) codeLibrary->resolve("getSDCore");
+        getSDCoreFunction getSDCore = reinterpret_cast<getSDCoreFunction>(codeLibrary->resolve("getSDCore"));
         if(getSDCore){
             sdcore = reinterpret_cast<SimDSPCore*>(getSDCore());
             ui->runLayout->addWidget(sdcore);
@@ -372,7 +372,7 @@ void SimDSP::actionRun()
             return;
         }
 
-        dsp_loop = (loopFunction) codeLibrary->resolve("dsp_loop");
+        dsp_loop = static_cast<loopFunction>(codeLibrary->resolve("dsp_loop"));
         if(dsp_loop){
             SimDSPTimer->start();
             sdcore->start();

@@ -43,7 +43,7 @@ class SDProjectexplorer : public QWidget
     Q_OBJECT
 
 public:
-    explicit SDProjectexplorer(QWidget *parent = 0);
+    explicit SDProjectexplorer(QWidget *parent = nullptr);
     ~SDProjectexplorer();
     void addProject(QString path, QString name);
     void addExample(QString path, QString name);

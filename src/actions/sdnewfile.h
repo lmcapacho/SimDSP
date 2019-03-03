@@ -43,7 +43,7 @@ class SDNewFile : public QDialog
     Q_OBJECT
 
 public:
-    explicit SDNewFile(QWidget *parent = 0);
+    explicit SDNewFile(QWidget *parent = nullptr);
     ~SDNewFile();
     QString getFileName();
 

@@ -36,7 +36,7 @@ class SDNewProject : public QDialog
     Q_OBJECT
 
 public:
-    explicit SDNewProject(QWidget *parent = 0);
+    explicit SDNewProject(QWidget *parent = nullptr);
     ~SDNewProject();
     void getProjectInfo(QString &name, QString &path);
 

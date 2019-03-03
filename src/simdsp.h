@@ -52,7 +52,7 @@ class SimDSP : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit SimDSP(QWidget *parent = 0);
+    explicit SimDSP(QWidget *parent = nullptr);
     ~SimDSP();
 
 public slots:

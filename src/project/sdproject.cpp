@@ -86,7 +86,7 @@ bool SDProject::openProject(QString projectPath)
 
     file.setFile(filePath);
     if (!file.exists()){
-        QMessageBox::information(0, "SimDSP", tr("There is not a project in this folder\n"));
+        QMessageBox::information(nullptr, "SimDSP", tr("There is not a project in this folder\n"));
         return false;
     }
 
@@ -126,7 +126,7 @@ bool SDProject::openExample(QString examplePath)
 
     QFileInfo file(filePath);
     if (!file.exists()){
-        QMessageBox::information(0, "SimDSP", tr("There is not an example in this folder\n"));
+        QMessageBox::information(nullptr, "SimDSP", tr("There is not an example in this folder\n"));
         return false;
     }
 

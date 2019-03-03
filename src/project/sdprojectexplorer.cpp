@@ -174,7 +174,7 @@ int SDProjectexplorer::removeActiveProject()
 void SDProjectexplorer::removeAllProjects()
 {
     ui->projectTreeWidget->clear();
-    currentProject = NULL;
+    currentProject = nullptr;
 }
 
 void SDProjectexplorer::showContainingFolder()

@@ -44,7 +44,7 @@ class SDEditortab : public QWidget
     Q_OBJECT
 
 public:
-    explicit SDEditortab(QWidget *parent = 0);
+    explicit SDEditortab(QWidget *parent = nullptr);
     ~SDEditortab();
     void newFile(QString fileName);
     bool openFile(QString fileName, bool readOnly=false);

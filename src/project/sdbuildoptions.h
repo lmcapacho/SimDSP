@@ -41,7 +41,7 @@ class SDBuildOptions : public QDialog
     Q_OBJECT
 
 public:
-    explicit SDBuildOptions(QString path, QWidget *parent = 0);
+    explicit SDBuildOptions(QString path, QWidget *parent = nullptr);
     ~SDBuildOptions();
 
 public slots:
