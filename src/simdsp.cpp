@@ -28,8 +28,6 @@ SimDSP::SimDSP(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    SimDSPTimer = new QTimer();
-
     int widthProject = static_cast<int>(width()*0.2);
     int widthCode = static_cast<int>(width()*0.8);
     ui->codeSplitter->setSizes(QList<int>({widthProject, widthCode}));
@@ -63,14 +61,13 @@ SimDSP::SimDSP(QWidget *parent) :
 
 SimDSP::~SimDSP()
 {
+    if(isRun) actionStop();
     delete ui;
 }
 
 
 void SimDSP::initActionsConnections()
 {
-    connect(SimDSPTimer, &QTimer::timeout, this, &SimDSP::loop);
-
     connect(ui->actionNewFile, &QAction::triggered, this, &SimDSP::actionNewFile);
     connect(ui->widgetProject, &SDProjectexplorer::newFile, this, &SimDSP::actionNewFile);
     connect(ui->actionSaveFile, &QAction::triggered, this, &SimDSP::actionSaveFile);
@@ -114,10 +111,11 @@ void SimDSP::initActionsConnections()
     connect(sdproject, &SDProject::tabOpen, this, &SimDSP::tabOpen);
 #if QT_VERSION >= 0x050700
     connect(sdproject, QOverload<int>::of(&SDProject::buildIssues), this, &SimDSP::issues);
+    connect(ui->sdview, QOverload<QByteArray>::of(&SDView::changeView), this, &SimDSP::changeView);
 #else
     connect(sdproject, SIGNAL(buildIssues(int)), this, SLOT(issues(int)));
 #endif
-    connect(ui->widgetProject, &SDProjectexplorer::changePath, this, &SimDSP::actionChangePath);
+
 }
 
 void SimDSP::loadExamples()
@@ -163,22 +161,22 @@ void SimDSP::closeEvent(QCloseEvent *event)
  ******************************************/
 void SimDSP::actionLoad()
 {
-    sdcore->loadMatFile();
+    ui->sdview->loadMatFile();
 }
 
 void SimDSP::actionSave()
 {
-    sdcore->saveMatFile();
+    ui->sdview->saveMatFile();
 }
 
 void SimDSP::actionAutoScale()
 {
-    sdcore->autoScale();
+    ui->sdview->autoScale();
 }
 
 void SimDSP::actionResetZoom()
 {
-    sdcore->resetZoom();
+    ui->sdview->resetZoom();
 }
 
 void SimDSP::actionCloseTab()
@@ -287,12 +285,6 @@ void SimDSP::actionCloseProject()
         menuCloseAllProjects();
         return;
     }
-
-#ifdef Q_OS_LINUX
-    codeLibrary->setFileName(QDir::currentPath()+"/build/libsdcode.so");
-#elif defined(Q_OS_WIN32)
-    codeLibrary->setFileName(QDir::currentPath()+"/build/libsdcode.dll");
-#endif
 }
 
 void SimDSP::actionCloseActiveProject()
@@ -304,12 +296,6 @@ void SimDSP::actionCloseActiveProject()
         menuCloseAllProjects();
         return;
     }
-
-#ifdef Q_OS_LINUX
-    codeLibrary->setFileName(QDir::currentPath()+"/build/libsdcode.so");
-#elif defined(Q_OS_WIN32)
-    codeLibrary->setFileName(QDir::currentPath()+"/build/libsdcode.dll");
-#endif
 }
 
 void SimDSP::actionCloseAllProjectsEditors()
@@ -339,50 +325,29 @@ void SimDSP::actionRun()
         ui->issuesOutput->clear();
         ui->outputTab->setTabText(1, "Issues");
 
-        setupFunction dsp_setup = static_cast<setupFunction>(codeLibrary->resolve("dsp_setup"));
-        if(!dsp_setup){
-            ui->compileOutput->append(tr("<b>Running SimDSP Project...</b><br>"));
-            ui->compileOutput->append(codeLibrary->errorString());
-            if( codeLibrary->isLoaded() ) codeLibrary->unload();
-            ui->compileOutput->append(tr("<span style='color:#AE0000;'><br><b>Failed running SimDSP</b></span>"));
-            return;
+        ui->compileOutput->append(tr("<b>Running SimDSP Project...</b><br>"));
+        ui->sdview->start();
+
+    #if QT_VERSION >= 0x050700
+        connect(sdapp, &QProcess::readyRead, this, &SimDSP::sdappReadyRead);
+        connect(sdapp, QOverload<QProcess::ProcessError>::of(&QProcess::errorOccurred), this, &SimDSP::sdappErrorOccurred);
+    #else
+        connect(sdapp, SIGNAL(readyRead()), this, SLOT(sdappReadyRead()));
+    #endif
+
+    #ifdef Q_OS_LINUX
+        sdapp->start(QDir::currentPath()+"/build/sdapp");
+    #elif defined(Q_OS_WIN32)
+        sdapp->start(QDir::currentPath()+"/build/sdapp.exe");
+    #endif
+        if(!sdapp->waitForStarted(5000)){
+          ui->compileOutput->append(tr("<b>SimDSP app failed to start</b><br>"));
+          ui->compileOutput->append(tr("<span style='color:#AE0000;'><br><b>Failed running SimDSP</b></span>"));
+          ui->sdview->stop();
+          return;
         }
 
-        initFunction dsp_init = static_cast<initFunction>(codeLibrary->resolve("dsp_init"));
-        if(dsp_init){
-            dsp_init();
-        }else{
-            ui->compileOutput->append(tr("<b>Running SimDSP Project...</b><br>"));
-            ui->compileOutput->append(codeLibrary->errorString());
-            if( codeLibrary->isLoaded() ) codeLibrary->unload();
-            ui->compileOutput->append(tr("<span style='color:#AE0000;'><b><br>Failed running SimDSP</b></span>"));
-            return;
-        }
-
-        getSDCoreFunction getSDCore = reinterpret_cast<getSDCoreFunction>(codeLibrary->resolve("getSDCore"));
-        if(getSDCore){
-            sdcore = reinterpret_cast<SimDSPCore*>(getSDCore());
-            ui->runLayout->addWidget(sdcore);
-            sdcore->show();
-        }else{
-            ui->compileOutput->append(tr("<b>Running SimDSP Project...</b><br>"));
-            ui->compileOutput->append(codeLibrary->errorString());
-            if( codeLibrary->isLoaded() ) codeLibrary->unload();
-            ui->compileOutput->append(tr("<span style='color:#AE0000;'><b><br>Failed running SimDSP</b></span>"));
-            return;
-        }
-
-        dsp_loop = static_cast<loopFunction>(codeLibrary->resolve("dsp_loop"));
-        if(dsp_loop){
-            SimDSPTimer->start();
-            sdcore->start();
-        }else{
-            ui->compileOutput->append(tr("<b>Running SimDSP Project...</b><br>"));
-            ui->compileOutput->append(codeLibrary->errorString());
-            if( codeLibrary->isLoaded() ) codeLibrary->unload();
-            ui->compileOutput->append(tr("<span style='color:#AE0000;'><b><br>Failed running SimDSP</b></span>"));
-            return;
-        }
+        ui->compileOutput->append(tr("<b>SimDSP app started</b><br>"));
 
         ui->outputTab->setCurrentIndex(0);
         ui->statusBar->showMessage(tr("SimDSP Running..."));
@@ -407,16 +372,17 @@ void SimDSP::actionRun()
 
 void SimDSP::actionStop()
 {
+    sdapp->close();
+    disconnect(sdapp, nullptr, nullptr ,nullptr);
+
     ui->outputTab->setCurrentIndex(0);
     ui->compileOutput->clear();
 
     ui->tabWidget->setTabEnabled(ui->tabWidget->indexOf(ui->runTab), false);
     ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->codeTab));
 
-    SimDSPTimer->stop();
-    sdcore->clearOutput();
-    sdcore->stop();
-    if( codeLibrary->isLoaded() ) codeLibrary->unload();
+    ui->sdview->clearOutput();
+    ui->sdview->stop();
 
     ui->statusBar->showMessage(tr("Ready"));
 
@@ -462,7 +428,7 @@ void SimDSP::actionAbout()
 
                    "<p>You should have received a copy of the GNU General Public License along with SimDSP.  "
                    "If not, see <a href=\"http://%2/\">%2</a>.</p>")
-                    .arg(QStringLiteral("2018"))
+                    .arg(QStringLiteral("2019"))
                     .arg(QStringLiteral("www.gnu.org/licenses"));
 
     QMessageBox::about(this, "About SimDSP", text);
@@ -477,20 +443,9 @@ void SimDSP::actionOpenExample()
 {
     QAction* example = qobject_cast<QAction*>(sender());
     if( sdproject->openExample(example->data().toString()) ){
-    #ifdef Q_OS_LINUX
-        codeLibrary->setFileName(QDir::currentPath()+"/build/libsdcode.so");
-    #elif defined(Q_OS_WIN32)
-        codeLibrary->setFileName(QDir::currentPath()+"/build/libsdcode.dll");
-    #endif
         menuOpenProject();
     }
 }
-
-void SimDSP::loop()
-{
-    dsp_loop();
-}
-
 
 void SimDSP::actionIncreaseFontSize()
 {
@@ -527,6 +482,48 @@ void SimDSP::tabOpen()
 void SimDSP::issues(int total)
 {
     ui->outputTab->setTabText(1, "Issues ("+QString::number(total)+")");
+}
+
+void SimDSP::sdappErrorOccurred(QProcess::ProcessError error)
+{
+    Q_UNUSED(error);
+}
+
+void SimDSP::sdappReadyRead()
+{
+    while(sdapp->canReadLine()){
+        QByteArray data = sdapp->readLine().trimmed();
+        QList<QByteArray> request = data.split(',');
+
+        if(request.size()>0){
+            bool ok;
+            int cmd = request.at(0).toInt(&ok);
+            if(ok){
+                switch (cmd) {
+                    case 0:
+                        ui->sdview->setfs(static_cast<double>(request.at(1).toFloat()));
+                        break;
+                    case 1:
+                        ui->sdview->enableMic();
+                        break;
+                    case 2:
+                        ui->sdview->println(request.at(1));
+                        break;
+                    case 3:
+                        ui->sdview->changeSizeWindow(request.at(1).toInt());
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+}
+
+void SimDSP::changeView(QByteArray data)
+{
+    if(sdapp->isOpen())
+        sdapp->write(data);
 }
 
 /******************************************

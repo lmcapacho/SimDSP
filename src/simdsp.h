@@ -27,21 +27,14 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QSettings>
+#include <QProcess>
 
-#include "sdcore.h"
-#include "sdsignal.h"
-#include "qcustomplot.h"
+#include "view/sdview.h"
 #include "editor/sdeditortab.h"
 #include "project/sdproject.h"
 #include "project/sdnewproject.h"
 #include "actions/sdbuilder.h"
 #include "actions/sdnewfile.h"
-
-typedef void (*initFunction)(void);
-typedef void (*loopFunction)(void);
-typedef void (*setupFunction)(void);
-typedef void *(*getSDCoreFunction)(void);
-typedef void *(*closeSDCoreFunction)(void);
 
 namespace Ui {
 class SimDSP;
@@ -118,12 +111,8 @@ private:
     SDProject *sdproject;
     SDBuilder *sdbuilder;
 
-    QLibrary *codeLibrary;
+    QProcess *sdapp;
 
-    QTimer *SimDSPTimer;
-    loopFunction dsp_loop;
-
-    SimDSPCore* sdcore;
     bool isRun;
 };
 

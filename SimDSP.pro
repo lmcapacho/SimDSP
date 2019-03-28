@@ -25,18 +25,16 @@ CONFIG   += c++11
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
-INCLUDEPATH += sdcore
-INCLUDEPATH += $$PWD/resources/dependencies/rtaudio
-
-LIBS += -Lsdcore/build -lsdcore
+# INCLUDEPATH += "$$PWD/resources/dependencies/core"
 
 RESOURCES += \
     simdspresources.qrc
 
 include(pri/actions.pri)
 include(pri/editor.pri)
-include(pri/simdsp.pri)
 include(pri/project.pri)
+include(pri/view.pri)
+include(pri/simdsp.pri)
 
 DESTDIR = $$PWD
 OBJECTS_DIR = build/obj
@@ -69,14 +67,19 @@ unix {
     icon.extra = install -D -m 0644 $$PWD/resources/images/simdsp_icon.png $(INSTALL_ROOT)$$DATADIR/icons/simdsp.png
 
     INSTALLS += target bin include desktop icon
-    LIBS += -L$$PWD/resources/dependencies/rtaudio/libs/linux-64 -lrtaudio
+
+    LIBS += -lfftw3 -lm -lmatio
 }
 
 win32 {
-    INCLUDEPATH += "$$PWD\resources\dependencies\fftw3"
-	INCLUDEPATH += "$$PWD\resources\dependencies\matio"
-    LIBS += -L$$PWD\resources\dependencies\rtaudio\libs\windows-32 -lrtaudio
+    INCLUDEPATH += "$$PWD\resources\dependencies\fftw3"  \
+                   "$$PWD\resources\dependencies\matio"
+                   
+    LIBS += "$$PWD\resources\dependencies\fftw3\libfftw3-3.dll" \
+            "$$PWD\resources\dependencies\matio\libmatio.dll" \
+            "$$PWD\resources\dependencies\matio\hdf5.dll" \
+            "$$PWD\resources\dependencies\matio\zlib.dll"
 }
-	
+
 TARGET = SimDSP
 TEMPLATE = app
