@@ -181,7 +181,7 @@ void SimDSP::loadRecentProjects()
         std::reverse(recentProjects.begin(), recentProjects.end());
 
         foreach (QString recentProject, recentProjects) {
-            recentProjectsAction = new QAction();
+            recentProjectsAction = new QAction(this);
             recentProjectsAction->setData(recentProject);
             recentProjectsAction->setText(recentProject);
             connect(recentProjectsAction, &QAction::triggered, this, &SimDSP::actionOpenRecentProject);
