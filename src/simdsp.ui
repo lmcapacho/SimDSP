@@ -322,8 +322,16 @@ p, li { white-space: pre-wrap; }
     <property name="title">
      <string>&amp;File</string>
     </property>
+    <widget class="QMenu" name="menuRecentProjects">
+     <property name="title">
+      <string>Recent Projects</string>
+     </property>
+     <addaction name="separator"/>
+     <addaction name="actionClearRecentProjects"/>
+    </widget>
     <addaction name="actionNewProject"/>
     <addaction name="actionOpenProject"/>
+    <addaction name="menuRecentProjects"/>
     <addaction name="separator"/>
     <addaction name="actionCloseProject"/>
     <addaction name="actionCloseAllProjectsEditors"/>
@@ -719,19 +727,35 @@ p, li { white-space: pre-wrap; }
     <string>Reset Zoom</string>
    </property>
   </action>
+  <action name="actionRecentProjects">
+   <property name="text">
+    <string>Recent Projects</string>
+   </property>
+  </action>
+  <action name="actionClearRecentProjects">
+   <property name="text">
+    <string>Clear Project History</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
    <class>SDEditortab</class>
    <extends>QWidget</extends>
-   <header>../src/editor/sdeditortab.h</header>
+   <header>src/editor/sdeditortab.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>SDProjectexplorer</class>
    <extends>QWidget</extends>
-   <header>../src/project/sdprojectexplorer.h</header>
+   <header>src/project/sdprojectexplorer.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SDView</class>
+   <extends>QWidget</extends>
+   <header>src/view/sdview.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

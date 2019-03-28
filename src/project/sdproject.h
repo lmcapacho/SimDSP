@@ -28,6 +28,8 @@
 #include <QTextEdit>
 #include <QMessageBox>
 #include <QRegExp>
+#include <QSettings>
+#include <QStringList>
 
 #include "sdprojectexplorer.h"
 #include "../actions/sdbuilder.h"
@@ -54,6 +56,8 @@ public:
     void saveFile();
     int  closeTab();
     void closeAllTabs();
+
+    void addRecentProjects(QString path);
 
     SDEditortab *editor;
 

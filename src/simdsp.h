@@ -71,7 +71,8 @@ public slots:
     void actionCloseProject();
     void actionCloseActiveProject();
     void actionCloseAllProjectsEditors();
-    void actionChangePath();
+    void actionOpenRecentProject();
+    void actionClearRecentProjects();
 
     // Edit slots
     void actionIncreaseFontSize();
@@ -88,16 +89,23 @@ public slots:
     // Example slots
     void actionOpenExample();
 
-    void loop();
+    // SDApp slots
+    void sdappReadyRead();
+
+    // View slots
+    void changeView(QByteArray data);
 
     void tabOpen();
     void issues(int total);
+
+    void sdappErrorOccurred(QProcess::ProcessError error);
 
 private:
     Ui::SimDSP *ui;
 
     void initActionsConnections();
     void loadExamples();
+    void loadRecentProjects();
 
     void menuCloseAllProjects();
     void menuOpenProject();

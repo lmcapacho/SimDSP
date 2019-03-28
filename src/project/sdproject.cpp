@@ -112,6 +112,8 @@ bool SDProject::openProject(QString projectPath)
     editor->newFile(dir.dirName());
     editor->activeEditor()->loadFile(mainFile);
 
+    addRecentProjects(path);
+
     return true;
 }
 
@@ -200,6 +202,22 @@ int SDProject::closeTab()
 void SDProject::closeAllTabs()
 {
     editor->closeAll();
+}
+
+void SDProject::addRecentProjects(QString path)
+{
+    QSettings settings;
+    QStringList recentsProjects;
+    recentsProjects = settings.value("Projects/recent").toStringList();
+    if(recentsProjects.contains(path))
+        recentsProjects.removeAt(recentsProjects.indexOf(path));
+
+    recentsProjects.append(path);
+
+    if(recentsProjects.length()>5)
+        recentsProjects.removeFirst();
+
+    settings.setValue("Projects/recent", recentsProjects);
 }
 
 bool SDProject::buildProject()

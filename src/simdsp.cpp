@@ -92,6 +92,7 @@ void SimDSP::initActionsConnections()
     connect(ui->actionCloseProject, &QAction::triggered, this, &SimDSP::actionCloseActiveProject);
     connect(ui->widgetProject, &SDProjectexplorer::closeActiveProject, this, &SimDSP::actionCloseProject);
     connect(ui->actionCloseAllProjectsEditors, &QAction::triggered, this, &SimDSP::actionCloseAllProjectsEditors);
+    connect(ui->actionClearRecentProjects, &QAction::triggered, this, &SimDSP::actionClearRecentProjects);
 
     connect(ui->actionSelectAll, &QAction::triggered, ui->widgetEditor, &SDEditortab::selectAll );
     connect(ui->actionUndo, &QAction::triggered, ui->widgetEditor, &SDEditortab::undo );
@@ -134,20 +135,55 @@ void SimDSP::loadExamples()
 
     QFileInfoList folderList = QDir(examplesFolder).entryInfoList(QDir::NoDotAndDotDot|QDir::AllDirs);
 
-    foreach (QFileInfo folderInfo, folderList) {
+    if(folderList.isEmpty()){
+        examplesMenu->setDisabled(true);
+    }else{
+        foreach (QFileInfo folderInfo, folderList) {
 
-        QDirIterator it(folderInfo.absoluteFilePath(), QDir::NoDotAndDotDot|QDir::AllDirs);
-        QMenu* examplesFolder = examplesMenu->addMenu(folderInfo.fileName());
+            QDirIterator it(folderInfo.absoluteFilePath(), QDir::NoDotAndDotDot|QDir::AllDirs);
+            QMenu* examplesFolder = examplesMenu->addMenu(folderInfo.fileName());
 
-        while (it.hasNext()) {
-            QString folder = it.next();
-            exampleAction = new QAction(this);
-            exampleAction->setData(folder);
-            exampleAction->setText(QFileInfo(folder).fileName());
-            connect(exampleAction, &QAction::triggered, this, &SimDSP::actionOpenExample);
-            examplesFolder->addAction(exampleAction);
+            while (it.hasNext()) {
+                QString folder = it.next();
+                exampleAction = new QAction(this);
+                exampleAction->setData(folder);
+                exampleAction->setText(QFileInfo(folder).fileName());
+                connect(exampleAction, &QAction::triggered, this, &SimDSP::actionOpenExample);
+                examplesFolder->addAction(exampleAction);
+            }
         }
     }
+}
+
+void SimDSP::loadRecentProjects()
+{
+    QAction* recentProjectsAction;
+
+    foreach (QAction *action, ui->menuRecentProjects->actions()) {
+        ui->menuRecentProjects->removeAction(action);
+        if(action->isSeparator()){
+            break;
+        }
+    }
+
+    QStringList recentProjects = settings.value("Projects/recent").toStringList();
+
+    if(recentProjects.isEmpty()){
+        ui->menuRecentProjects->setDisabled(true);
+    }else{
+        ui->menuRecentProjects->setEnabled(true);
+        std::reverse(recentProjects.begin(), recentProjects.end());
+
+        foreach (QString recentProject, recentProjects) {
+            recentProjectsAction = new QAction();
+            recentProjectsAction->setData(recentProject);
+            recentProjectsAction->setText(recentProject);
+            connect(recentProjectsAction, &QAction::triggered, this, &SimDSP::actionOpenRecentProject);
+            ui->menuRecentProjects->insertAction(ui->actionClearRecentProjects, recentProjectsAction);
+        }
+    }
+
+    ui->menuRecentProjects->insertSeparator(ui->actionClearRecentProjects);
 }
 
 void SimDSP::closeEvent(QCloseEvent *event)
@@ -229,31 +265,23 @@ void SimDSP::actionNewProject()
         QString projectPath, projectName;
         newProject->getProjectInfo(projectName, projectPath);
         sdproject->newProject(projectName, projectPath);
-    #ifdef Q_OS_LINUX
-        codeLibrary->setFileName(QDir::currentPath()+"/build/libsdcode.so");
-    #elif defined(Q_OS_WIN32)
-        codeLibrary->setFileName(QDir::currentPath()+"/build/libsdcode.dll");
-    #endif
         menuOpenProject();
+        loadRecentProjects();
     }
 }
 
 void SimDSP::actionOpenProject()
 {
-    QString lastOpen = settings.value("simdsp/lastopen", QDir::homePath()).toString();
+    QString lastOpen = settings.value("Projects/lastopen", QDir::homePath()).toString();
     QString path = QFileDialog::getExistingDirectory(this,
             tr("Open SimDSP Project"), lastOpen,
             QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
     if(!path.isEmpty()){
         if( sdproject->openProject(path) ){
-        #ifdef Q_OS_LINUX
-            codeLibrary->setFileName(QDir::currentPath()+"/build/libsdcode.so");
-        #elif defined(Q_OS_WIN32)
-            codeLibrary->setFileName(QDir::currentPath()+"/build/libsdcode.dll");
-        #endif
             menuOpenProject();
-            settings.setValue("simdsp/lastopen", path);
+            loadRecentProjects();
+            settings.setValue("Projects/lastopen", path);
         }
     }
 }
@@ -308,13 +336,24 @@ void SimDSP::actionCloseAllProjectsEditors()
     ui->actionCloseAll->setDisabled(true);
 }
 
-void SimDSP::actionChangePath()
+void SimDSP::actionOpenRecentProject()
 {
-#ifdef Q_OS_LINUX
-    codeLibrary->setFileName(QDir::currentPath()+"/build/libsdcode.so");
-#elif defined(Q_OS_WIN32)
-    codeLibrary->setFileName(QDir::currentPath()+"/build/libsdcode.dll");
-#endif
+    QAction *recentProjectAction = static_cast<QAction*>(sender());
+    QString path = recentProjectAction->data().toString();
+
+    if(!path.isEmpty()){
+        if( sdproject->openProject(path) ){
+            menuOpenProject();
+            loadRecentProjects();
+            settings.setValue("Projects/lastopen", path);
+        }
+    }
+}
+
+void SimDSP::actionClearRecentProjects()
+{
+    settings.remove("Projects/recent");
+    loadRecentProjects();
 }
 
 void SimDSP::actionRun()
