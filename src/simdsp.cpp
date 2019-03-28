@@ -50,9 +50,15 @@ SimDSP::SimDSP(QWidget *parent) :
     ui->compileOutput->setFont(QFont("SansSerif", 10));
     ui->issuesOutput->setFont(QFont("SansSerif", 10));
 
-    codeLibrary =  new QLibrary();
+    sdapp = new QProcess(this);
+
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    QString libraryPath = QCoreApplication::applicationDirPath();
+    env.insert("LD_LIBRARY_PATH", libraryPath);
+    sdapp->setProcessEnvironment(env);
 
     initActionsConnections();
+    loadRecentProjects();
     loadExamples();
 
     isRun = false;
