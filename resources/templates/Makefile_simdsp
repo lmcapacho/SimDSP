@@ -14,19 +14,19 @@ OBJS 	= $(addprefix build/,$(subst .cpp,.o,$(SRCS)))
 
 ifeq ($(OS),Windows_NT)
     CXXFLAGS 	= -O3 -Wall -std=c++11
-    LDFLAGS		= -shared
-    TARGET_LIB 	= build/libsdcode.dll
+    LDFLAGS	=
+    TARGET 	= build/sdapp.exe
 else
-    CXXFLAGS 	= -O3 -Wall -fPIC -fvisibility=hidden -std=c++11
-    LDFLAGS		= -shared -fvisibility=hidden
-    TARGET_LIB 	= build/libsdcode.so
+    CXXFLAGS 	= -O3 -Wall -fPIC -std=c++11
+    LDFLAGS	=
+    TARGET 	= build/sdapp
 endif
 
 .PHONY: all
-all: $(TARGET_LIB)
+all: $(TARGET)
 
-$(TARGET_LIB): $(OBJS)
-	$(CXX) $(LDFLAGS) $^ -o $@ $(LIBPATH) $(LIBS) -lsdcore
+$(TARGET): $(OBJS)
+	$(CXX) $(LDFLAGS) $^ -o $@ $(LIBPATH) $(LIBS) -lsdcore -lrtaudio
 
 build/%.o:%.cpp
 	$(CXX) $(INCPATH) $(CXXFLAGS) -c $< -o $@

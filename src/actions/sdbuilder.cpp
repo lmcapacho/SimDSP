@@ -47,10 +47,10 @@ bool SDBuilder::build()
     QFile::setPermissions(QDir::currentPath()+"/simdsp.cpp", QFile::WriteUser | QFile::ReadUser);
 
 #ifdef Q_OS_LINUX
-    QFile::remove(QDir::currentPath()+"/build/libsdcode.so");
+    QFile::remove(QDir::currentPath()+"/build/sdapp");
     process->start("make", QStringList() << "-f" << mkName);
 #elif defined(Q_OS_WIN32)
-    QFile::remove(QDir::currentPath()+"/build/libsdcode.dll");
+    QFile::remove(QDir::currentPath()+"/build/sdapp.exe");
     process->start("mingw32-make", QStringList() << "-f" << mkName);
 #endif
 
@@ -61,9 +61,9 @@ bool SDBuilder::build()
     QFile::remove(QDir::currentPath()+"/simdsp.cpp");
 
 #ifdef Q_OS_LINUX
-    QFileInfo output(QDir::currentPath()+"/build/libsdcode.so");
+    QFileInfo output(QDir::currentPath()+"/build/sdapp");
 #elif defined(Q_OS_WIN32)
-    QFileInfo output(QDir::currentPath()+"/build/libsdcode.dll");
+    QFileInfo output(QDir::currentPath()+"/build/sdapp.exe");
 #endif
 
     return output.exists();
