@@ -10,7 +10,6 @@ install:
   - sudo apt-get install libasound2-dev libjack-dev libpulse-dev doxygen oss4-dev
   
   # Install matio
-  - mkdir matio
   - sudo apt-get install libmatio-dev
   
   # Install RtAudio
