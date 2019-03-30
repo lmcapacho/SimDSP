@@ -20,6 +20,7 @@
  */
 
 #include "sdaudio.h"
+#include "sdcore.h"
 
 SDAudio::SDAudio(QObject *parent) :
     QObject(parent)
@@ -28,6 +29,8 @@ SDAudio::SDAudio(QObject *parent) :
     dac = new RtAudio();
     mutex_adc=new QMutex();
     mutex_dac=new QMutex();
+
+    mySD=(SDSignal*)parent;
 }
 
 SDAudio::~SDAudio()
@@ -61,7 +64,7 @@ int in( void  * /*outputBuffer*/, void *inputBuffer, unsigned int nBufferFrames,
     mtx_adc->unlock();
 
     //Se emite la señal de final de captura a la GUI
-    emit sda->recordFinish((short*)bufferin->data()) ;
+    sda->recordFinish((short*)bufferin->data()) ;
 
     return 0;
 }
@@ -89,7 +92,7 @@ int out( void *outputBuffer, void * /*inputBuffer*/, unsigned int nBufferFrames,
     mtx_dac->unlock();
 
     //Emite señal de final de reproducción a la GUI
-    emit sda->playFinish();
+     sda->playFinish();
 
     return 0;
 }
@@ -154,4 +157,14 @@ void SDAudio::play(short *outBuffer)
     mutex_dac->lock();
     memcpy(buffer_dac->data(),outBuffer,bufferSize);
     mutex_dac->unlock();
+}
+
+void SDAudio::recordFinish(short *data)
+{
+    mySD->recordFinish(data);
+}
+
+void SDAudio::playFinish()
+{
+    mySD->playFinish();
 }

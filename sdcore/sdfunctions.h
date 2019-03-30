@@ -19,7 +19,6 @@
  * along with SimDSP.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef SDFUNCTIONS_H
 #define SDFUNCTIONS_H
 
@@ -44,6 +43,6 @@ void captureBlock( short* pBuffer, int length, void (*callback)() );
 void playBlock( short* pBuffer, int length, void (*callback)() );
 void enableMic(int length);
 
-void initSDCore();
+void  initSDCore();
 
 #endif // SDFUNCTIONS_H

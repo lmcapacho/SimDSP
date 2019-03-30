@@ -29,10 +29,11 @@
 #include <QIODevice>
 #include <QtEndian>
 #include <QBuffer>
-#include <QAudioInput>
-#include <QAudioOutput>
+
 #include <RtAudio.h>
 #include <QThread>
+
+class SDSignal;
 
 class SDAudio : public QObject
 {
@@ -53,13 +54,14 @@ public:
     QMutex *mutex_adc;
     QMutex *mutex_dac;
 
-signals:
+
     void recordFinish( short *inBuffer);
     void playFinish();
 
 private:
     RtAudio *adc,*dac;
     int bufferSize;
+    SDSignal *mySD;
 };
 
 #endif // SDAUDIO_H

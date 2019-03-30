@@ -22,24 +22,21 @@
 #ifndef SIMDSPCORE_H
 #define SIMDSPCORE_H
 
-#include <QWidget>
-#include <QTextEdit>
+
 #include <QVector>
-#include <QAbstractButton>
+
 
 #include <string>
 #include "sdcore_global.h"
 
 #include "sdsignal.h"
-#include "sdmat.h"
+
 
 using namespace std;
 
-namespace Ui {
-class SimDSPCore;
-}
 
-class SIMDSPCORESHARED_EXPORT SimDSPCore : public QWidget
+
+class SIMDSPCORESHARED_EXPORT SimDSPCore: public QObject
 {
     Q_OBJECT
 public:
@@ -60,43 +57,35 @@ public:
     void playBlock( short* pBuffer, int length, void (*callback)() );
     void enableMic(int length);
 
-    void clearOutput();
-
     void init();
     void start();
     void stop();
 
-public slots:
-    void autoScale();
-    void resetZoom();
-    void loadMatFile();
-    void saveMatFile();
-
-    void keyboardClicked();
+    void keyboardClicked(int iKey);
 
     void changeInput(int inputIndex);
     void changeFrequency(int freq);
     void changeAmplitude(int amp);
-    void changeBaseTime(int bt);
-
-    void changeInOutSelect(QAbstractButton *button);
-
+    void changeFileSize(int length);
     void changeAWGN(bool checked);
-
-    void changeSizeWindow(int size);
-
-    void newData(const QVector<double> *inTime, const QVector<double> *inFreq,
-                 const QVector<double> *outTime, const QVector<double> *outFreq);
+    void changeSNR(int snr);
 
 private:
-    Ui::SimDSPCore *ui;
 
-    QTextEdit *output;
-
+    QSharedMemory *plotBufferIn;
+    QSharedMemory *plotBufferOut;
+    QSharedMemory *fileBufferIn;
+    QSharedMemory *fileBufferOut;
+    int key;
     void (*sdKeyboardISRFnc)();
 
-    SDMat *sdmat;
+    QVector<QSharedMemory*> *sharedMemoryArray;
+
+
     SDSignal *sd;
+
+    void standardInputTask();
+    std::thread *standardInputThread;
 };
 
 #endif // SIMDSPCORE_H

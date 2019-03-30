@@ -32,8 +32,7 @@
 
 #include <sdaudio.h>
 #include <random>
-#include <fftw3.h>
-#include <matio.h>
+
 
 #define NBITS 15
 #define MIDVALUE	(1<<(NBITS-1))
@@ -42,9 +41,9 @@
 class SDSignal : public QObject
 {
     typedef struct{
-      short* pBuffer;
-      int  length;
-      void (*callback)();
+        short* pBuffer;
+        int  length;
+        void (*callback)();
     }sdBlock;
 
     Q_OBJECT
@@ -53,15 +52,15 @@ class SDSignal : public QObject
 public:
 
     enum SignalTypes{
-      SIGNAL_SIN,
-      SIGNAL_SQUARE,
-      SIGNAL_SAWTOOTH,
-      SIGNAL_NOISE,
-      SIGNAL_FILE,
-      SIGNAL_MIC
+        SIGNAL_SIN,
+        SIGNAL_SQUARE,
+        SIGNAL_SAWTOOTH,
+        SIGNAL_NOISE,
+        SIGNAL_FILE,
+        SIGNAL_MIC
     };
 
-    SDSignal();
+    SDSignal(QVector<QSharedMemory*> *);
     ~SDSignal();
 
     double getfs();
@@ -70,8 +69,11 @@ public:
     void setSignalAmplitude(double amp);
     void setSignalType(int st);
     void setSignalFrequency(double freq);
+
+    void changeSNR(int value);
+    void changeAWGN(bool state);
+
     double getSignalFrequency();
-    void setBaseTime(int bt);
 
     double wgn();
     double getSample();
@@ -82,28 +84,19 @@ public:
 
     void enableMic(int length);
 
-    void saveFile(QString path);
+    void changeFileSize(int length);
 
     void start();
     void stop();
 
-    void changeAWGN(bool state);
 
-signals:
-    void newData(const QVector<double> *inTime, const QVector<double> *inFreq,
-                     const QVector<double> *outTime, const QVector<double> *outFreq);
-    void changeSizeWindow(int size);
-
-public slots:
-    void processBlocks();
     void recordFinish(short* data);
     void playFinish();
-    void changeSNR(int value);
-    void loadFile(QString path, QString varName);
+
+    void processBlocks();
 
 private:
 
-    void updateFFT();
     void updateBuffer(sdBlock *block, QVector<double> *values);
     void captureBlockFnc(sdBlock *block);
     void playBlockFnc(sdBlock *block);
@@ -112,7 +105,7 @@ private:
     double signalFrequency;
     double signalAmplitude;
     double omegafq;
-
+    int fileSize;
     double snr;
     bool bAWGN;
     std::default_random_engine generator;
@@ -122,44 +115,38 @@ private:
 
     QVector<double> *xs;
     QVector<double> *ys;
-    QVector<double> *Xs;
-    QVector<double> *Ys;
 
-    QTimer *timer;
+
+    std::thread *timer;
 
     int n;
-    int baseTime;
+
     int screenWidth;
-    int fftWidth;
+
+    int currentBufferWidth;
+
     double fMax;
 
     bool bSyncronize;
     bool bSyncpulse;
 
-    double *fftInADC;
-    fftw_complex *fftOutADC;
-
-    double *fftInDAC;
-    fftw_complex *fftOutDAC;
-
-    fftw_plan planADC;
-    fftw_plan planDAC;
-
-    int iFileLength;
-    int iFileInIndex;
-    int iFileOutIndex;
-    QVector<double> pFileInBuffer;
-    QVector<double> pFileOutBuffer;
+    int iFileInIndex=0;
+    int iFileOutIndex=0;
 
     bool bReadADC;
     bool bProcessBlocks;
     bool bMicRecording;
     bool bMicEnabled;
 
+    bool isPlayCallBack;
+    bool isRecordCallBack;
+
     SDAudio *soundCard;
 
     sdBlock* block_capture = nullptr;
     sdBlock* block_play = nullptr;
+
+    QVector<QSharedMemory*> *sharedMemoryArray;
 };
 
 #endif // QSDSIGNAL_H

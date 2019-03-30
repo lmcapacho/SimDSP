@@ -116,4 +116,12 @@ void SIMDSPCORESHARED_EXPORT initSDCore()
         sd_void = reinterpret_cast<void*>(sd);
     }
     sd->setfs(8000);
+    sd->start();
 }
+
+
+
+
+
+
+

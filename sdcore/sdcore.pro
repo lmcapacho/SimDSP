@@ -20,7 +20,6 @@
 #
 #######################################################################
 
-QT       += widgets multimedia printsupport
 CONFIG   += c++11
 
 TARGET = sdcore
@@ -31,49 +30,29 @@ DEFINES += SIMDSPCORE_LIBRARY
 DESTDIR = build
 OBJECTS_DIR = build/obj
 MOC_DIR = build/moc
-RCC_DIR = build/rcc
-UI_DIR = build/ui
 
 SOURCES += sdcore.cpp \
-    sdkeyboard.cpp \
-    qcustomplot.cpp \
     sdfunctions.cpp \
     sdsignal.cpp \
-    sdaudio.cpp \
-    sdplot.cpp \
-    sdmat.cpp
+    sdaudio.cpp
 
 HEADERS += sdcore.h\
     sdcore_global.h \
-    sdkeyboard.h \
-    qcustomplot.h \
     sdfunctions.h \
     sdsignal.h \
-    sdaudio.h \
-    sdplot.h \
-    sdmat.h
+    sdaudio.h
 
 INCLUDEPATH += $$PWD/../resources/dependencies/rtaudio
 
 unix {
     target.path = /usr/lib
     INSTALLS += target
-    LIBS += -lfftw3 -lm -lmatio
+    LIBS +=  -lm
     LIBS += -L$$PWD/../resources/dependencies/rtaudio/libs/linux-64 -lrtaudio
 }
 
 win32 {
-    INCLUDEPATH += "$$PWD\..\resources\dependencies\fftw3"  \
-                   "$$PWD\..\resources\dependencies\matio"
-    LIBS += "$$PWD\..\resources\dependencies\fftw3\libfftw3-3.dll" \
-            "$$PWD\..\resources\dependencies\matio\libmatio.dll" \
-            "$$PWD\..\resources\dependencies\matio\hdf5.dll" \
-            "$$PWD\..\resources\dependencies\matio\zlib.dll"
-    LIBS += -L$$PWD\..\resources\dependencies\rtaudio\libs\windows-32 -lrtaudio
+    LIBS += -L$$PWD\..\resources\dependencies\rtaudio\libs\windows-64 -lrtaudio
 }
 
-FORMS += \
-    sdkeyboard.ui \
-    sdcore.ui \
-    sdplot.ui \
-    sdmat.ui
+
