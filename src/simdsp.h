@@ -36,6 +36,14 @@
 #include "actions/sdbuilder.h"
 #include "actions/sdnewfile.h"
 
+#ifdef Q_OS_LINUX
+    #define SDAPP_KILL      9
+    #define SDAPP_NOTFOUND  127
+#elif defined(Q_OS_WIN32)
+    #define SDAPP_KILL      9
+    #define SDAPP_NOTFOUND  127
+#endif
+
 namespace Ui {
 class SimDSP;
 }
@@ -98,7 +106,7 @@ public slots:
     void tabOpen();
     void issues(int total);
 
-    void sdappErrorOccurred(QProcess::ProcessError error);
+    void sdappFinished(int exitCode, QProcess::ExitStatus exitStatus);
 
 private:
     Ui::SimDSP *ui;

@@ -22,8 +22,6 @@
 
 CONFIG   += c++11
 
-QMAKE_CXXFLAGS += -pthread
-
 TARGET = sdcore
 TEMPLATE = lib
 

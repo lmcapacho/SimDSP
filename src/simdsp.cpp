@@ -371,11 +371,10 @@ void SimDSP::actionRun()
         ui->outputTab->setTabText(1, "Issues");
 
         ui->compileOutput->append(tr("<b>Running SimDSP Project...</b><br>"));
-        ui->sdview->start();
 
     #if QT_VERSION >= 0x050700
         connect(sdapp, &QProcess::readyRead, this, &SimDSP::sdappReadyRead);
-        connect(sdapp, QOverload<QProcess::ProcessError>::of(&QProcess::errorOccurred), this, &SimDSP::sdappErrorOccurred);
+        connect(sdapp, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this, &SimDSP::sdappFinished);
     #else
         connect(sdapp, SIGNAL(readyRead()), this, SLOT(sdappReadyRead()));
     #endif
@@ -386,16 +385,18 @@ void SimDSP::actionRun()
         sdapp->start(QDir::currentPath()+"/build/sdapp.exe");
     #endif
         if(!sdapp->waitForStarted(5000)){
-          ui->compileOutput->append(tr("<b>SimDSP app failed to start</b><br>"));
+          ui->compileOutput->append(tr("<b>SDapp failed to start</b><br>"));
           ui->compileOutput->append(tr("<span style='color:#AE0000;'><br><b>Failed running SimDSP</b></span>"));
           ui->sdview->stop();
           return;
         }
 
-        ui->compileOutput->append(tr("<b>SimDSP app started</b><br>"));
+        ui->sdview->start();
+
+        ui->compileOutput->append(tr("<b>SDapp started</b><br>"));
 
         ui->outputTab->setCurrentIndex(0);
-        ui->statusBar->showMessage(tr("SimDSP Running..."));
+        ui->statusBar->showMessage(tr("SimDSP Simulation Running..."));
 
         ui->tabWidget->setTabEnabled(ui->tabWidget->indexOf(ui->runTab), true);
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->runTab));
@@ -529,9 +530,22 @@ void SimDSP::issues(int total)
     ui->outputTab->setTabText(1, "Issues ("+QString::number(total)+")");
 }
 
-void SimDSP::sdappErrorOccurred(QProcess::ProcessError error)
+void SimDSP::sdappFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
-    Q_UNUSED(error);
+    Q_UNUSED(exitStatus);
+
+    switch (exitCode) {
+        case SDAPP_KILL:
+            break;
+        case SDAPP_NOTFOUND:
+            if(isRun) actionStop();
+            QMessageBox::critical(this, "SimDSP", tr("SDapp failed to start"));
+            break;
+        default:
+            if(isRun) actionStop();
+            QMessageBox::critical(this, "SimDSP", tr("SDapp has closed unexpectedly"));
+            break;
+    }
 }
 
 void SimDSP::sdappReadyRead()
@@ -555,7 +569,7 @@ void SimDSP::sdappReadyRead()
                         ui->sdview->println(request.at(1));
                         break;
                     case 3:
-                        ui->sdview->changeSizeWindow(request.at(1).toInt());
+                        ui->sdview->setSizeWindow(request.at(1).toInt());
                         break;
                     default:
                         break;

@@ -35,6 +35,24 @@ SDView::SDView(QWidget *parent) :
 
 SDView::~SDView()
 {
+    SDPlotBufferIn.detach();
+    SDPlotBufferOut.detach();
+    SDFileBufferIn.detach();
+    SDFileBufferOut.detach();
+
+    free(inTime);
+    free(outTime);
+    free(inFreq);
+    free(outFreq);
+
+    fftw_free(fftInADC);
+    fftw_free(fftOutADC);
+    fftw_free(fftInDAC);
+    fftw_free(fftOutDAC);
+
+    fftw_destroy_plan (planADC);
+    fftw_destroy_plan (planDAC);
+
     delete ui;
 }
 
@@ -55,7 +73,6 @@ void SDView::setfs(double fs)
     ui->fsValue->setText(QString::number(fs, 'f', 1) + " Hz");
     ui->PlotA->setfs(fs);
     ui->PlotB->setfs(fs);
-    ui->frequencySpinBox->setValue(static_cast<int>(fs/100.0));
 }
 
 void SDView::enableMic()
@@ -75,26 +92,57 @@ void SDView::init()
     sdmat = new SDMat;
     refresh = new QTimer;
 
-#if QT_VERSION >= 0x050700
-    connect(ui->inputComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SDView::changeInput );
-    connect(ui->frequencySpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &SDView::changeFrequency);
-    connect(ui->amplitudeDial, QOverload<int>::of(&QDial::valueChanged), this, &SDView::changeAmplitude);
-    connect(ui->timeBaseDial, QOverload<int>::of(&QDial::valueChanged), this, &SDView::changeBaseTime);
-    connect(ui->timeFreqGroup, QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked),this, &SDView::changeInOutSelect);
+    if (SDPlotBufferIn.isAttached()) SDPlotBufferIn.detach();
+    if (SDPlotBufferOut.isAttached()) SDPlotBufferOut.detach();
+    if (SDFileBufferIn.isAttached()) SDFileBufferIn.detach();
+    if (SDFileBufferOut.isAttached()) SDFileBufferOut.detach();
 
-    connect(ui->awgnCheckBox, QOverload<bool>::of(&QCheckBox::toggled), this, &SDView::changeAWGN);
-    connect(ui->snrSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &SDView::changeSNR);
+    SDPlotBufferIn.setKey("SDPlotBufferIn");
+    SDPlotBufferIn.create(1024*sizeof(double));
+    SDPlotBufferOut.setKey("SDPlotBufferOut");
+    SDPlotBufferOut.create(1024*sizeof(double));
+
+    SDFileBufferIn.setKey("SDFileBufferIn");
+    SDFileBufferIn.create(MAXFILESIZE*sizeof(double));
+    SDFileBufferOut.setKey("SDFileBufferOut");
+    SDFileBufferOut.create(MAXFILESIZE*sizeof(double));
+
+    inTime = new QVector<double>(1024);
+    outTime = new QVector<double>(1024);
+
+    inFreq = new QVector<double>(1024);
+    outFreq = new QVector<double>(1024);
+
+    fftWidth =  1024;
+
+    fftInADC = fftw_alloc_real(static_cast<size_t>(fftWidth));
+    fftOutADC = fftw_alloc_complex(static_cast<size_t>((fftWidth/2)+1));
+    fftInDAC = fftw_alloc_real(static_cast<size_t>(fftWidth));
+    fftOutDAC = fftw_alloc_complex(static_cast<size_t>((fftWidth/2)+1));
+
+    planADC = fftw_plan_dft_r2c_1d ( fftWidth, fftInADC, fftOutADC, FFTW_ESTIMATE );
+    planDAC = fftw_plan_dft_r2c_1d ( fftWidth, fftInDAC, fftOutDAC, FFTW_ESTIMATE );
+
+#if QT_VERSION >= 0x050700
+    connect(ui->inputComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SDView::setInput );
+    connect(ui->frequencySpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &SDView::setFrequency);
+    connect(ui->amplitudeDial, QOverload<int>::of(&QDial::valueChanged), this, &SDView::setAmplitude);
+    connect(ui->timeBaseDial, QOverload<int>::of(&QDial::valueChanged), this, &SDView::setBaseTime);
+    connect(ui->timeFreqGroup, QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked),this, &SDView::setInOutSelect);
+
+    connect(ui->awgnCheckBox, QOverload<bool>::of(&QCheckBox::toggled), this, &SDView::setAWGN);
+    connect(ui->snrSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &SDView::setSNR);
 
     connect(sdmat, QOverload<QString, QString>::of(&SDMat::loadVariable), this, &SDView::loadFile);
 #else
-    connect(ui->inputComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(changeInput(int)));
-    connect(ui->frequencySpinBox, SIGNAL(valueChanged(int)), this, SLOT(changeFrequency(int)));
-    connect(ui->amplitudeDial, SIGNAL(valueChanged(int)), this, SLOT(changeAmplitude(int)));
-    connect(ui->timeBaseDial, SIGNAL(valueChanged(int)), this, SLOT(changeBaseTime(int)));
-    connect(ui->timeFreqGroup, SIGNAL(buttonClicked(QAbstractButton*)), this, SLOT(changeInOutSelect(QAbstractButton*)));
+    connect(ui->inputComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(setInput(int)));
+    connect(ui->frequencySpinBox, SIGNAL(valueChanged(int)), this, SLOT(setFrequency(int)));
+    connect(ui->amplitudeDial, SIGNAL(valueChanged(int)), this, SLOT(setAmplitude(int)));
+    connect(ui->timeBaseDial, SIGNAL(valueChanged(int)), this, SLOT(setBaseTime(int)));
+    connect(ui->timeFreqGroup, SIGNAL(buttonClicked(QAbstractButton*)), this, SLOT(setInOutSelect(QAbstractButton*)));
 
-    connect(ui->awgnCheckBox, SIGNAL(toggled(bool)), this, SLOT(changeAWGN(bool)));
-    //connect(ui->snrSpinBox, SIGNAL(valueChanged(int)), sd, SLOT(changeSNR(int)));
+    connect(ui->awgnCheckBox, SIGNAL(toggled(bool)), this, SLOT(setAWGN(bool)));
+    //connect(ui->snrSpinBox, SIGNAL(valueChanged(int)), sd, SLOT(setSNR(int)));
 
     connect(sdmat, SIGNAL(loadVariable(QString,QString)), this, SLOT(loadFile(QString,QString)));
 #endif
@@ -102,7 +150,7 @@ void SDView::init()
     connect(ui->widgetKeyboard, &SDKeyboard::keyboardClicked, this, &SDView::keyboardClicked);
     connect(refresh, &QTimer::timeout, this, &SDView::newData);
 
-    changeFrequency(100);
+    setFrequency(100);
     ui->frequencySpinBox->setSingleStep(50);
 
     ui->inputComboBox->setItemData(SIGNAL_MIC, 0, Qt::UserRole-1);
@@ -193,18 +241,17 @@ void SDView::keyboardClicked()
     emit changeView(data);
 }
 
-void SDView::changeInput(int inputIndex)
+void SDView::setInput(int inputIndex)
 {
     SDView::SignalTypes signalType = static_cast<SDView::SignalTypes>(inputIndex);
 
     if( signalType >= SDView::SIGNAL_NOISE ){
-        ui->snrSpinBox->setValue(0);
+        ui->snrSpinBox->setValue(40);
         ui->frequencySpinBox->setDisabled(true);
         ui->awgnCheckBox->setDisabled(true);
         ui->awgnCheckBox->setChecked(false);
     }
     else{
-        ui->snrSpinBox->setValue(40);
         ui->awgnCheckBox->setEnabled(true);
         ui->frequencySpinBox->setEnabled(true);
     }
@@ -213,13 +260,13 @@ void SDView::changeInput(int inputIndex)
     emit changeView(data);
 }
 
-void SDView::changeFrequency(int freq)
+void SDView::setFrequency(int freq)
 {
     QByteArray data = "1," + QByteArray::number(freq)+ "\n";
     emit changeView(data);
 }
 
-void SDView::changeAmplitude(int amp)
+void SDView::setAmplitude(int amp)
 {
     QString value = "Amplitude: " + QString::number(amp/10.0) +"V";
     ui->amplitudeLabel->setText(value);
@@ -228,7 +275,7 @@ void SDView::changeAmplitude(int amp)
     emit changeView(data);
 }
 
-void SDView::changeBaseTime(int bt)
+void SDView::setBaseTime(int bt)
 {
     QString value = "Time base (x" + QString::number(11-bt) +")";
     ui->timeBaseLabel->setText(value);
@@ -237,7 +284,7 @@ void SDView::changeBaseTime(int bt)
     ui->PlotB->setSizeWindow(ui->timeBaseDial->value());
 }
 
-void SDView::changeInOutSelect(QAbstractButton *button)
+void SDView::setInOutSelect(QAbstractButton *button)
 {
     Q_UNUSED(button);
 
@@ -259,7 +306,7 @@ void SDView::changeInOutSelect(QAbstractButton *button)
     ui->PlotB->resetZoom();
 }
 
-void SDView::changeAWGN(bool checked)
+void SDView::setAWGN(bool checked)
 {
     QByteArray data = "3," + QByteArray::number(checked) + "\n";
     emit changeView(data);
@@ -273,13 +320,13 @@ void SDView::changeAWGN(bool checked)
     }
 }
 
-void SDView::changeSNR(int value)
+void SDView::setSNR(int value)
 {
     QByteArray data = "4," + QByteArray::number(value) + "\n";
     emit changeView(data);
 }
 
-void SDView::changeSizeWindow(int size)
+void SDView::setSizeWindow(int size)
 {
     ui->PlotA->setMaxSizeWindow(size);
     ui->PlotB->setMaxSizeWindow(size);
@@ -344,62 +391,17 @@ void SDView::stop()
     ui->PlotA->clearPlot();
     ui->PlotB->clearPlot();
     ui->inputComboBox->setItemData(SIGNAL_MIC, 0, Qt::UserRole-1);
-    ui->inputComboBox->setCurrentIndex(SIGNAL_SIN);
     ui->inputComboBox->setEnabled(true);
-
-    SDPlotBufferIn.detach();
-    SDPlotBufferOut.detach();
-    SDFileBufferIn.detach();
-    SDFileBufferOut.detach();
-
-    free(inTime);
-    free(outTime);
-    free(inFreq);
-    free(outFreq);
-
-    fftw_free(fftInADC);
-    fftw_free(fftOutADC);
-    fftw_free(fftInDAC);
-    fftw_free(fftOutDAC);
-
-    fftw_destroy_plan (planADC);
-    fftw_destroy_plan (planDAC);
 
     refresh->stop();
 }
 
 void SDView::start()
 {
-    if (SDPlotBufferIn.isAttached()) SDPlotBufferIn.detach();
-    if (SDPlotBufferOut.isAttached()) SDPlotBufferOut.detach();
-    if (SDFileBufferIn.isAttached()) SDFileBufferIn.detach();
-    if (SDFileBufferOut.isAttached()) SDFileBufferOut.detach();
-
-    SDPlotBufferIn.setKey("SDPlotBufferIn");
-    SDPlotBufferIn.create(1024*sizeof(double));
-    SDPlotBufferOut.setKey("SDPlotBufferOut");
-    SDPlotBufferOut.create(1024*sizeof(double));
-
-    SDFileBufferIn.setKey("SDFileBufferIn");
-    SDFileBufferIn.create(MAXFILESIZE*sizeof(double));
-    SDFileBufferOut.setKey("SDFileBufferOut");
-    SDFileBufferOut.create(MAXFILESIZE*sizeof(double));
-
-    inTime = new QVector<double>(1024);
-    outTime = new QVector<double>(1024);
-
-    inFreq = new QVector<double>(1024);
-    outFreq = new QVector<double>(1024);
-
-    fftWidth =  1024;
-
-    fftInADC = fftw_alloc_real(static_cast<size_t>(fftWidth));
-    fftOutADC = fftw_alloc_complex(static_cast<size_t>((fftWidth/2)+1));
-    fftInDAC = fftw_alloc_real(static_cast<size_t>(fftWidth));
-    fftOutDAC = fftw_alloc_complex(static_cast<size_t>((fftWidth/2)+1));
-
-    planADC = fftw_plan_dft_r2c_1d ( fftWidth, fftInADC, fftOutADC, FFTW_ESTIMATE );
-    planDAC = fftw_plan_dft_r2c_1d ( fftWidth, fftInDAC, fftOutDAC, FFTW_ESTIMATE );
+    setInput(ui->inputComboBox->currentIndex());
+    setAmplitude(ui->amplitudeDial->value());
+    setAWGN(ui->awgnCheckBox->isChecked());
+    setSNR(ui->snrSpinBox->value());
 
     refresh->start(30);
 }

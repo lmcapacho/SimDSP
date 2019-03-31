@@ -82,17 +82,17 @@ public slots:
 
     void keyboardClicked();
 
-    void changeInput(int inputIndex);
-    void changeFrequency(int freq);
-    void changeAmplitude(int amp);
-    void changeBaseTime(int bt);
+    void setInput(int inputIndex);
+    void setFrequency(int freq);
+    void setAmplitude(int amp);
+    void setBaseTime(int bt);
 
-    void changeInOutSelect(QAbstractButton *button);
+    void setInOutSelect(QAbstractButton *button);
 
-    void changeAWGN(bool checked);
-    void changeSNR(int value);
+    void setAWGN(bool checked);
+    void setSNR(int value);
 
-    void changeSizeWindow(int size);
+    void setSizeWindow(int size);
 
     void loadFile(QString path, QString varName);
 
