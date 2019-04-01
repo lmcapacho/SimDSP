@@ -36,12 +36,11 @@
 #include "actions/sdbuilder.h"
 #include "actions/sdnewfile.h"
 
+#define SDAPP_NOTFOUND  127
 #ifdef Q_OS_LINUX
     #define SDAPP_KILL      9
-    #define SDAPP_NOTFOUND  127
 #elif defined(Q_OS_WIN32)
-    #define SDAPP_KILL      9
-    #define SDAPP_NOTFOUND  127
+    #define SDAPP_KILL      62097
 #endif
 
 namespace Ui {

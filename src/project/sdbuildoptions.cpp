@@ -268,7 +268,8 @@ void SDBuildOptions::addOption(QString option, QString value, QString prefix)
 
         for(int index=0; index<lines.size(); index++){
             if(lines[index].contains(option.toLatin1())){
-                lines[index].append(prefix+value+" ");
+                lines[index].replace('\r', ' ');
+                lines[index].append(prefix+value+" \r");
                 break;
             }
         }

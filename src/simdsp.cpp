@@ -54,7 +54,11 @@ SimDSP::SimDSP(QWidget *parent) :
 
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     QString libraryPath = QCoreApplication::applicationDirPath();
+#ifdef Q_OS_LINUX
     env.insert("LD_LIBRARY_PATH", libraryPath);
+#elif defined(Q_OS_WIN32)
+    env.insert("PATH", libraryPath);
+#endif
     sdapp->setProcessEnvironment(env);
 
     initActionsConnections();
