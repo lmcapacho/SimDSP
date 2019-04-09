@@ -20,12 +20,10 @@
 #
 #######################################################################
 
-QT       += core gui multimedia
+QT       += core gui
 CONFIG   += c++11
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
-
-# INCLUDEPATH += "$$PWD/resources/dependencies/core"
 
 RESOURCES += \
     simdspresources.qrc

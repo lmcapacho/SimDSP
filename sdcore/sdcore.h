@@ -27,6 +27,7 @@
 
 
 #include <string>
+#include <thread>
 #include "sdcore_global.h"
 
 #include "sdsignal.h"

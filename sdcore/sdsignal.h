@@ -32,7 +32,7 @@
 
 #include <sdaudio.h>
 #include <random>
-
+#include <thread>
 
 #define NBITS 15
 #define MIDVALUE	(1<<(NBITS-1))
