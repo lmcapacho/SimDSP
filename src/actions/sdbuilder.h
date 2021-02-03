@@ -38,11 +38,11 @@ public:
     void createMakefile();
 
 signals:
-    void errorOutput(QByteArray error);
-    void msgOutput(QByteArray msg);
+    void builderOutput(QByteArray error);
 
 public slots:
-    void readProcess();
+    void readStandardError();
+    void readStandardOutput();
 
 private:
     QProcess *process;

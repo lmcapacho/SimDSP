@@ -25,8 +25,8 @@ SDBuilder::SDBuilder()
 {
     process = new QProcess(this);
 
-    connect(process, &QProcess::readyReadStandardError, this, &SDBuilder::readProcess);
-    connect(process, &QProcess::readyReadStandardOutput, this, &SDBuilder::readProcess);
+    connect(process, &QProcess::readyReadStandardError, this, &SDBuilder::readStandardError);
+    connect(process, &QProcess::readyReadStandardOutput, this, &SDBuilder::readStandardOutput);
 }
 
 bool SDBuilder::build()
@@ -111,16 +111,22 @@ void SDBuilder::createMakefile()
     makefile.setPermissions(QFile::WriteUser | QFile::ReadUser);
 }
 
-void SDBuilder::readProcess()
+void SDBuilder::readStandardError()
 {
-    QByteArray standardError = process->readAllStandardError();
-    QByteArray standardOutput = process->readAllStandardOutput();
+    process->setReadChannel(QProcess::StandardError);
 
-    if( !standardError.isEmpty() ){
-        emit errorOutput(standardError);
+    if(process->canReadLine()){
+        QByteArray stdError = process->readAll();
+        emit builderOutput(stdError);
     }
+}
 
-    if( !standardOutput.isEmpty() ){
-        emit errorOutput(standardOutput);
+void SDBuilder::readStandardOutput()
+{
+    process->setReadChannel(QProcess::StandardOutput);
+
+    if(process->canReadLine()){
+        QByteArray stdOutput = process->readAll();
+        emit builderOutput(stdOutput);
     }
 }
