@@ -80,6 +80,7 @@ private:
 
     int totalIssues;
     QRegularExpression msgRegExp;
+    QRegularExpression ldRegExp;
 };
 
 #endif // SDPROJECT_H
