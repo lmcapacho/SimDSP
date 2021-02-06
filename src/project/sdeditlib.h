@@ -33,7 +33,7 @@ class SDEditLib : public QDialog
     Q_OBJECT
 
 public:
-    explicit SDEditLib(QString value = QString::null, QWidget *parent = nullptr);
+    explicit SDEditLib(QString value = QString(), QWidget *parent = nullptr);
     ~SDEditLib();
 
     QString getValue();

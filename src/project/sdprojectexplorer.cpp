@@ -61,14 +61,14 @@ void SDProjectexplorer::addProject(QString path, QString name)
     QTreeWidgetItemIterator it(ui->projectTreeWidget);
     while (*it) {
         (*it)->setFont(0, font);
-        (*it)->setTextColor(0, QColor("#888888"));
+        (*it)->setForeground(0, QColor("#888888"));
         ++it;
     }
 
     font.setBold(true);
     currentProject->setText(0, name);
     currentProject->setFont(0, font);
-    currentProject->setTextColor(0, QColor("#FFFFFF"));
+    currentProject->setForeground(0, QColor("#FFFFFF"));
     currentProject->setToolTip(0, path);
 
     currentProject->setText(1, path);
@@ -120,14 +120,14 @@ void SDProjectexplorer::sortProject()
 
 void SDProjectexplorer::activateProject()
 {
-    currentProject->setTextColor(0, QColor("#888888"));
+    currentProject->setForeground(0, QColor("#888888"));
     for( int i = 0; i < currentProject->childCount(); ++i )
-        currentProject->child(i)->setTextColor(0, QColor("#888888"));
+        currentProject->child(i)->setForeground(0, QColor("#888888"));
 
     currentProject = selectItem;
-    currentProject->setTextColor(0, QColor("#FFFFFF"));
+    currentProject->setForeground(0, QColor("#FFFFFF"));
     for( int i = 0; i < currentProject->childCount(); ++i )
-        currentProject->child(i)->setTextColor(0, QColor("#FFFFFF"));
+        currentProject->child(i)->setForeground(0, QColor("#FFFFFF"));
     QDir::setCurrent(currentProject->text(1));
 
     emit changePath();
@@ -142,9 +142,9 @@ int SDProjectexplorer::removeProject()
         index = ui->projectTreeWidget->topLevelItemCount()-1;
         if( index >= 0 ){
             currentProject = ui->projectTreeWidget->topLevelItem( index );
-            currentProject->setTextColor(0, QColor("#FFFFFF"));
+            currentProject->setForeground(0, QColor("#FFFFFF"));
             for( int i = 0; i < currentProject->childCount(); ++i )
-                currentProject->child(i)->setTextColor(0, QColor("#FFFFFF"));
+                currentProject->child(i)->setForeground(0, QColor("#FFFFFF"));
             QDir::setCurrent(currentProject->text(1));
         }
     }
@@ -161,9 +161,9 @@ int SDProjectexplorer::removeActiveProject()
         index = ui->projectTreeWidget->topLevelItemCount()-1;
         if( index >= 0 ){
             currentProject = ui->projectTreeWidget->topLevelItem( index );
-            currentProject->setTextColor(0, QColor("#FFFFFF"));
+            currentProject->setForeground(0, QColor("#FFFFFF"));
             for( int i = 0; i < currentProject->childCount(); ++i )
-                currentProject->child(i)->setTextColor(0, QColor("#FFFFFF"));
+                currentProject->child(i)->setForeground(0, QColor("#FFFFFF"));
             QDir::setCurrent(currentProject->text(1));
         }
     }
