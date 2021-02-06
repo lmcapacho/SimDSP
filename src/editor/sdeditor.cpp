@@ -26,27 +26,51 @@ SDEditor::SDEditor()
     setAttribute(Qt::WA_DeleteOnClose);
     isUntitled = true;
 
-    lineNumberArea = new SDEditorLNA(this);
+    // Config editor
 
-    completer = new QCompleter(this);
-    completer->setModel(modelFromFile(":/resources/files/SDWords.txt"));
-    completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
-    completer->setCompletionMode(QCompleter::PopupCompletion);
-    completer->setCaseSensitivity(Qt::CaseInsensitive);
-    completer->setWrapAround(false);
-    completer->setWidget(this);
+    // Autoindent
+    setAutoIndent(true);
 
-#if QT_VERSION >= 0x050700
-    connect(this, QOverload<int>::of(&SDEditor::blockCountChanged), this, &SDEditor::updateLineNumberAreaWidth);
-    connect(this, QOverload<const QRect&,int>::of(&SDEditor::updateRequest), this, &SDEditor::updateLineNumberArea);
-    connect(completer, QOverload<const QString&>::of(&QCompleter::activated), this, &SDEditor::insertCompletion);
-#else
-    connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateLineNumberAreaWidth(int)));
-    connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateLineNumberArea(QRect,int)));
-    connect(completer, SIGNAL(activated(QString)), this, SLOT(insertCompletion(QString)));
-#endif
+    // Margin
+    setMarginLineNumbers(1, true);
 
-    updateLineNumberAreaWidth(0);
+    // Indentation
+    setTabWidth(4);
+
+    // Lexer CPP
+    lexer = new QsciLexerCPP();
+    lexer_apis = new QsciAPIs(lexer);
+
+    QFile file(":/resources/files/SDWords.txt");
+    if (file.open(QFile::ReadOnly)) {
+        QStringList words;
+
+        while (!file.atEnd()) {
+            QByteArray line = file.readLine();
+            if (!line.isEmpty()){
+                lexer_apis->add(QString(line.trimmed()));
+            }
+        }
+    }
+
+    file.setFileName(":/resources/files/keyWords.txt");
+    if (file.open(QFile::ReadOnly)) {
+        QStringList words;
+
+        while (!file.atEnd()) {
+            QByteArray line = file.readLine();
+            if (!line.isEmpty()){
+                lexer_apis->add(QString(line.trimmed()));
+            }
+        }
+    }
+
+    lexer_apis->prepare();
+    setLexer(lexer);
+
+    // Autocomplete
+    setAutoCompletionSource(QsciScintilla::AcsAll);
+    setAutoCompletionThreshold(1);
 
     isLoad = false;
 }
@@ -56,12 +80,16 @@ void SDEditor::newFile(QString fileName)
     isUntitled = false;
     curFile = fileName;
 
-    connect(document(), &QTextDocument::contentsChanged, this, &SDEditor::documentWasModified);
+#if QT_VERSION >= 0x050700
+    connect(this, QOverload<bool>::of(&SDEditor::modificationChanged), this, &SDEditor::documentWasModified);
+#else
+    connect(this, SIGNAL(modificationChanged(bool)), this, SLOT(documentWasModified));
+#endif
 }
 
-void SDEditor::documentWasModified()
+void SDEditor::documentWasModified(bool m)
 {
-    setWindowModified(document()->isModified());
+    setWindowModified(m);
 }
 
 bool SDEditor::save()
@@ -94,7 +122,7 @@ bool SDEditor::saveFile(const QString &fileName)
     QTextStream out(&file);
     out.setCodec(QTextCodec::codecForName("UTF-8"));
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    out << toPlainText();
+    out << text();
     QApplication::restoreOverrideCursor();
 
     setCurrentFile(fileName);
@@ -102,9 +130,9 @@ bool SDEditor::saveFile(const QString &fileName)
 }
 
 
-bool SDEditor::maybeSave()
+bool SDEditor::isSaved()
 {
-    if (!document()->isModified())
+    if (!isModified())
         return true;
 
     const QMessageBox::StandardButton ret
@@ -130,7 +158,7 @@ void SDEditor::setCurrentFile(const QString &fileName)
 {
     curFile = QFileInfo(fileName).canonicalFilePath();
     isUntitled = false;
-    document()->setModified(false);
+    setModified(false);
     setWindowModified(false);
 }
 
@@ -155,21 +183,19 @@ bool SDEditor::loadFile(const QString &fileName, bool readOnly)
 
     QTextStream in(&file);
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    setPlainText(in.readAll());
+    setText(in.readAll());
     QApplication::restoreOverrideCursor();
-
-    /*QByteArray in = file.readAll();
-    QTextCodec *codec = QTextCodec::codecForUtfText(in);
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    setPlainText(codec->toUnicode(in));
-    QApplication::restoreOverrideCursor();*/
 
     setCurrentFile(name);
 
     if( readOnly ){
         setReadOnly(true);
     }else{
-        connect(document(), &QTextDocument::contentsChanged, this, &SDEditor::documentWasModified);
+    #if QT_VERSION >= 0x050700
+        connect(this, QOverload<bool>::of(&SDEditor::modificationChanged), this, &SDEditor::documentWasModified);
+    #else
+        connect(this, SIGNAL(modificationChanged(bool)), this, SLOT(documentWasModified));
+    #endif
     }
 
     return true;
@@ -181,7 +207,7 @@ void SDEditor::loadTemplate(QString fileName)
     file.open(QFile::ReadOnly | QFile::Text);
 
     QTextStream in(&file);
-    setPlainText(in.readAll());
+    setText(in.readAll());
 }
 
 QString SDEditor::userFriendlyCurrentFile()
@@ -191,7 +217,7 @@ QString SDEditor::userFriendlyCurrentFile()
 
 bool SDEditor::closeEditor()
 {
-    if (maybeSave()) {
+    if (isSaved()) {
         this->close();
         return true;
     } else {
@@ -217,163 +243,5 @@ void SDEditor::isFileLoad(bool load)
 void SDEditor::setFont(QFont& editorfont)
 {
     font = editorfont;
-    QPlainTextEdit::setFont(font);
-}
-
-/*=========== Completer ===============*/
-
-QAbstractItemModel *SDEditor::modelFromFile(const QString& fileName)
-{
-    QFile file(fileName);
-    if (!file.open(QFile::ReadOnly))
-        return new QStringListModel(completer);
-
-#ifndef QT_NO_CURSOR
-    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-#endif
-    QStringList words;
-
-    while (!file.atEnd()) {
-        QByteArray line = file.readLine();
-        if (!line.isEmpty())
-            words << line.trimmed();
-    }
-
-#ifndef QT_NO_CURSOR
-    QApplication::restoreOverrideCursor();
-#endif
-    return new QStringListModel(words, completer);
-}
-
-void SDEditor::insertCompletion(const QString& completion)
-{
-    QTextCursor tc = textCursor();
-    tc.select(QTextCursor::WordUnderCursor);
-    tc.insertText(completion);
-    setTextCursor(tc);
-}
-
-void SDEditor::keyPressEvent(QKeyEvent *event)
-{
-    if (completer->popup()->isVisible()) {
-        // The following keys are forwarded by the completer to the widget
-       switch (event->key()) {
-           case Qt::Key_Enter:
-           case Qt::Key_Return:
-           case Qt::Key_Escape:
-           case Qt::Key_Tab:
-           case Qt::Key_Backtab:
-                event->ignore();
-                return; // let the completer do default behavior
-           default:
-               break;
-       }
-    }
-
-    bool isShortcut = ((event->modifiers() & Qt::ControlModifier) && event->key() == Qt::Key_Space); // CTRL+Space
-    if (!completer || !isShortcut) // do not process the shortcut when we have a completer
-        QPlainTextEdit::keyPressEvent(event);
-
-    const bool ctrlOrShift = event->modifiers() & (Qt::ControlModifier | Qt::ShiftModifier);
-    if (!completer || (ctrlOrShift && event->text().isEmpty()))
-        return;
-
-    static QString eow("~!@#$%^&*()_+{}|:\"<>?,./;'[]\\-="); // end of word
-    bool hasModifier = (event->modifiers() != Qt::NoModifier) && !ctrlOrShift;
-    QString completionPrefix = textUnderCursor();
-
-    if (!isShortcut && (hasModifier || event->text().isEmpty()|| completionPrefix.length() < 3
-                      || eow.contains(event->text().right(1)))) {
-        completer->popup()->hide();
-        return;
-    }
-
-    if (completionPrefix != completer->completionPrefix()) {
-        completer->setCompletionPrefix(completionPrefix);
-        completer->popup()->setCurrentIndex(completer->completionModel()->index(0, 0));
-    }
-
-    QRect cr = cursorRect();
-    cr.setWidth(completer->popup()->sizeHintForColumn(0)
-                + completer->popup()->verticalScrollBar()->sizeHint().width());
-    completer->complete(cr);
-}
-
-QString SDEditor::textUnderCursor() const
-{
-    QTextCursor tc = textCursor();
-    tc.select(QTextCursor::WordUnderCursor);
-    return tc.selectedText();
-}
-
-/*======== Line Number Area ============*/
-
-int SDEditor::lineNumberAreaWidth()
-{
-    int digits = 1;
-    int max = qMax(1, blockCount());
-    while (max >= 10) {
-        max /= 10;
-        ++digits;
-    }
-
-    int space = 10 + fontMetrics().width(QLatin1Char('9')) * digits;
-
-    return space;
-}
-
-
-
-void SDEditor::updateLineNumberAreaWidth(int /* newBlockCount */)
-{
-    setViewportMargins(lineNumberAreaWidth(), 0, 0, 0);
-}
-
-
-
-void SDEditor::updateLineNumberArea(const QRect &rect, int dy)
-{
-    if (dy)
-        lineNumberArea->scroll(0, dy);
-    else
-        lineNumberArea->update(0, rect.y(), lineNumberArea->width(), rect.height());
-
-    if (rect.contains(viewport()->rect()))
-        updateLineNumberAreaWidth(0);
-}
-
-
-void SDEditor::resizeEvent(QResizeEvent *e)
-{
-    QPlainTextEdit::resizeEvent(e);
-
-    QRect cr = contentsRect();
-    lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
-}
-
-void SDEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
-{
-    QPainter painter(lineNumberArea);
-    painter.fillRect(event->rect(), QBrush(QColor("#F3F3F3")));
-
-    painter.setFont(font);
-
-    QTextBlock block = firstVisibleBlock();
-    int blockNumber = block.blockNumber();
-    int top = static_cast<int>(blockBoundingGeometry(block).translated(contentOffset()).top());
-    int bottom = top + static_cast<int>(blockBoundingRect(block).height());
-
-    while (block.isValid() && top <= event->rect().bottom()) {
-        if (block.isVisible() && bottom >= event->rect().top()) {
-            QString number = QString::number(blockNumber + 1);
-            painter.setPen(Qt::gray);
-            painter.drawText(0, top, lineNumberArea->width(), fontMetrics().height(),
-                             Qt::AlignRight, number);
-        }
-
-        block = block.next();
-        top = bottom;
-        bottom = top + static_cast<int>(blockBoundingRect(block).height());
-        ++blockNumber;
-    }
+    lexer->setFont(font);
 }

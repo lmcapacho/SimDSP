@@ -22,22 +22,18 @@
 #ifndef SDEditor_H
 #define SDEditor_H
 
-#include <QCompleter>
-#include <QAbstractItemModel>
-#include <QAbstractItemView>
-#include <QStringListModel>
-#include <QScrollBar>
-#include <QPlainTextEdit>
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QTextCodec>
 #include <QTextStream>
+#include <QTextCodec>
 #include <QApplication>
-#include <QPainter>
-#include <QTextBlock>
 #include <QDebug>
 
-class SDEditor : public QPlainTextEdit
+#include <Qsci/qsciscintilla.h>
+#include <Qsci/qscilexercpp.h>
+#include <Qsci/qsciapis.h>
+
+class SDEditor : public QsciScintilla
 {
     Q_OBJECT
 
@@ -56,57 +52,23 @@ public:
     void isFileLoad(bool load);
     bool closeEditor();
 
-    void lineNumberAreaPaintEvent(QPaintEvent *event);
-    int lineNumberAreaWidth();
     void setFont(QFont &);
 
-protected:
-    void resizeEvent(QResizeEvent *event) override;
-    void keyPressEvent(QKeyEvent *event) override;
-
 private slots:
-    void documentWasModified();
-    void updateLineNumberAreaWidth(int newBlockCount);
-    void updateLineNumberArea(const QRect &, int);
-    void insertCompletion(const QString &completion);
+    void documentWasModified(bool m);
 
 private:
-    bool maybeSave();
+    bool isSaved();
     void setCurrentFile(const QString &fileName);
     QString strippedName(const QString &fullFileName);
-    QAbstractItemModel *modelFromFile(const QString& fileName);
-    QString textUnderCursor() const;
-
-    QCompleter *completer;
-    QWidget *lineNumberArea;
 
     QFont font;
+    QsciLexerCPP *lexer;
+    QsciAPIs *lexer_apis;
 
     QString curFile;
     bool isUntitled;
     bool isLoad;
-};
-
-// Line Number Area
-class SDEditorLNA : public QWidget
-{
-
-public:
-    SDEditorLNA(SDEditor *sdeditor) : QWidget(sdeditor) {
-        sdEditor = sdeditor;
-    }
-
-    QSize sizeHint() const override {
-        return QSize(sdEditor->lineNumberAreaWidth(), 0);
-    }
-
-protected:
-    void paintEvent(QPaintEvent *event) override {
-        sdEditor->lineNumberAreaPaintEvent(event);
-    }
-
-private:
-    SDEditor *sdEditor;
 };
 
 #endif // SDEditor_H

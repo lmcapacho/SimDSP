@@ -30,7 +30,7 @@ SDEditortab::SDEditortab(QWidget *parent) :
 
     connect(ui->tabWidget, &QTabWidget::tabCloseRequested, this, &SDEditortab::tabCloseRequested);
 
-    font.setFamily(settings.value("Editor/font/family", "Consolas").toString());
+    font.setFamily(settings.value("Editor/font/family", QFontDatabase::systemFont(QFontDatabase::GeneralFont)).toString());
     font.setStyleHint(QFont::Monospace);
     font.setFixedPitch(true);
     font.setPointSize( settings.value("Editor/font/size", 10).toInt() );
@@ -50,12 +50,10 @@ void SDEditortab::newFile(QString fileName)
     setFont(editor);
     editor->newFile(fileName);
 
-    highlighter = new Highlighter(editor->document());
-
     ui->tabWidget->insertTab(ui->tabWidget->count(),editor,QString(editor->userFriendlyCurrentFile()));
     ui->tabWidget->setCurrentIndex(ui->tabWidget->count()-1);
 
-    connect(editor->document(), &QTextDocument::contentsChanged, this, &SDEditortab::asterisk);
+    connect(editor, &SDEditor::modificationChanged, this, &SDEditortab::asterisk);
 }
 
 
@@ -104,13 +102,11 @@ bool SDEditortab::loadFile(QString fileName, bool readOnly)
 
     setFont(editor);
 
-    highlighter = new Highlighter(editor->document());
-
     bool succeeded = editor->loadFile(fileName, readOnly);
 
     if (succeeded){
         editor->show();
-        connect(editor->document(), &QTextDocument::contentsChanged, this, &SDEditortab::asterisk);
+        connect(editor, &SDEditor::modificationChanged, this, &SDEditortab::asterisk);
     }
     else{
         editor->close();
@@ -135,12 +131,16 @@ void SDEditortab::asterisk()
 {
     SDEditor *editor = activeEditor();
 
-    if(editor->isFileLoad()){
-        QString nameFile = ui->tabWidget->tabText(ui->tabWidget->currentIndex());
-        if(nameFile.endsWith("*"))
-           ui->tabWidget->setTabText(ui->tabWidget->currentIndex(),nameFile);
-        else
-           ui->tabWidget->setTabText(ui->tabWidget->currentIndex(),nameFile.insert(nameFile.size(),"*"));
+    if(editor->isModified()){
+        if(editor->isFileLoad()){
+            QString nameFile = ui->tabWidget->tabText(ui->tabWidget->currentIndex());
+            if(nameFile.endsWith("*")){               
+                ui->tabWidget->setTabText(ui->tabWidget->currentIndex(),nameFile);
+            }
+            else{
+               ui->tabWidget->setTabText(ui->tabWidget->currentIndex(),nameFile.insert(nameFile.size(),"*"));
+            }
+        }
     }
 
     editor->isFileLoad(true);
@@ -178,11 +178,6 @@ int SDEditortab::tabClose()
 void SDEditortab::setFont(SDEditor *editor)
 {
     editor->setFont(font);
-
-    const int tabStop = 4;
-
-    QFontMetrics metrics(font);
-    editor->setTabStopWidth(tabStop * metrics.width(' '));
 }
 
 void SDEditortab::saveAll()
@@ -242,8 +237,11 @@ void SDEditortab::resetFontSize()
 
 void SDEditortab::resetFont()
 {
-    font.setFamily("Consolas");
-    font.setPointSize(10);
+    QFont defaultFont = QFontDatabase::systemFont(QFontDatabase::GeneralFont);
+    font.setFamily(defaultFont.family());
+    font.setPointSize(defaultFont.pointSize());
+    font.setItalic(false);
+    font.setBold(false);
     setFontAll();
 }
 

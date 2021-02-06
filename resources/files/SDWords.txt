@@ -1,9 +1,14 @@
-attachInterrupt
-captureBlock
-enableMic
-playBlock
-println
-readADC
-readKeyboard
-setfs
-writeDAC
+attachInterrupt(void (*callback)())
+println(string text)
+println(int number)
+println(short number)
+println(double number)
+println(float number)
+println(const char *format, ...)
+readKeyboard()
+setfs(double fs)
+readADC()
+writeDAC(short value)
+captureBlock( short* pBuffer, int length, void (*callback)() )
+playBlock( short* pBuffer, int length, void (*callback)() )
+enableMic(int length)

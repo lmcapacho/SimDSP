@@ -28,9 +28,10 @@
 #include <QDebug>
 #include <QFontDialog>
 #include <QSettings>
+#include <QTabBar>
+#include <QFontDatabase>
 
 #include "sdeditor.h"
-#include "highlighter.h"
 
 namespace Ui {
 class SDEditortab;

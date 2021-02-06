@@ -21,12 +21,10 @@
 #######################################################################
 
 HEADERS += \
-    src/editor/highlighter.h \
     src/editor/sdeditor.h \
     src/editor/sdeditortab.h
     
 SOURCES += \
-    src/editor/highlighter.cpp \
     src/editor/sdeditor.cpp \
     src/editor/sdeditortab.cpp    
     
