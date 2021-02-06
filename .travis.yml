@@ -5,7 +5,7 @@ services:
   - xvfb
 
 install:
-  - sudo apt-get install -y qt5-default qttools5-dev-tools libfftw3-3 libfftw3-dev libegl1-mesa
+  - sudo apt-get install -y qt5-default qttools5-dev-tools libfftw3-3 libfftw3-dev libegl1-mesa libqscintilla2-qt5-dev
   # RtAudio support
   - sudo apt-get install libasound2-dev libjack-dev libpulse-dev doxygen oss4-dev
   

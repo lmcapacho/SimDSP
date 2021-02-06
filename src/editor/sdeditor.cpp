@@ -52,6 +52,7 @@ SDEditor::SDEditor()
             }
         }
     }
+    file.close();
 
     file.setFileName(":/resources/files/keyWords.txt");
     if (file.open(QFile::ReadOnly)) {
@@ -64,6 +65,7 @@ SDEditor::SDEditor()
             }
         }
     }
+    file.close();
 
     lexer_apis->prepare();
     setLexer(lexer);

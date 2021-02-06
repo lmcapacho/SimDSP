@@ -67,8 +67,7 @@ unix {
     INSTALLS += target bin include desktop icon
 
     INCLUDEPATH += resources/dependencies/qscintilla/include
-    LIBS += -Lresources/dependencies/qscintilla/libs -lqscintilla2_qt5
-    LIBS += -lfftw3 -lm -lmatio
+    LIBS += -lfftw3 -lm -lmatio -lqscintilla2_qt5
 }
 
 win32 {
