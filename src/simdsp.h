@@ -28,6 +28,8 @@
 #include <QMessageBox>
 #include <QSettings>
 #include <QProcess>
+#include <QFontDatabase>
+#include <QCloseEvent>
 
 #include "view/sdview.h"
 #include "editor/sdeditortab.h"
