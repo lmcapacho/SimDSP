@@ -1,19 +1,57 @@
+name: simdsp 
+version: '1.0.1' 
+summary: Simulation software for Digital Signal Processing
+description: |
+  SimDSP provides simulation of DSP algorithms written in C/C++ 
+  language by generating the necessary signals of 15-bit ADC and DAC. 
+  The programs under debugging must be written using the editor included in this software. 
+  It is not necessary to install any compiler for compiling or debugging purposes, 
+  since installers are boundle versions that includes editor, compiler and debugger.
+icon: resources/images/simdsp_icon.png
+license: GPL-3.0
 
-  name: simdsp
-  version: '1.0.0'
-  summary: Simulation software for Digital Signal Processing
-  description: |
-    SimDSP provides simulation of DSP algorithms written in C/C++ 
-    language by generating the necessary signals of 15-bit ADC and DAC. 
-    The programs under debugging must be written using the editor included in this software. 
-    It is not necessary to install any compiler for compiling or debugging purposes, 
-    since installers are boundle versions that includes editor, compiler and debugger.
+grade: stable
+confinement: strict
+base: core18
 
-  grade: stable 
-  confinement: devmode 
+parts:
+  sdcore:
+    plugin: qmake
+    project-files: [sdcore.pro]
+    source: https://github.com/lmcapacho/SimDSP/archive/v1.0.1.tar.gz
+    source-subdir: sdcore
+    stage-packages:
+        - libaec0
+        - libdouble-conversion1
+        - libfftw3-double3
+        - libfreetype6
+        - libgl1
+        - libglvnd0
+        - libglx0
+        - libgraphite2-3
+        - libharfbuzz0b
+        - libhdf5-100
+        - libicu60
+        - libmatio4
+        - libpng16-16
+        - libqt5core5a
+        - libqt5gui5
+        - libqt5printsupport5
+        - libqt5widgets5
+        - libsz2
+        - libx11-6
+        - libxau6
+        - libxcb1
+        - libxdmcp6
+        - librtaudio6
 
-  parts:
-    my-part:
-      # See 'snapcraft plugins'
-      plugin: nil
-  
+  simdsp:
+    plugin: qmake
+    project-files: [SimDSP.pro]
+    source: .
+    build-packages: 
+        - libegl1-mesa 
+        - qtmultimedia5-dev
+        - libfftw3-3 
+        - libfftw3-dev 
+        - libmatio-dev
