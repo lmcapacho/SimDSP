@@ -55,3 +55,4 @@ parts:
         - libfftw3-3 
         - libfftw3-dev 
         - libmatio-dev
+        - libqscintilla2-qt5-dev
