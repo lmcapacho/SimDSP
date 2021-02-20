@@ -51,11 +51,10 @@ parts:
   simdsp:
     plugin: qmake
     project-files: [SimDSP.pro]
-    source: .
+    source: https://github.com/lmcapacho/SimDSP/archive/v1.0.1.tar.gz
     build-packages: 
         - libegl1-mesa 
         - qtmultimedia5-dev
         - libfftw3-3 
         - libfftw3-dev 
         - libmatio-dev
-        - libqscintilla2-qt5-dev
