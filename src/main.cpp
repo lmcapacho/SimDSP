@@ -1,6 +1,7 @@
 #include "simdsp.h"
 #include <QApplication>
 #include <QSplashScreen>
+#include <QTranslator>
 
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg);
 
@@ -17,6 +18,10 @@ int main(int argc, char *argv[])
     QString styleSheet = QLatin1String(file.readAll());
 
     QApplication a(argc, argv);
+
+    QTranslator simdspTranslator;
+    simdspTranslator.load(QString("simdsp_") + QLocale::system().name().toLower(), QCoreApplication::applicationDirPath() + QString("/translations/"));
+    a.installTranslator(&simdspTranslator);
 
     QSplashScreen *splash = new QSplashScreen;
     splash->setPixmap(QPixmap(":/resources/images/splash.png"));

@@ -33,6 +33,7 @@ include(pri/editor.pri)
 include(pri/project.pri)
 include(pri/view.pri)
 include(pri/simdsp.pri)
+include(pri/translations.pri)
 
 DESTDIR = $$PWD
 OBJECTS_DIR = build/obj
