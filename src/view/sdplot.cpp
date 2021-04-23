@@ -1,7 +1,7 @@
 /*
  * SimDSP Plot.
  *
- * Copyright (c) 2017 lmcapacho
+ * Copyright (c) 2021 lmcapacho
  *
  * This file is part of SimDSP.
  *
@@ -53,10 +53,12 @@ SDPlot::SDPlot(QWidget *parent) :
     connect(ui->customPlot, QOverload<QMouseEvent*>::of(&QCustomPlot::mousePress), this, &SDPlot::plotMouseMove);
     connect(ui->customPlot, QOverload<QMouseEvent*>::of(&QCustomPlot::mouseMove), this, &SDPlot::plotMouseMove);
     connect(ui->customPlot, QOverload<QMouseEvent*>::of(&QCustomPlot::mouseRelease), this, &SDPlot::plotMouseRelease);
+    connect(ui->customPlot, QOverload<QWheelEvent*>::of(&QCustomPlot::mouseWheel), this, &SDPlot::plotMouseWheel);
 #else
     connect(ui->customPlot, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(plotMouseMove(QMouseEvent*)));
     connect(ui->customPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(plotMouseMove(QMouseEvent*)));
     connect(ui->customPlot, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(plotMouseRelease(QMouseEvent*)));
+    connect(ui->customPlot, SIGNAL(mouseWheel(QWheelEvent*)), this, SLOT(plotMouseWheel(QWheelEvent*)));
 #endif
 
     sizeWindow = maxSizeWindow = 1024;
@@ -132,6 +134,12 @@ void SDPlot::plotMouseMove(QMouseEvent *event)
         y = ui->customPlot->yAxis->pixelToCoord(event->y());
         x = ui->customPlot->xAxis->pixelToCoord(event->x());
     }
+}
+
+void SDPlot::plotMouseWheel(QWheelEvent *event)
+{
+    int value = event->angleDelta().y() > 0 ? 1 : -1;
+    emit mouseWheel(value);
 }
 
 void SDPlot::plotMouseRelease(QMouseEvent *event)

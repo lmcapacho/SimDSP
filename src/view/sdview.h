@@ -86,6 +86,7 @@ public slots:
     void setFrequency(int freq);
     void setAmplitude(int amp);
     void setBaseTime(int bt);
+    void changeBaseTime(int inc);
 
     void setInOutSelect(QAbstractButton *button);
 

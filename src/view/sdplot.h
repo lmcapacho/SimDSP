@@ -49,9 +49,13 @@ public:
     void setAutoScale();
     void resetZoom();
 
+signals:
+   void mouseWheel(int);
+
 public slots:
     void plotMouseRelease(QMouseEvent *event);
     void plotMouseMove(QMouseEvent *event);
+    void plotMouseWheel(QWheelEvent *event);
 
 private:
     Ui::SDPlot *ui;

@@ -1,7 +1,7 @@
 /*
  * SimDSP View.
  *
- * Copyright (c) 2019 lmcapacho
+ * Copyright (c) 2021 lmcapacho
  *
  * This file is part of SimDSP.
  *
@@ -70,6 +70,7 @@ void SDView::setfs(double fs)
 {
     ui->frequencySpinBox->setSingleStep(static_cast<int>(fs/200.0));
     ui->frequencySpinBox->setMaximum(static_cast<int>(fs/2.0));
+    ui->frequencySpinBox->setValue(static_cast<int>(fs/100.0));
     ui->fsValue->setText(QString::number(fs, 'f', 1) + " Hz");
     ui->PlotA->setfs(fs);
     ui->PlotB->setfs(fs);
@@ -134,6 +135,9 @@ void SDView::init()
     connect(ui->snrSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &SDView::setSNR);
 
     connect(sdmat, QOverload<QString, QString>::of(&SDMat::loadVariable), this, &SDView::loadFile);
+
+    connect(ui->PlotA, QOverload<int>::of(&SDPlot::mouseWheel), this, &SDView::changeBaseTime);
+    connect(ui->PlotB, QOverload<int>::of(&SDPlot::mouseWheel), this, &SDView::changeBaseTime);
 #else
     connect(ui->inputComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(setInput(int)));
     connect(ui->frequencySpinBox, SIGNAL(valueChanged(int)), this, SLOT(setFrequency(int)));
@@ -142,7 +146,7 @@ void SDView::init()
     connect(ui->timeFreqGroup, SIGNAL(buttonClicked(QAbstractButton*)), this, SLOT(setInOutSelect(QAbstractButton*)));
 
     connect(ui->awgnCheckBox, SIGNAL(toggled(bool)), this, SLOT(setAWGN(bool)));
-    //connect(ui->snrSpinBox, SIGNAL(valueChanged(int)), sd, SLOT(setSNR(int)));
+    connect(ui->snrSpinBox, SIGNAL(valueChanged(int)), this, SLOT(setSNR(int)));
 
     connect(sdmat, SIGNAL(loadVariable(QString,QString)), this, SLOT(loadFile(QString,QString)));
 #endif
@@ -245,15 +249,19 @@ void SDView::setInput(int inputIndex)
 {
     SDView::SignalTypes signalType = static_cast<SDView::SignalTypes>(inputIndex);
 
-    if( signalType >= SDView::SIGNAL_NOISE ){
-        ui->snrSpinBox->setValue(40);
+    if( signalType == SDView::SIGNAL_NOISE ){
+        ui->snrSpinBox->setValue(0);
         ui->frequencySpinBox->setDisabled(true);
         ui->awgnCheckBox->setDisabled(true);
         ui->awgnCheckBox->setChecked(false);
     }
     else{
+        ui->snrSpinBox->setValue(40);
         ui->awgnCheckBox->setEnabled(true);
-        ui->frequencySpinBox->setEnabled(true);
+        if( signalType != SDView::SIGNAL_FILE){
+            ui->frequencySpinBox->setEnabled(true);
+            ui->frequencySpinBox->setDisabled(true);
+        }
     }
 
     QByteArray data = "0," +QByteArray::number(inputIndex)+ "\n";
@@ -282,6 +290,11 @@ void SDView::setBaseTime(int bt)
 
     ui->PlotA->setSizeWindow(ui->timeBaseDial->value());
     ui->PlotB->setSizeWindow(ui->timeBaseDial->value());
+}
+
+void SDView::changeBaseTime(int inc)
+{
+    ui->timeBaseDial->setValue(ui->timeBaseDial->value() + inc);
 }
 
 void SDView::setInOutSelect(QAbstractButton *button)
