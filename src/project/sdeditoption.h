@@ -1,5 +1,5 @@
 /*
- * SimDSP edit library.
+ * SimDSP edit option.
  *
  * Copyright (c) 2018 lmcapacho
  *
@@ -19,27 +19,27 @@
  * along with SimDSP.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SDEDITLIB_H
-#define SDEDITLIB_H
+#ifndef SDEditOption_H
+#define SDEditOption_H
 
 #include <QDialog>
 
 namespace Ui {
-class SDEditLib;
+class SDEditOption;
 }
 
-class SDEditLib : public QDialog
+class SDEditOption : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit SDEditLib(QString value = QString(), QWidget *parent = nullptr);
-    ~SDEditLib();
+    explicit SDEditOption(QString text = QString(), QString value = QString(), QWidget *parent = nullptr);
+    ~SDEditOption();
 
     QString getValue();
 
 private:
-    Ui::SDEditLib *ui;
+    Ui::SDEditOption *ui;
 };
 
-#endif // SDEDITLIB_H
+#endif // SDEditOption_H

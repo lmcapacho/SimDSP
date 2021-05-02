@@ -8,6 +8,7 @@ CXX = g++
 INCPATH =
 LIBPATH =
 LIBS =
+EXTRA_FLAGS =
 
 SRCS 	= $(wildcard *.cpp)
 OBJS 	= $(addprefix build/,$(subst .cpp,.o,$(SRCS)))
@@ -29,7 +30,7 @@ $(TARGET): $(OBJS)
 	$(CXX) $(LDFLAGS) $^ -o $@ $(LIBPATH) $(LIBS) -lsdcore -lrtaudio
 
 build/%.o:%.cpp
-	$(CXX) $(INCPATH) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(INCPATH) $(CXXFLAGS) $(EXTRA_FLAGS) -c $< -o $@
 
 .PHONY: clean
 clean:

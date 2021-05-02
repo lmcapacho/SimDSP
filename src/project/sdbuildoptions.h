@@ -30,7 +30,7 @@
 #include <QDir>
 #include <QRegExp>
 
-#include "sdeditlib.h"
+#include "sdeditoption.h"
 
 namespace Ui {
 class SDBuildOptions;
@@ -45,6 +45,9 @@ public:
     ~SDBuildOptions();
 
 public slots:
+    void addFlags();
+    void editFlags();
+    void removeFlags();
     void addInclude();
     void editInclude();
     void removeInclude();
@@ -54,12 +57,12 @@ public slots:
     void addLib();
     void editLib();
     void removeLib();
-    void changeStd();
+    void changeStd();    
 
 private:
-    void addOption(QString option, QString value, QString prefix);
+    void addOption(QString option, QString value, QString prefix = nullptr);
     void editOption(QString option, QString oldValue, QString newValue);
-    void removeOption(QString option, QString value, QString prefix);
+    void removeOption(QString option, QString value, QString prefix = nullptr);
     void loadOptions();
     QString searchOption(QString option);
 

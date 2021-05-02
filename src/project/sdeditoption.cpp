@@ -19,24 +19,25 @@
  * along with SimDSP.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "sdeditlib.h"
-#include "ui_sdeditlib.h"
+#include "sdeditoption.h"
+#include "ui_sdeditoption.h"
 
-SDEditLib::SDEditLib(QString value, QWidget *parent) :
+SDEditOption::SDEditOption(QString text, QString value, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::SDEditLib)
+    ui(new Ui::SDEditOption)
 {
     ui->setupUi(this);
 
+    ui->label->setText(text);
     ui->lineEdit->setText(value);
 }
 
-SDEditLib::~SDEditLib()
+SDEditOption::~SDEditOption()
 {
     delete ui;
 }
 
-QString SDEditLib::getValue()
+QString SDEditOption::getValue()
 {
     return ui->lineEdit->text();
 }

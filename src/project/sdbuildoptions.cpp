@@ -40,6 +40,9 @@ SDBuildOptions::SDBuildOptions(QString path, QWidget *parent) :
     loadOptions();
 
 #if QT_VERSION >= 0x050700
+    connect(ui->addFlags, &QPushButton::clicked, this, &SDBuildOptions::addFlags);
+    connect(ui->editFlags, &QPushButton::clicked, this, &SDBuildOptions::editFlags);
+    connect(ui->removeFlags, &QPushButton::clicked, this, &SDBuildOptions::removeFlags);
     connect(ui->addInclude, &QPushButton::clicked, this, &SDBuildOptions::addInclude);
     connect(ui->editInclude, &QPushButton::clicked, this, &SDBuildOptions::editInclude);
     connect(ui->removeInclude, &QPushButton::clicked, this, &SDBuildOptions::removeInclude);
@@ -93,6 +96,12 @@ void SDBuildOptions::loadOptions()
             ui->listWidgetLib->addItem(lib);
     }
 
+    QStringList flags = searchOption("EXTRA_FLAGS").split(" ");
+    foreach (QString flag, flags) {
+        if(!flag.isNull() && !flag.isEmpty())
+            ui->listWidgetFlags->addItem(flag);
+    }
+
     QStringList cxxFlags = searchOption("CXXFLAGS").split(" ");
     foreach (QString flag, cxxFlags) {
         QStringList std = {"c++11", "c++14", "c++0x", "c++98"};
@@ -143,6 +152,48 @@ void SDBuildOptions::changeStd()
     mkFile.open(QIODevice::WriteOnly);
     mkFile.write(fileContents.toLatin1());
     mkFile.close();
+}
+
+void SDBuildOptions::addFlags()
+{
+    SDEditOption* edit = new SDEditOption("Flag:");
+    if(edit->exec()){
+        QString value = edit->getValue();
+        if(!value.isEmpty()){
+            ui->listWidgetFlags->addItem(value);
+            addOption("EXTRA_FLAGS", value);
+        }
+    }
+}
+
+void SDBuildOptions::editFlags()
+{
+    QList<QListWidgetItem*> items = ui->listWidgetFlags->selectedItems();
+
+    ui->listWidgetFlags->clearSelection();
+
+    if(!items.empty()){
+        QListWidgetItem* item = items[0];
+        QString oldValue = item->text();
+        SDEditOption* edit = new SDEditOption("Flag:", oldValue);
+        if(edit->exec()){
+            QString newValue = edit->getValue();
+            if(!newValue.isEmpty()){
+                item->setText(newValue);
+                editOption("EXTRA_FLAGS", oldValue, newValue);
+            }
+        }
+    }
+}
+
+void SDBuildOptions::removeFlags()
+{
+    QList<QListWidgetItem*> items = ui->listWidgetFlags->selectedItems();
+
+    foreach (QListWidgetItem* item, items) {
+        removeOption("EXTRA_FLAGS", item->text());
+        delete ui->listWidgetFlags->takeItem(ui->listWidgetFlags->row(item));
+    }
 }
 
 void SDBuildOptions::addInclude()
@@ -219,7 +270,7 @@ void SDBuildOptions::removeLibrary()
 
 void SDBuildOptions::addLib()
 {
-    SDEditLib* edit = new SDEditLib();
+    SDEditOption* edit = new SDEditOption("Link Library:");
     if(edit->exec()){
         QString value = edit->getValue();
         if(!value.isEmpty()){
@@ -238,7 +289,7 @@ void SDBuildOptions::editLib()
     if(!items.empty()){
         QListWidgetItem* item = items[0];
         QString oldValue = item->text();
-        SDEditLib* edit = new SDEditLib(oldValue);
+        SDEditOption* edit = new SDEditOption("Link Library:", oldValue);
         if(edit->exec()){
             QString newValue = edit->getValue();
             if(!newValue.isEmpty()){
@@ -268,8 +319,8 @@ void SDBuildOptions::addOption(QString option, QString value, QString prefix)
 
         for(int index=0; index<lines.size(); index++){
             if(lines[index].contains(option.toLatin1())){
-                lines[index].replace('\r', ' ');
-                lines[index].append(prefix+value+" \r");
+                //lines[index].replace('\r', ' ');
+                lines[index].append(" "+prefix+value);
                 break;
             }
         }
