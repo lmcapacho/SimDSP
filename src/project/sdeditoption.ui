@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>SDEditLib</class>
- <widget class="QDialog" name="SDEditLib">
+ <class>SDEditOption</class>
+ <widget class="QDialog" name="SDEditOption">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>SimDSP - Link Library</string>
+   <string>SimDSP - Edit Option</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
@@ -19,7 +19,7 @@
      <item row="0" column="0">
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>Link Library:</string>
+        <string/>
        </property>
       </widget>
      </item>
@@ -45,7 +45,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>SDEditLib</receiver>
+   <receiver>SDEditOption</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -61,7 +61,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>SDEditLib</receiver>
+   <receiver>SDEditOption</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

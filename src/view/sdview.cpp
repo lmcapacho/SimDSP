@@ -260,6 +260,7 @@ void SDView::setInput(int inputIndex)
         ui->awgnCheckBox->setEnabled(true);
         if( signalType != SDView::SIGNAL_FILE){
             ui->frequencySpinBox->setEnabled(true);
+        } else {
             ui->frequencySpinBox->setDisabled(true);
         }
     }
