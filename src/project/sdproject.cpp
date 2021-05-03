@@ -64,6 +64,8 @@ void SDProject::newProject(QString projectName, QString projectPath)
 
     editor->newFile(projectName);
     editor->activeEditor()->loadFile(projectName+".cpp");
+
+    addRecentProjects(path);
 }
 
 
@@ -206,17 +208,17 @@ void SDProject::closeAllTabs()
 void SDProject::addRecentProjects(QString path)
 {
     QSettings settings;
-    QStringList recentsProjects;
-    recentsProjects = settings.value("Projects/recent").toStringList();
-    if(recentsProjects.contains(path))
-        recentsProjects.removeAt(recentsProjects.indexOf(path));
+    QStringList recentProjects;
+    recentProjects = settings.value("Projects/recent").toStringList();
+    if(recentProjects.contains(path))
+        recentProjects.removeAt(recentProjects.indexOf(path));
 
-    recentsProjects.append(path);
+    recentProjects.append(path);
 
-    if(recentsProjects.length()>5)
-        recentsProjects.removeFirst();
+    if(recentProjects.length()>5)
+        recentProjects.removeFirst();
 
-    settings.setValue("Projects/recent", recentsProjects);
+    settings.setValue("Projects/recent", recentProjects);
 }
 
 bool SDProject::buildProject()

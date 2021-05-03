@@ -177,6 +177,7 @@ void SimDSP::loadRecentProjects()
     }
 
     QStringList recentProjects = settings.value("Projects/recent").toStringList();
+    QFile path;
 
     if(recentProjects.isEmpty()){
         ui->menuRecentProjects->setDisabled(true);
@@ -185,12 +186,18 @@ void SimDSP::loadRecentProjects()
         std::reverse(recentProjects.begin(), recentProjects.end());
 
         foreach (QString recentProject, recentProjects) {
-            recentProjectsAction = new QAction(this);
-            recentProjectsAction->setData(recentProject);
-            recentProjectsAction->setText(recentProject);
-            connect(recentProjectsAction, &QAction::triggered, this, &SimDSP::actionOpenRecentProject);
-            ui->menuRecentProjects->insertAction(ui->actionClearRecentProjects, recentProjectsAction);
+            if(path.exists(recentProject)) {
+                recentProjectsAction = new QAction(this);
+                recentProjectsAction->setData(recentProject);
+                recentProjectsAction->setText(recentProject);
+                connect(recentProjectsAction, &QAction::triggered, this, &SimDSP::actionOpenRecentProject);
+                ui->menuRecentProjects->insertAction(ui->actionClearRecentProjects, recentProjectsAction);
+            } else {
+                recentProjects.removeAt(recentProjects.indexOf(recentProject));
+            }
         }
+
+        settings.setValue("Projects/recent", recentProjects);
     }
 
     ui->menuRecentProjects->insertSeparator(ui->actionClearRecentProjects);
