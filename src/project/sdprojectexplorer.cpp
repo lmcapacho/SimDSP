@@ -51,8 +51,15 @@ SDProjectexplorer::~SDProjectexplorer()
 }
 
 
-void SDProjectexplorer::addProject(QString path, QString name)
+bool SDProjectexplorer::addProject(QString path, QString name)
 {
+    QTreeWidgetItemIterator items(ui->projectTreeWidget);
+    while (*items) {
+        if( (*items)->text(1) == path)
+            return false;
+        ++items;
+    }
+
     QFont font;
     currentProject = new QTreeWidgetItem();
     ui->projectTreeWidget->addTopLevelItem(currentProject);
@@ -72,6 +79,8 @@ void SDProjectexplorer::addProject(QString path, QString name)
     currentProject->setToolTip(0, path);
 
     currentProject->setText(1, path);
+
+    return true;
 }
 
 void SDProjectexplorer::addExample(QString path, QString name)

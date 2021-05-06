@@ -94,7 +94,8 @@ bool SDProject::openProject(QString projectPath)
     QString mainFile = dir.dirName()+".cpp";
 
     path =  projectPath;
-    projectExplorer->addProject(projectPath, dir.dirName());
+    if( !projectExplorer->addProject(projectPath, dir.dirName()) )
+        return false;
 
     dir.setNameFilters(QStringList() << "*.cpp" << "*.h");
     foreach (QString f, dir.entryList(QDir::Files)) {

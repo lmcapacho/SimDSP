@@ -45,7 +45,7 @@ class SDProjectexplorer : public QWidget
 public:
     explicit SDProjectexplorer(QWidget *parent = nullptr);
     ~SDProjectexplorer();
-    void addProject(QString path, QString name);
+    bool addProject(QString path, QString name);
     void addExample(QString path, QString name);
     void addFile(QString name);
     void setExpanded(bool expanded);
