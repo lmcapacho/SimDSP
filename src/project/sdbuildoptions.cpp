@@ -39,7 +39,6 @@ SDBuildOptions::SDBuildOptions(QString path, QWidget *parent) :
 
     loadOptions();
 
-#if QT_VERSION >= 0x050700
     connect(ui->addFlags, &QPushButton::clicked, this, &SDBuildOptions::addFlags);
     connect(ui->editFlags, &QPushButton::clicked, this, &SDBuildOptions::editFlags);
     connect(ui->removeFlags, &QPushButton::clicked, this, &SDBuildOptions::removeFlags);
@@ -53,19 +52,6 @@ SDBuildOptions::SDBuildOptions(QString path, QWidget *parent) :
     connect(ui->editLib, &QPushButton::clicked, this, &SDBuildOptions::editLib);
     connect(ui->removeLib, &QPushButton::clicked, this, &SDBuildOptions::removeLib);
     connect(ui->comboBoxStd, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SDBuildOptions::changeStd);
-#else
-    connect(ui->addInclude, SIGNAL(clicked()), this, SLOT(addInclude()));
-    connect(ui->editInclude, SIGNAL(clicked()), this, SLOT(editInclude()));
-    connect(ui->removeInclude, SIGNAL(clicked()), this, SLOT(removeInclude()));
-    connect(ui->addLibrary, SIGNAL(clicked()), this, SLOT(addLibrary()));
-    connect(ui->editLibrary, SIGNAL(clicked()), this, SLOT(editLibrary()));
-    connect(ui->removeLibrary, SIGNAL(clicked()), this, SLOT(removeLibrary()));
-    connect(ui->addLib, SIGNAL(clicked()), this, SLOT(addLib()));
-    connect(ui->editLib, SIGNAL(clicked()), this, SLOT(editLib()));
-    connect(ui->removeLib, SIGNAL(clicked()), this, SLOT(removeLib()));
-    connect(ui->comboBoxStd, SIGNAL(currentIndexChanged(int)), this, SLOT(changeStd()));
-#endif
-
 }
 
 SDBuildOptions::~SDBuildOptions()

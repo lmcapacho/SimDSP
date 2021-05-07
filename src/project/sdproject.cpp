@@ -34,15 +34,9 @@ SDProject::SDProject(SDProjectexplorer *explorer, SDEditortab *editorTab,
     msgRegExp.setPattern(QLatin1String("^(([A-Za-z]:)?[^:]+):(\\d+):(\\d+:)?\\s+((fatal |#)?(warning|error|note):?\\s)?([^\\s].+)$"));
     ldRegExp.setPattern(QLatin1String("^(([A-Za-z]:)?[^:]+):?\\s+((fatal|warning|error|note):?\\s)+([A-Za-z])"));
 
-#if QT_VERSION >= 0x050700
     connect(builder, QOverload<QByteArray>::of(&SDBuilder::builderOutput), this, &SDProject::builderOutput);
     connect(projectExplorer, QOverload<QString, bool>::of(&SDProjectexplorer::itemActivated), this, &SDProject::itemActivated);
     connect(projectExplorer, QOverload<QString>::of(&SDProjectexplorer::deleteFile), this, &SDProject::removeFile);
-#else
-    connect(builder, SIGNAL(builderOutput(QByteArray)), this, SLOT(builderOutput(QByteArray)));
-    connect(projectExplorer, SIGNAL(itemActivated(QString,bool)), this, SLOT(itemActivated(QString,bool)));
-    connect(projectExplorer, SIGNAL(deleteFile(QString)), this, SLOT(removeFile(QString)));
-#endif
 }
 
 void SDProject::newProject(QString projectName, QString projectPath)

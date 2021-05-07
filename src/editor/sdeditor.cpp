@@ -193,11 +193,7 @@ bool SDEditor::loadFile(const QString &fileName, bool readOnly)
     if( readOnly ){
         setReadOnly(true);
     }else{
-    #if QT_VERSION >= 0x050700
         connect(this, QOverload<bool>::of(&SDEditor::modificationChanged), this, &SDEditor::documentWasModified);
-    #else
-        connect(this, SIGNAL(modificationChanged(bool)), this, SLOT(documentWasModified));
-    #endif
     }
 
     return true;

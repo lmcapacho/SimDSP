@@ -120,13 +120,8 @@ void SimDSP::initActionsConnections()
     connect(ui->actionQuit, &QAction::triggered, this, &SimDSP::close);
 
     connect(sdproject, &SDProject::tabOpen, this, &SimDSP::tabOpen);
-#if QT_VERSION >= 0x050700
     connect(sdproject, QOverload<int>::of(&SDProject::buildIssues), this, &SimDSP::issues);
     connect(ui->sdview, QOverload<QByteArray>::of(&SDView::changeView), this, &SimDSP::changeView);
-#else
-    connect(sdproject, SIGNAL(buildIssues(int)), this, SLOT(issues(int)));
-#endif
-
 }
 
 void SimDSP::loadExamples()
@@ -383,12 +378,8 @@ void SimDSP::actionRun()
 
         ui->compileOutput->append(tr("<b>Running SimDSP Project...</b><br>"));
 
-    #if QT_VERSION >= 0x050700
         connect(sdapp, &QProcess::readyRead, this, &SimDSP::sdappReadyRead);
         connect(sdapp, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this, &SimDSP::sdappFinished);
-    #else
-        connect(sdapp, SIGNAL(readyRead()), this, SLOT(sdappReadyRead()));
-    #endif
 
     #ifdef Q_OS_LINUX
         sdapp->start(QDir::currentPath()+"/build/sdapp");

@@ -35,11 +35,7 @@ SDNewProject::SDNewProject(QWidget *parent) :
 
     connect(ui->browseButton, &QPushButton::clicked, this, &SDNewProject::browsePath);
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &SDNewProject::accepted);
-#if QT_VERSION >= 0x050700
     connect(ui->projectName, QOverload<const QString&>::of(&QLineEdit::textChanged), this, &SDNewProject::changeLineEdit);
-#else
-    connect(ui->projectName, SIGNAL(textChanged(QString)), this, SLOT(changeLineEdit(QString)));
-#endif
 }
 
 SDNewProject::~SDNewProject()

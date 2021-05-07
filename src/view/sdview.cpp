@@ -124,7 +124,6 @@ void SDView::init()
     planADC = fftw_plan_dft_r2c_1d ( fftWidth, fftInADC, fftOutADC, FFTW_ESTIMATE );
     planDAC = fftw_plan_dft_r2c_1d ( fftWidth, fftInDAC, fftOutDAC, FFTW_ESTIMATE );
 
-#if QT_VERSION >= 0x050700
     connect(ui->inputComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SDView::setInput );
     connect(ui->frequencySpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &SDView::setFrequency);
     connect(ui->amplitudeDial, QOverload<int>::of(&QDial::valueChanged), this, &SDView::setAmplitude);
@@ -138,18 +137,6 @@ void SDView::init()
 
     connect(ui->PlotA, QOverload<int>::of(&SDPlot::mouseWheel), this, &SDView::changeBaseTime);
     connect(ui->PlotB, QOverload<int>::of(&SDPlot::mouseWheel), this, &SDView::changeBaseTime);
-#else
-    connect(ui->inputComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(setInput(int)));
-    connect(ui->frequencySpinBox, SIGNAL(valueChanged(int)), this, SLOT(setFrequency(int)));
-    connect(ui->amplitudeDial, SIGNAL(valueChanged(int)), this, SLOT(setAmplitude(int)));
-    connect(ui->timeBaseDial, SIGNAL(valueChanged(int)), this, SLOT(setBaseTime(int)));
-    connect(ui->timeFreqGroup, SIGNAL(buttonClicked(QAbstractButton*)), this, SLOT(setInOutSelect(QAbstractButton*)));
-
-    connect(ui->awgnCheckBox, SIGNAL(toggled(bool)), this, SLOT(setAWGN(bool)));
-    connect(ui->snrSpinBox, SIGNAL(valueChanged(int)), this, SLOT(setSNR(int)));
-
-    connect(sdmat, SIGNAL(loadVariable(QString,QString)), this, SLOT(loadFile(QString,QString)));
-#endif
 
     connect(ui->widgetKeyboard, &SDKeyboard::keyboardClicked, this, &SDView::keyboardClicked);
     connect(refresh, &QTimer::timeout, this, &SDView::newData);

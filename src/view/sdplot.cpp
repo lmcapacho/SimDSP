@@ -49,17 +49,10 @@ SDPlot::SDPlot(QWidget *parent) :
     cursorLabel->setColor(QColor(Qt::white));
     cursorLabel->position->setCoords(0, ui->customPlot->yAxis->range().lower);
 
-#if QT_VERSION >= 0x050700
     connect(ui->customPlot, QOverload<QMouseEvent*>::of(&QCustomPlot::mousePress), this, &SDPlot::plotMouseMove);
     connect(ui->customPlot, QOverload<QMouseEvent*>::of(&QCustomPlot::mouseMove), this, &SDPlot::plotMouseMove);
     connect(ui->customPlot, QOverload<QMouseEvent*>::of(&QCustomPlot::mouseRelease), this, &SDPlot::plotMouseRelease);
     connect(ui->customPlot, QOverload<QWheelEvent*>::of(&QCustomPlot::mouseWheel), this, &SDPlot::plotMouseWheel);
-#else
-    connect(ui->customPlot, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(plotMouseMove(QMouseEvent*)));
-    connect(ui->customPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(plotMouseMove(QMouseEvent*)));
-    connect(ui->customPlot, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(plotMouseRelease(QMouseEvent*)));
-    connect(ui->customPlot, SIGNAL(mouseWheel(QWheelEvent*)), this, SLOT(plotMouseWheel(QWheelEvent*)));
-#endif
 
     sizeWindow = maxSizeWindow = 1024;
 

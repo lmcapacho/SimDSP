@@ -32,17 +32,10 @@ SDProjectexplorer::SDProjectexplorer(QWidget *parent) :
     ui->projectTreeWidget->hideColumn(2);
     ui->projectTreeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
 
-#if QT_VERSION >= 0x050700
     connect(ui->projectTreeWidget, QOverload<QTreeWidgetItem*, int>::of(&QTreeWidget::itemActivated),
             this, &SDProjectexplorer::itemActivatedSD);
     connect(ui->projectTreeWidget, QOverload<const QPoint &>::of(&QTreeWidget::customContextMenuRequested),
             this, &SDProjectexplorer::showContextMenu);
-#else
-    connect(ui->projectTreeWidget, SIGNAL(itemActivated(QTreeWidgetItem*,int)),
-            this, SLOT(itemActivatedSD(QTreeWidgetItem*,int)));
-    connect(ui->projectTreeWidget, SIGNAL(customContextMenuRequested(QPoint)),
-            this, SLOT(showContextMenu(QPoint)));
-#endif
 }
 
 SDProjectexplorer::~SDProjectexplorer()
