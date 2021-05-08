@@ -50,7 +50,8 @@ public:
     void resetZoom();
 
 signals:
-   void mouseWheel(int);
+   void zoomX(int);
+   void zoomY(int);
 
 public slots:
     void plotMouseRelease(QMouseEvent *event);

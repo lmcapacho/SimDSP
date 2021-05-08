@@ -132,7 +132,11 @@ void SDPlot::plotMouseMove(QMouseEvent *event)
 void SDPlot::plotMouseWheel(QWheelEvent *event)
 {
     int value = event->angleDelta().y() > 0 ? 1 : -1;
-    emit mouseWheel(value);
+    if( QApplication::keyboardModifiers() & Qt::ControlModifier ) {
+        emit zoomY(value);
+    } else {
+        emit zoomX(value);
+    }
 }
 
 void SDPlot::plotMouseRelease(QMouseEvent *event)

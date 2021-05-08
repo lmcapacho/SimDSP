@@ -85,6 +85,7 @@ public slots:
     void setInput(int inputIndex);
     void setFrequency(int freq);
     void setAmplitude(int amp);
+    void changeAmplitude(int inc);
     void setBaseTime(int bt);
     void changeBaseTime(int inc);
 

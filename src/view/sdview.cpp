@@ -135,8 +135,10 @@ void SDView::init()
 
     connect(sdmat, QOverload<QString, QString>::of(&SDMat::loadVariable), this, &SDView::loadFile);
 
-    connect(ui->PlotA, QOverload<int>::of(&SDPlot::mouseWheel), this, &SDView::changeBaseTime);
-    connect(ui->PlotB, QOverload<int>::of(&SDPlot::mouseWheel), this, &SDView::changeBaseTime);
+    connect(ui->PlotA, QOverload<int>::of(&SDPlot::zoomX), this, &SDView::changeBaseTime);
+    connect(ui->PlotB, QOverload<int>::of(&SDPlot::zoomX), this, &SDView::changeBaseTime);
+    connect(ui->PlotA, QOverload<int>::of(&SDPlot::zoomY), this, &SDView::changeAmplitude);
+    connect(ui->PlotB, QOverload<int>::of(&SDPlot::zoomY), this, &SDView::changeAmplitude);
 
     connect(ui->widgetKeyboard, &SDKeyboard::keyboardClicked, this, &SDView::keyboardClicked);
     connect(refresh, &QTimer::timeout, this, &SDView::newData);
@@ -269,6 +271,11 @@ void SDView::setAmplitude(int amp)
 
     QByteArray data = "2," + QByteArray::number(amp)+ "\n";
     emit changeView(data);
+}
+
+void SDView::changeAmplitude(int inc)
+{
+    ui->amplitudeDial->setValue(ui->amplitudeDial->value() + inc);
 }
 
 void SDView::setBaseTime(int bt)
