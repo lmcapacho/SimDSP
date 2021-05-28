@@ -1,0 +1,36 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+
+  linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-18.04, ubuntu-20.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y qt5-default qttools5-dev-tools libfftw3-3 libfftw3-dev libegl1-mesa libqscintilla2-qt5-dev
+          sudo apt install libasound2-dev libjack-dev libpulse-dev doxygen oss4-dev
+          sudo apt install libmatio-dev
+      - name: RtAudio
+        run: |
+          git clone https://github.com/thestk/rtaudio.git
+          cd rtaudio
+          ./autogen.sh
+          make -j
+          sudo make install
+      - name: Compile
+        run: |
+          cd sdcore
+          qmake sdcore.pro 
+          make -j
+          sudo cp -d build/libsdcore.so* /usr/lib/
+          cd ..
+          qmake SimDSP.pro
+          make -j
