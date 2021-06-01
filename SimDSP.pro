@@ -21,7 +21,7 @@
 #######################################################################
 
 QT       += core gui
-CONFIG   += c++11
+CONFIG   += c++11 qscintilla2
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 

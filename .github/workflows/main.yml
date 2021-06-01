@@ -18,19 +18,45 @@ jobs:
           sudo apt install -y qt5-default qttools5-dev-tools libfftw3-3 libfftw3-dev libegl1-mesa libqscintilla2-qt5-dev
           sudo apt install libasound2-dev libjack-dev libpulse-dev doxygen oss4-dev
           sudo apt install libmatio-dev
-      - name: RtAudio
-        run: |
-          git clone https://github.com/thestk/rtaudio.git
-          cd rtaudio
-          ./autogen.sh
-          make -j
-          sudo make install
       - name: Compile
         run: |
           cd sdcore
           qmake sdcore.pro 
           make -j
-          sudo cp -d build/libsdcore.so* /usr/lib/
           cd ..
           qmake SimDSP.pro
           make -j
+
+  win:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          repository: lmcapacho/SimDSP
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >
+            base-devel
+            git
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-qscintilla
+      - name: Compile
+        run: |
+          cd sdcore
+          qmake sdcore.pro 
+          make
+          make install
+          cd ..
+          qmake SimDSP.pro
+          make
