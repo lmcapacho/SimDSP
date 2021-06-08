@@ -50,7 +50,7 @@ public:
 public slots:
     void changeTemplateSelect(int index);
     void changeFileName(const QString &fileName);
-    void accepted();
+    void createFile();
 
 private:
     void loadTemplate(int index);

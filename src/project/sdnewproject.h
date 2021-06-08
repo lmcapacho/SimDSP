@@ -42,7 +42,7 @@ public:
 
 public slots:
     void browsePath();
-    void accepted();
+    void createFolder();
     void changeLineEdit(const QString& value);
 
 private:

@@ -34,7 +34,7 @@ SDNewProject::SDNewProject(QWidget *parent) :
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 
     connect(ui->browseButton, &QPushButton::clicked, this, &SDNewProject::browsePath);
-    connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &SDNewProject::accepted);
+    connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &SDNewProject::createFolder);
     connect(ui->projectName, QOverload<const QString&>::of(&QLineEdit::textChanged), this, &SDNewProject::changeLineEdit);
 }
 
@@ -60,7 +60,7 @@ void SDNewProject::browsePath()
 }
 
 
-void SDNewProject::accepted()
+void SDNewProject::createFolder()
 {
     QDir dir(ui->projectPath->text());
 

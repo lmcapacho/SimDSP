@@ -34,7 +34,7 @@ SDNewFile::SDNewFile(QWidget *parent) :
 
     connect(ui->templateSelect, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SDNewFile::changeTemplateSelect);
     connect(ui->fileName, QOverload<const QString&>::of(&QLineEdit::textChanged), this, &SDNewFile::changeFileName);
-    connect(ui->buttonBox,&QDialogButtonBox::accepted, this, &SDNewFile::accepted);
+    connect(ui->buttonBox,&QDialogButtonBox::accepted, this, &SDNewFile::createFile);
 }
 
 SDNewFile::~SDNewFile()
@@ -91,7 +91,7 @@ void SDNewFile::changeFileName(const QString &fileName)
     }
 }
 
-void SDNewFile::accepted()
+void SDNewFile::createFile()
 {
     QString fileName = ui->fileName->text();
 
