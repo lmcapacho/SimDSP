@@ -178,8 +178,7 @@ bool SDEditor::loadFile(const QString &fileName, bool readOnly)
     if (!file.open(QFile::ReadOnly | QFile::Text)) {
         QMessageBox::warning(this, tr("SimDSP"),
                              tr("Cannot read file %1:\n%2.")
-                             .arg(name)
-                             .arg(file.errorString()));
+                             .arg(name, file.errorString()));
         return false;
     }
 
