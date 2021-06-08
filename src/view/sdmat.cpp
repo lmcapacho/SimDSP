@@ -15,7 +15,7 @@ SDMat::SDMat(QWidget *parent) :
     ui->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);
 
     connect(ui->browseButton, &QPushButton::pressed, this, &SDMat::browseFile);
-    connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &SDMat::accepted);
+    connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &SDMat::loadData);
     connect(ui->variables, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SDMat::changeVariable);
 }
 
@@ -46,6 +46,7 @@ void SDMat::browseFile()
         if ( nullptr == matfp ) {
             ui->error->setText("Error opening MAT file");
             ui->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);
+            ui->filePath->setText("");
             return;
         }
 
@@ -71,7 +72,7 @@ void SDMat::changeVariable(int index)
         ui->varType->setText(types[index]);
 }
 
-void SDMat::accepted()
+void SDMat::loadData()
 {
     QSettings settings;
     settings.setValue("MatFiles/lastopen",QFileInfo(ui->filePath->text()).canonicalPath());

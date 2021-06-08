@@ -25,7 +25,7 @@ signals:
     void loadVariable(QString path, QString varName);
 
 public slots:
-    void accepted();
+    void loadData();
     void browseFile();
     void changeVariable(int index);
 
