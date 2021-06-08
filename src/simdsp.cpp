@@ -303,8 +303,7 @@ void SimDSP::actionBuildProject()
     ui->outputTab->setTabText(1, "Issues");
     if(sdproject->buildProject()){
         ui->outputTab->setCurrentIndex(0);
-    }
-    else{
+    }else{
         ui->outputTab->setCurrentIndex(1);
     }
 }
@@ -382,9 +381,11 @@ void SimDSP::actionRun()
         connect(sdapp, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this, &SimDSP::sdappFinished);
 
     #ifdef Q_OS_LINUX
-        sdapp->start(QDir::currentPath()+"/build/sdapp");
+        sdapp->setProgram(QDir::currentPath()+"/build/sdapp");
+        sdapp->start();
     #elif defined(Q_OS_WIN32)
-        sdapp->start(QDir::currentPath()+"/build/sdapp.exe");
+        sdapp->setProgram(QDir::currentPath()+"/build/sdapp.exe");
+        sdapp->start();
     #endif
         if(!sdapp->waitForStarted(5000)){
           ui->compileOutput->append(tr("<b>SDapp failed to start</b><br>"));
@@ -476,8 +477,8 @@ void SimDSP::actionAbout()
 
                    "<p>You should have received a copy of the GNU General Public License along with SimDSP.  "
                    "If not, see <a href=\"http://%2/\">%2</a>.</p>")
-                    .arg(QStringLiteral("2019"))
-                    .arg(QStringLiteral("www.gnu.org/licenses"));
+                    .arg(QStringLiteral("2021"),
+                         QStringLiteral("www.gnu.org/licenses"));
 
     QMessageBox::about(this, "About SimDSP", text);
 }
