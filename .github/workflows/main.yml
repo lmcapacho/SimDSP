@@ -20,10 +20,6 @@ jobs:
           sudo apt install libmatio-dev
       - name: Compile
         run: |
-          cd sdcore
-          qmake sdcore.pro 
-          make -j
-          cd ..
           qmake SimDSP.pro
           make -j
 
@@ -53,10 +49,5 @@ jobs:
             mingw-w64-x86_64-qscintilla
       - name: Compile
         run: |
-          cd sdcore
-          qmake sdcore.pro 
-          make
-          make install
-          cd ..
           qmake SimDSP.pro
           make

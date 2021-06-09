@@ -22,11 +22,7 @@ install:
   - cd $TRAVIS_BUILD_DIR
 
 script:
-  - cd sdcore
-  - qmake sdcore.pro 
-  - make
-  - sudo cp -d build/libsdcore.so* /usr/lib/
-  - cd ..
   - qmake SimDSP.pro
   - make
+  - cd src/build
   - ./SimDSP &
