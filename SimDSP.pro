@@ -1,7 +1,7 @@
 #######################################################################
 # SimDSP Project file.
 #
-# Copyright (c) 2017 lmcapacho
+# Copyright (c) 2021 lmcapacho
 #
 # This file is part of SimDSP.
 #
@@ -20,65 +20,10 @@
 #
 #######################################################################
 
-QT       += core gui
-CONFIG   += c++11 qscintilla2
+TEMPLATE = subdirs
+SUBDIRS  = sdcore gui
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
+sdcore.subdir = src/sdcore
+gui.subdir = src/gui
 
-RESOURCES += \
-    simdspresources.qrc
-
-include(pri/actions.pri)
-include(pri/editor.pri)
-include(pri/project.pri)
-include(pri/view.pri)
-include(pri/simdsp.pri)
-include(pri/translations.pri)
-
-DESTDIR = $$PWD
-OBJECTS_DIR = build/obj
-MOC_DIR = build/moc
-RCC_DIR = build/rcc
-UI_DIR = build/ui
-
-unix {
-
-    isEmpty(PREFIX) {
-            PREFIX = /usr
-    }
-    BINDIR = $$PREFIX/bin
-    INCLUDEDIR = $$PREFIX/include
-    DATADIR = $$PREFIX/share
-    PKGDATADIR = $$DATADIR/simdsp
-
-    target.path = $$BINDIR
-
-    bin.path = $$PKGDATADIR
-    bin.files = simdsp
-
-    include.path = $$INCLUDEDIR
-    include.files += sdcore/simdsp.h sdcore/sdfunctions.h
-
-    desktop.path = $$DATADIR/applications
-    desktop.files += simdsp.desktop
-
-    icon.path = $$DATADIR/icons
-    icon.extra = install -D -m 0644 $$PWD/resources/images/simdsp_icon.png $(INSTALL_ROOT)$$DATADIR/icons/simdsp.png
-
-    INSTALLS += target bin include desktop icon
-
-    LIBS += -lfftw3 -lm -lmatio -lqscintilla2_qt5
-}
-
-win32 {
-    INCLUDEPATH += "$$PWD\resources\dependencies\fftw3"  \
-                   "$$PWD\resources\dependencies\matio"
-                   
-    LIBS += "$$PWD\resources\dependencies\fftw3\libfftw3-3.dll" \
-            "$$PWD\resources\dependencies\matio\libmatio.dll" \
-            "$$PWD\resources\dependencies\matio\hdf5.dll" \
-            "$$PWD\resources\dependencies\matio\zlib.dll"
-}
-
-TARGET = SimDSP
-TEMPLATE = app
+gui.depends = sdcore
