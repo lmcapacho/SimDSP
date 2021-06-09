@@ -3,21 +3,21 @@
 # QtCreator folders and files #
 #####################
 SimDSP.pro.user
-/SimDSP-build-*
-/release*
-/build*
+/src/SimDSP-build-*
+/src/release*
+/src/build*
 /debug*
 *.user
 *.user*
-sdcore.pro.user
-/sdcore/sdcore-build-*
-/sdcore/release*
-/sdcore/build*
-/sdcore/debug*
-/sdcore*.user
-/sdcore/*.user*
+/src/sdcore/sdcore.pro.user
+/src/sdcore/sdcore-build-*
+/src/sdcore/release*
+/src/sdcore/build*
+/src/sdcore/debug*
+/src/sdcore*.user
+/src/sdcore/*.user*
 object_script.*
-/examples/*/*/build*
+/src/examples/*/*/build*
 
 # SimDSP Tools and files folder
 #####################
