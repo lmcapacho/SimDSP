@@ -71,13 +71,13 @@ unix {
 }
 
 win32 {
-    INCLUDEPATH += "$$PWD\resources\dependencies\fftw3"  \
-                   "$$PWD\resources\dependencies\matio"
+    INCLUDEPATH += "$$PWD\..\..\dependencies\fftw3"  \
+                   "$$PWD\..\..\dependencies\matio"
                    
-    LIBS += "$$PWD\resources\dependencies\fftw3\libfftw3-3.dll" \
-            "$$PWD\resources\dependencies\matio\libmatio.dll" \
-            "$$PWD\resources\dependencies\matio\hdf5.dll" \
-            "$$PWD\resources\dependencies\matio\zlib.dll"
+    LIBS += "$$PWD\..\..\dependencies\fftw3\libfftw3-3.dll" \
+            "$$PWD\..\..\dependencies\matio\libmatio.dll" \
+            "$$PWD\..\..\dependencies\matio\hdf5.dll" \
+            "$$PWD\..\..\dependencies\matio\zlib.dll"
 }
 
 TARGET = SimDSP
