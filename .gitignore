@@ -6,6 +6,7 @@ SimDSP.pro.user
 /src/SimDSP-build-*
 /src/release*
 /src/build*
+/src/gui/build*
 /debug*
 *.user
 *.user*
