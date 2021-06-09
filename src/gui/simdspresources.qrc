@@ -5,7 +5,7 @@
         <file>resources/templates/sdSourceTPL.txt</file>
         <file>resources/templates/sdHeaderTPL.txt</file>
         <file>resources/templates/simdsp.cpp</file>
-        <file>sdcore/sdfunctions.h</file>
+        <file>../sdcore/sdfunctions.h</file>
         <file>resources/stylesheets/simdsp-design.qss</file>
         <file>resources/images/icons/play.png</file>
         <file>resources/images/icons/load_mat.png</file>

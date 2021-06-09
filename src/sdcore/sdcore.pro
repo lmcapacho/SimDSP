@@ -1,5 +1,5 @@
 #######################################################################
-# SimDSP Project file.
+# sdcore Project file.
 #
 # Copyright (c) 2017 lmcapacho
 #
@@ -27,7 +27,7 @@ TEMPLATE = lib
 
 DEFINES += SIMDSPCORE_LIBRARY
 
-DESTDIR = build
+DESTDIR = $$PWD/../build
 OBJECTS_DIR = build/obj
 MOC_DIR = build/moc
 
@@ -42,17 +42,17 @@ HEADERS += sdcore.h\
     sdsignal.h \
     sdaudio.h
 
-INCLUDEPATH += $$PWD/../resources/dependencies/rtaudio
+INCLUDEPATH += $$PWD/../../dependencies/rtaudio
 
 unix {
     target.path = /usr/lib
     INSTALLS += target
     LIBS +=  -lm
-    LIBS += -L$$PWD/../resources/dependencies/rtaudio/libs/linux-64 -lrtaudio
+    LIBS += -L$$PWD/../dependencies/rtaudio/libs/linux-64 -lrtaudio
 }
 
 win32 {
-    LIBS += -L$$PWD\..\resources\dependencies\rtaudio\libs\windows-64 -lrtaudio
+    LIBS += -L$$PWD\..\dependencies\rtaudio\libs\windows-64 -lrtaudio
 }
 
 

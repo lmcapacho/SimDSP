@@ -21,13 +21,13 @@
 #######################################################################
 
 HEADERS += \
-    src/editor/sdeditor.h \
-    src/editor/sdeditortab.h
+    actions/sdbuilder.h \
+    actions/sdnewfile.h
     
 SOURCES += \
-    src/editor/sdeditor.cpp \
-    src/editor/sdeditortab.cpp    
+    actions/sdbuilder.cpp \
+    actions/sdnewfile.cpp
     
 FORMS    += \
-    src/editor/sdeditortab.ui
+    actions/sdnewfile.ui
 

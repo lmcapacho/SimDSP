@@ -21,13 +21,13 @@
 #######################################################################
 
 HEADERS += \
-    src/simdsp.h    
+    editor/sdeditor.h \
+    editor/sdeditortab.h
     
 SOURCES += \
-    src/simdsp.cpp \
-    src/main.cpp
+    editor/sdeditor.cpp \
+    editor/sdeditortab.cpp    
     
 FORMS    += \
-    src/simdsp.ui 
-
+    editor/sdeditortab.ui
 

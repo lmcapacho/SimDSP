@@ -744,24 +744,24 @@ p, li { white-space: pre-wrap; }
   <customwidget>
    <class>SDEditortab</class>
    <extends>QWidget</extends>
-   <header>src/editor/sdeditortab.h</header>
+   <header>editor/sdeditortab.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>SDProjectexplorer</class>
    <extends>QWidget</extends>
-   <header>src/project/sdprojectexplorer.h</header>
+   <header>project/sdprojectexplorer.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>SDView</class>
    <extends>QWidget</extends>
-   <header>src/view/sdview.h</header>
+   <header>view/sdview.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../simdspresources.qrc"/>
+  <include location="simdspresources.qrc"/>
  </resources>
  <connections/>
 </ui>

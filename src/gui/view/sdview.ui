@@ -588,13 +588,13 @@
   <customwidget>
    <class>SDKeyboard</class>
    <extends>QWidget</extends>
-   <header>src/view/sdkeyboard.h</header>
+   <header>view/sdkeyboard.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>SDPlot</class>
    <extends>QWidget</extends>
-   <header>src/view/sdplot.h</header>
+   <header>view/sdplot.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

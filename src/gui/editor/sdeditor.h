@@ -56,6 +56,7 @@ public:
 
 private slots:
     void documentWasModified(bool m);
+    void test();
 
 private:
     bool isSaved();

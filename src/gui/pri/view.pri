@@ -1,7 +1,7 @@
 #######################################################################
 # SimDSP Project file include.
 #
-# Copyright (c) 2017 lmcapacho
+# Copyright (c) 2019 lmcapacho
 #
 # This file is part of SimDSP.
 #
@@ -21,13 +21,21 @@
 #######################################################################
 
 HEADERS += \
-    src/actions/sdbuilder.h \
-    src/actions/sdnewfile.h
+    view/qcustomplot.h \
+    view/sdkeyboard.h \
+    view/sdmat.h \
+    view/sdplot.h \
+    view/sdview.h
     
 SOURCES += \
-    src/actions/sdbuilder.cpp \
-    src/actions/sdnewfile.cpp
+    view/qcustomplot.cpp \
+    view/sdkeyboard.cpp \
+    view/sdmat.cpp \
+    view/sdplot.cpp \
+    view/sdview.cpp
     
 FORMS    += \
-    src/actions/sdnewfile.ui
-
+    view/sdkeyboard.ui \
+    view/sdmat.ui \
+    view/sdplot.ui \
+    view/sdview.ui

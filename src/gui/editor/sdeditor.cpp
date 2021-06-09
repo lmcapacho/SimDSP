@@ -31,8 +31,12 @@ SDEditor::SDEditor()
     // Autoindent
     setAutoIndent(true);
 
-    // Margin
+    // Line Numbers
     setMarginLineNumbers(1, true);
+    setMarginWidth(1, "0000");
+
+    // CodeFolding
+    setFolding(QsciScintilla::PlainFoldStyle);
 
     // Indentation
     setTabWidth(4);
@@ -82,16 +86,18 @@ void SDEditor::newFile(QString fileName)
     isUntitled = false;
     curFile = fileName;
 
-#if QT_VERSION >= 0x050700
     connect(this, QOverload<bool>::of(&SDEditor::modificationChanged), this, &SDEditor::documentWasModified);
-#else
-    connect(this, SIGNAL(modificationChanged(bool)), this, SLOT(documentWasModified));
-#endif
+    connect(this, &SDEditor::SCN_ZOOM, this, &SDEditor::test);
 }
 
 void SDEditor::documentWasModified(bool m)
 {
     setWindowModified(m);
+}
+
+void SDEditor::test()
+{
+    qDebug() << "Here";
 }
 
 bool SDEditor::save()

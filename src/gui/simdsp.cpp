@@ -47,15 +47,21 @@ SimDSP::SimDSP(QWidget *parent) :
     ui->tabWidget->setTabEnabled(ui->tabWidget->indexOf(ui->runTab), false);
 
     ui->outputTab->setCurrentIndex(0);
-    ui->compileOutput->setFont(QFont("SansSerif", 10));
-    ui->issuesOutput->setFont(QFont("SansSerif", 10));
+    const QFont fixedFont = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+    ui->compileOutput->setFont(fixedFont);
+    ui->compileOutput->setFontPointSize(10);
+    ui->issuesOutput->setFont(fixedFont);
+    ui->issuesOutput->setFontPointSize(10);
 
     sdapp = new QProcess(this);
 
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     QString libraryPath = QCoreApplication::applicationDirPath();
+    QString includePath = QCoreApplication::applicationDirPath() + QDir::separator() + ".." + QDir::separator() + "include";
 #ifdef Q_OS_LINUX
     env.insert("LD_LIBRARY_PATH", libraryPath);
+    qputenv("LIBRARY_PATH", libraryPath.toUtf8());
+    qputenv("CPATH", includePath.toUtf8());
 #elif defined(Q_OS_WIN32)
     env.insert("PATH", libraryPath);
 #endif

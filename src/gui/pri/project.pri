@@ -21,23 +21,23 @@
 #######################################################################
 
 HEADERS += \
-    src/project/sdeditoption.h \
-    src/project/sdproject.h \
-    src/project/sdprojectexplorer.h \
-    src/project/sdnewproject.h \
-    src/project/sdbuildoptions.h
+    project/sdeditoption.h \
+    project/sdproject.h \
+    project/sdprojectexplorer.h \
+    project/sdnewproject.h \
+    project/sdbuildoptions.h
     
 SOURCES += \
-    src/project/sdeditoption.cpp \
-    src/project/sdproject.cpp \
-    src/project/sdnewproject.cpp \
-    src/project/sdprojectexplorer.cpp \
-    src/project/sdbuildoptions.cpp
+    project/sdeditoption.cpp \
+    project/sdproject.cpp \
+    project/sdnewproject.cpp \
+    project/sdprojectexplorer.cpp \
+    project/sdbuildoptions.cpp
     
 FORMS    += \
-    src/project/sdeditoption.ui \
-    src/project/sdprojectexplorer.ui \
-    src/project/sdnewproject.ui \
-    src/project/sdbuildoptions.ui
+    project/sdeditoption.ui \
+    project/sdprojectexplorer.ui \
+    project/sdnewproject.ui \
+    project/sdbuildoptions.ui
 
 
