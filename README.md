@@ -9,7 +9,7 @@ The signals that can be generated are: sinusoidal, square, triangular, data file
 
 Data acquisition and processing can be performed on the sample-by-sample approach or block-oriented approach (DMA framework). For microphone mode, only block-oriented approach is available. The signals can be displayed in time or in the frequency domain.
 
-![screnshot](resources/images/screenshot.png)
+![screnshot](src/gui/resources/images/screenshot.png)
 
 # Installation
 
