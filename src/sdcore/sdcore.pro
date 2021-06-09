@@ -48,11 +48,11 @@ unix {
     target.path = /usr/lib
     INSTALLS += target
     LIBS +=  -lm
-    LIBS += -L$$PWD/../dependencies/rtaudio/libs/linux-64 -lrtaudio
+    LIBS += -L$$PWD/../../dependencies/rtaudio/libs/linux-64 -lrtaudio
 }
 
 win32 {
-    LIBS += -L$$PWD\..\dependencies\rtaudio\libs\windows-64 -lrtaudio
+    LIBS += -L$$PWD\..\..\dependencies\rtaudio\libs\windows-64 -lrtaudio
 }
 
 
