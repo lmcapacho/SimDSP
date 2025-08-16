@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "SimDSP"
+version = "2.0.0"
+description = "SimDSP 2.0 - DSP simulation software"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy",
+  "scipy",
+  "numba",
+  "PySide6",
+  "pyqtgraph",
+  "sounddevice",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "ruff", "mypy"]
