@@ -1,30 +1,47 @@
-.qmake.stash
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pkl
+*.so
 
-# QtCreator folders and files #
-#####################
-SimDSP.pro.user
-/src/SimDSP-build-*
-/src/release*
-/src/build*
-/src/gui/build*
-/debug*
-*.user
-*.user*
-/src/sdcore/sdcore.pro.user
-/src/sdcore/sdcore-build-*
-/src/sdcore/release*
-/src/sdcore/build*
-/src/sdcore/debug*
-/src/sdcore*.user
-/src/sdcore/*.user*
-object_script.*
-/src/examples/*/*/build*
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
 
-# SimDSP Tools and files folder
-#####################
-/files
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
 
-Makefile
-Makefile.*
-SimDSP
-SimDSP.exe
+# Jupyter / IPython
+.ipynb_checkpoints/
+*.ipynb~
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+coverage.xml
+pytest_cache/
+.pytest_cache/
+.mypy_cache/
+.pyright/
+
+# IDEs / editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs / misc
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
