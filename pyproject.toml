@@ -18,3 +18,6 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest", "ruff", "mypy"]
+
+[project.scripts]
+simdsp-smoke-audio = "app_desktop.smoke_audio:main"
