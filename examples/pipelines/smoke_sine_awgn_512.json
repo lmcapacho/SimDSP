@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "sample_rate": 48000,
+  "block_size": 512,
+  "channels": 1,
+  "nodes": [
+    {
+      "id": "gen",
+      "type": "Sine",
+      "params": {
+        "freq": 1000,
+        "amp": 0.8
+      }
+    },
+    {
+      "id": "awgn",
+      "type": "AWGN",
+      "params": {
+        "snr_db": 30,
+        "seed": 1
+      }
+    },
+    {
+      "id": "fft",
+      "type": "FFTMag",
+      "params": {}
+    }
+  ],
+  "edges": [
+    {
+      "from": "gen",
+      "to": "awgn"
+    },
+    {
+      "from": "awgn",
+      "to": "fft"
+    }
+  ]
+}
