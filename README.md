@@ -30,6 +30,15 @@ The original Qt/C++ version is preserved in:
 > Instructions will be provided once the first Python release is available.  
 For now, clone the repo and switch to the `simdsp2` branch.
 
+## Audio Smoke Defaults (current)
+
+- Current recommended `block_size` default for smoke tests: `512` (balanced latency/CPU tradeoff).
+- Validate on target hardware with:
+  - `examples/pipelines/smoke_sine_awgn_256.json`
+  - `examples/pipelines/smoke_sine_awgn_512.json`
+  - `examples/pipelines/smoke_sine_awgn_1024.json`
+- See `docs/audio_smoke_validation.md` for command sequence and result table.
+
 ## Credits
 
 The project is led by Luis Miguel Capacho Valbuena.  
