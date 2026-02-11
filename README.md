@@ -39,6 +39,20 @@ For now, clone the repo and switch to the `simdsp2` branch.
   - `examples/pipelines/smoke_sine_awgn_1024.json`
 - See `docs/audio_smoke_validation.md` for command sequence and result table.
 
+## Desktop Live UI (scope + FFT)
+
+Run a minimal real-time desktop UI:
+
+```bash
+simdsp-desktop --sample-rate 48000 --block-size 1024 --channels 1
+```
+
+Alternative invocation:
+
+```bash
+python -m app_desktop.live_ui --sample-rate 48000 --block-size 1024 --channels 1
+```
+
 ## Credits
 
 The project is led by Luis Miguel Capacho Valbuena.  

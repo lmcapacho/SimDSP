@@ -21,3 +21,4 @@ dev = ["pytest", "ruff", "mypy"]
 
 [project.scripts]
 simdsp-smoke-audio = "app_desktop.smoke_audio:main"
+simdsp-desktop = "app_desktop.live_ui:main"
