@@ -68,7 +68,7 @@ void SIMDSPCORESHARED_EXPORT println(const char *format, ...)
     va_list args;
     va_start(args, format);
 
-    buffer.vsprintf(format, args);
+    buffer = QString::vasprintf(format, args);
     va_end(args);
 
     sd->println(buffer.toStdString());
@@ -118,7 +118,6 @@ void SIMDSPCORESHARED_EXPORT initSDCore()
     sd->setfs(8000);
     sd->start();
 }
-
 
 
 
