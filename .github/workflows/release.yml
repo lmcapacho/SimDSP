@@ -94,11 +94,19 @@ jobs:
             base-devel
             git
             mingw-w64-x86_64-toolchain
-            mingw-w64-x86_64-qscintilla
+            mingw-w64-x86_64-qt5
+            mingw-w64-x86_64-qscintilla-qt5
 
       - name: Build
         run: |
-          qmake SimDSP.pro
+          if command -v qmake-qt5 >/dev/null 2>&1; then
+            qmake-qt5 SimDSP.pro
+          elif [ -x /mingw64/qt5/bin/qmake ]; then
+            /mingw64/qt5/bin/qmake SimDSP.pro
+          else
+            echo "ERROR: Qt5 qmake not found (qmake-qt5 or /mingw64/qt5/bin/qmake)."
+            exit 1
+          fi
           make -j
 
       - name: Package
