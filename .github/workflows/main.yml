@@ -1,23 +1,37 @@
 name: CI
-on: [push, pull_request]
+
+on:
+  push:
+    branches:
+      - master
+      - simdsp2
+  pull_request:
 
 jobs:
-
   linux:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-18.04, ubuntu-20.04]
+        os: [ubuntu-22.04, ubuntu-24.04]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y qt5-default qttools5-dev-tools libfftw3-3 libfftw3-dev libegl1-mesa libqscintilla2-qt5-dev
-          sudo apt install libasound2-dev libjack-dev libpulse-dev doxygen oss4-dev
-          sudo apt install libmatio-dev
+          sudo apt install -y \
+            qtbase5-dev \
+            qttools5-dev-tools \
+            libfftw3-dev \
+            libegl1 \
+            libqscintilla2-qt5-dev \
+            libasound2-dev \
+            libjack-dev \
+            libpulse-dev \
+            doxygen \
+            oss4-dev \
+            libmatio-dev
       - name: Compile
         run: |
           qmake SimDSP.pro
@@ -34,9 +48,7 @@ jobs:
         shell: msys2 {0}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          repository: lmcapacho/SimDSP
+        uses: actions/checkout@v4
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         with:
@@ -46,8 +58,21 @@ jobs:
             base-devel
             git
             mingw-w64-x86_64-toolchain
-            mingw-w64-x86_64-qscintilla
+            mingw-w64-x86_64-qt5
+      - name: Install QScintilla for Qt5
+        run: |
+          if pacman -Si mingw-w64-x86_64-qscintilla-qt5 >/dev/null 2>&1; then
+            pacman -S --noconfirm --needed mingw-w64-x86_64-qscintilla-qt5
+          else
+            pacman -S --noconfirm --needed mingw-w64-x86_64-qscintilla
+          fi
       - name: Compile
         run: |
-          qmake SimDSP.pro
+          if command -v qmake-qt5 >/dev/null 2>&1; then
+            qmake-qt5 SimDSP.pro
+          elif [ -x /mingw64/qt5/bin/qmake ]; then
+            /mingw64/qt5/bin/qmake SimDSP.pro
+          else
+            qmake SimDSP.pro
+          fi
           make
