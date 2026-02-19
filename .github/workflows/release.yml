@@ -1,0 +1,125 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+      - "*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  linux-release:
+    name: Linux Release Asset
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: meta
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          if [ -z "$VERSION" ]; then VERSION="dev"; fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            qt5-default \
+            qttools5-dev-tools \
+            libfftw3-dev \
+            libegl1-mesa \
+            libqscintilla2-qt5-dev \
+            libasound2-dev \
+            libjack-dev \
+            libpulse-dev \
+            oss4-dev \
+            libmatio-dev
+
+      - name: Build
+        run: |
+          qmake SimDSP.pro
+          make -j"$(nproc)"
+
+      - name: Package
+        shell: bash
+        run: |
+          VERSION="${{ steps.meta.outputs.version }}"
+          OUT="$RUNNER_TEMP/simdsp-$VERSION.linux.AMD64"
+          mkdir -p "$OUT/resources/lib" "$OUT/resources/examples"
+          cp -f src/build/SimDSP "$OUT/resources/lib/"
+          cp -f src/build/libsdcore.so* "$OUT/resources/lib/" || true
+          cp -f README.md LICENSE "$OUT/"
+          cp -f scripts/simdsp.sh "$OUT/simdsp"
+          chmod +x "$OUT/simdsp"
+          cp -rf src/examples/. "$OUT/resources/examples/"
+          tar -cjf "$RUNNER_TEMP/simdsp-$VERSION.linux.AMD64.tar.bz2" -C "$RUNNER_TEMP" "simdsp-$VERSION.linux.AMD64"
+
+      - name: Upload Linux release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ runner.temp }}/simdsp-${{ steps.meta.outputs.version }}.linux.AMD64.tar.bz2
+          fail_on_unmatched_files: true
+
+  windows-release:
+    name: Windows Release Asset
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: meta
+        shell: pwsh
+        run: |
+          $version = "${env:GITHUB_REF_NAME}" -replace '^v',''
+          if ([string]::IsNullOrWhiteSpace($version)) { $version = "dev" }
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "version=$version"
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >
+            base-devel
+            git
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-qscintilla
+
+      - name: Build
+        run: |
+          qmake SimDSP.pro
+          make -j
+
+      - name: Package
+        shell: pwsh
+        run: |
+          $version = "${{ steps.meta.outputs.version }}"
+          $out = Join-Path $env:RUNNER_TEMP "simdsp-$version.windows.AMD64"
+          $zip = Join-Path $env:RUNNER_TEMP "simdsp-$version.windows.AMD64.zip"
+          New-Item -ItemType Directory -Path "$out\resources\dlls" -Force | Out-Null
+          New-Item -ItemType Directory -Path "$out\resources\examples" -Force | Out-Null
+          Copy-Item "src\build\SimDSP.exe" "$out\resources\dlls\" -Force
+          if (Test-Path "src\build\sdcore.dll") { Copy-Item "src\build\sdcore.dll" "$out\resources\dlls\" -Force }
+          Copy-Item "scripts\simdsp.bat" "$out\" -Force
+          Copy-Item "README.md","LICENSE" "$out\" -Force
+          Copy-Item "src\examples\*" "$out\resources\examples\" -Recurse -Force
+          if (Test-Path $zip) { Remove-Item $zip -Force }
+          Compress-Archive -Path $out -DestinationPath $zip
+
+      - name: Upload Windows release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ runner.temp }}/simdsp-${{ steps.meta.outputs.version }}.windows.AMD64.zip
+          fail_on_unmatched_files: true
