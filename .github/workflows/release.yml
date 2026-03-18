@@ -67,7 +67,17 @@ jobs:
           for lib in "${libs[@]}"; do
             name="$(basename "$lib")"
             case "$name" in
-              libQt5*|libqscintilla2_qt5.so*|libfftw3*.so*|libmatio.so*|libhdf5*.so*|libz.so*|libicu*.so*|libdouble-conversion.so*|libpcre2-16.so*|libmd4c.so*|libglib-2.0.so*|libgthread-2.0.so*|libgobject-2.0.so*)
+              libQt5*|libqscintilla2_qt5.so*|libfftw3*.so*|libmatio.so*|libhdf5*.so*|libsz.so*|libaec.so*|libz.so*|libicu*.so*|libdouble-conversion.so*|libpcre2-16.so*|libmd4c.so*|libglib-2.0.so*|libgthread-2.0.so*|libgobject-2.0.so*)
+                cp -L "$lib" "$OUT/resources/lib/"
+                ;;
+            esac
+          done
+
+          mapfile -t extra_libs < <(ldd "$OUT"/resources/lib/*.so* 2>/dev/null | awk '/=> \// {print $3}' | sort -u)
+          for lib in "${extra_libs[@]}"; do
+            name="$(basename "$lib")"
+            case "$name" in
+              libhdf5*.so*|libsz.so*|libaec.so*|libz.so*)
                 cp -L "$lib" "$OUT/resources/lib/"
                 ;;
             esac
