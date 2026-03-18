@@ -26,12 +26,16 @@ jobs:
           if [ -z "$VERSION" ]; then VERSION="dev"; fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
+      - name: Install Qt
+        id: qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "5.15.2"
+
       - name: Install dependencies
         run: |
           sudo apt update
           sudo apt install -y \
-            qtbase5-dev \
-            qttools5-dev-tools \
             libfftw3-dev \
             libegl1 \
             libqscintilla2-qt5-dev \
@@ -41,76 +45,20 @@ jobs:
             oss4-dev \
             libmatio-dev
 
-      - name: Build
-        run: |
-          qmake SimDSP.pro
-          make -j"$(nproc)"
-
       - name: Package
         shell: bash
         run: |
-          set -euo pipefail
-          VERSION="${{ steps.meta.outputs.version }}"
-          OUT="$RUNNER_TEMP/simdsp-$VERSION.linux.AMD64"
-          mkdir -p "$OUT/resources/lib" "$OUT/resources/lib/platforms" "$OUT/resources/include" "$OUT/resources/examples" "$OUT/resources/icons"
-          cp -f src/build/SimDSP "$OUT/resources/lib/"
-          cp -f src/build/libsdcore.so* "$OUT/resources/lib/" || true
-          cp -f dependencies/rtaudio/libs/linux-64/librtaudio.so* "$OUT/resources/lib/" || true
-          cp -f src/include/simdsp.h src/include/sdfunctions.h "$OUT/resources/include/"
-          cp -f src/gui/resources/images/simdsp_icon.png "$OUT/resources/icons/" || true
-          cp -f README.md LICENSE "$OUT/"
-          cp -f scripts/simdsp.sh "$OUT/simdsp"
-          chmod +x "$OUT/simdsp"
-          cp -rf src/examples/. "$OUT/resources/examples/"
-
-          mapfile -t libs < <(ldd src/build/SimDSP | awk '/=> \// {print $3}' | sort -u)
-          for lib in "${libs[@]}"; do
-            name="$(basename "$lib")"
-            case "$name" in
-              libQt5*|libqscintilla2_qt5.so*|libfftw3*.so*|libmatio.so*|libhdf5*.so*|libsz.so*|libaec.so*|libz.so*|libicu*.so*|libdouble-conversion.so*|libpcre2-16.so*|libmd4c.so*|libglib-2.0.so*|libgthread-2.0.so*|libgobject-2.0.so*)
-                cp -L "$lib" "$OUT/resources/lib/"
-                ;;
-            esac
-          done
-
-          mapfile -t extra_libs < <(ldd "$OUT"/resources/lib/*.so* 2>/dev/null | awk '/=> \// {print $3}' | sort -u)
-          for lib in "${extra_libs[@]}"; do
-            name="$(basename "$lib")"
-            case "$name" in
-              libhdf5*.so*|libsz.so*|libaec.so*|libz.so*)
-                cp -L "$lib" "$OUT/resources/lib/"
-                ;;
-            esac
-          done
-
-          if [ -d /usr/lib/x86_64-linux-gnu/qt5/plugins/platforms ]; then
-            cp -a /usr/lib/x86_64-linux-gnu/qt5/plugins/platforms/. "$OUT/resources/lib/platforms/"
-          fi
-          if [ -d /usr/lib/x86_64-linux-gnu/qt5/plugins/audio ]; then
-            mkdir -p "$OUT/resources/lib/audio"
-            cp -a /usr/lib/x86_64-linux-gnu/qt5/plugins/audio/. "$OUT/resources/lib/audio/"
-          fi
-          if [ -d /usr/lib/x86_64-linux-gnu/qt5/plugins/imageformats ]; then
-            mkdir -p "$OUT/resources/lib/imageformats"
-            cp -a /usr/lib/x86_64-linux-gnu/qt5/plugins/imageformats/. "$OUT/resources/lib/imageformats/"
-          fi
-
-          if [ ! -f "$OUT/resources/lib/SimDSP" ]; then
-            echo "SimDSP binary missing from package"
-            exit 1
-          fi
-          if [ ! -f "$OUT/resources/lib/platforms/libqxcb.so" ]; then
-            echo "Qt xcb platform plugin missing from package"
-            exit 1
-          fi
-
-          tar -czf "$RUNNER_TEMP/simdsp-$VERSION.linux.AMD64.tar.gz" -C "$RUNNER_TEMP" "simdsp-$VERSION.linux.AMD64"
+          mkdir -p "$RUNNER_TEMP/release_build"
+          cd "$RUNNER_TEMP/release_build"
+          bash "$GITHUB_WORKSPACE/tools/release.sh" \
+            -version "${{ steps.meta.outputs.version }}" \
+            -qt-path "${{ steps.qt.outputs.qtPath }}"
 
       - name: Upload Linux release asset
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            ${{ runner.temp }}/simdsp-${{ steps.meta.outputs.version }}.linux.AMD64.tar.gz
+            ${{ runner.temp }}/release_build/simdsp-${{ steps.meta.outputs.version }}.linux.AMD64.tar.gz
           fail_on_unmatched_files: true
 
   windows-release:
