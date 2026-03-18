@@ -177,7 +177,7 @@ jobs:
             Where-Object { $_.FullName -match "mingw64|qt5" } |
             Select-Object -First 1 -ExpandProperty FullName
           if ([string]::IsNullOrWhiteSpace($windeployqt)) { throw "windeployqt not found" }
-          & $windeployqt "$dllDir\SimDSP.exe"
+          & $windeployqt --no-angle "$dllDir\SimDSP.exe"
           if ($LASTEXITCODE -ne 0) { throw "windeployqt failed" }
 
           $mingwBin = Split-Path -Parent $windeployqt
@@ -185,7 +185,8 @@ jobs:
             "libqscintilla2_qt5.dll",
             "libstdc++-6.dll",
             "libgcc_s_seh-1.dll",
-            "libwinpthread-1.dll"
+            "libwinpthread-1.dll",
+            "opengl32sw.dll"
           )) {
             $src = Join-Path $mingwBin $dll
             if (Test-Path $src) { Copy-Item $src "$dllDir\" -Force }
