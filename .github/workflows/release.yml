@@ -115,13 +115,49 @@ jobs:
           $version = "${{ steps.meta.outputs.version }}"
           $out = Join-Path $env:RUNNER_TEMP "simdsp-$version.windows.AMD64"
           $zip = Join-Path $env:RUNNER_TEMP "simdsp-$version.windows.AMD64.zip"
-          New-Item -ItemType Directory -Path "$out\resources\dlls" -Force | Out-Null
-          New-Item -ItemType Directory -Path "$out\resources\examples" -Force | Out-Null
-          Copy-Item "src\build\SimDSP.exe" "$out\resources\dlls\" -Force
-          if (Test-Path "src\build\sdcore.dll") { Copy-Item "src\build\sdcore.dll" "$out\resources\dlls\" -Force }
+
+          $dllDir = Join-Path $out "resources\dlls"
+          $includeDir = Join-Path $out "resources\include"
+          $examplesDir = Join-Path $out "resources\examples"
+          $iconsDir = Join-Path $out "resources\icons"
+          New-Item -ItemType Directory -Path $dllDir -Force | Out-Null
+          New-Item -ItemType Directory -Path $includeDir -Force | Out-Null
+          New-Item -ItemType Directory -Path $examplesDir -Force | Out-Null
+          New-Item -ItemType Directory -Path $iconsDir -Force | Out-Null
+
+          Copy-Item "src\build\SimDSP.exe" "$dllDir\" -Force
+          if (!(Test-Path "$dllDir\SimDSP.exe")) { throw "SimDSP.exe was not generated" }
+          if (Test-Path "src\build\sdcore.dll") { Copy-Item "src\build\sdcore.dll" "$dllDir\" -Force }
+          if (Test-Path "dependencies\rtaudio\libs\windows-64\librtaudio-6.dll") { Copy-Item "dependencies\rtaudio\libs\windows-64\librtaudio-6.dll" "$dllDir\" -Force }
+          Copy-Item "dependencies\matio\libmatio.dll","dependencies\matio\hdf5.dll","dependencies\matio\zlib.dll" "$dllDir\" -Force
+          Copy-Item "dependencies\fftw3\libfftw3-3.dll","dependencies\fftw3\libfftw3f-3.dll","dependencies\fftw3\libfftw3l-3.dll" "$dllDir\" -Force
+          Copy-Item "src\include\simdsp.h","src\include\sdfunctions.h" "$includeDir\" -Force
+          Copy-Item "src\gui\resources\images\icons\simdsp.ico" "$iconsDir\" -Force
           Copy-Item "scripts\simdsp.bat" "$out\" -Force
           Copy-Item "README.md","LICENSE" "$out\" -Force
-          Copy-Item "src\examples\*" "$out\resources\examples\" -Recurse -Force
+          Copy-Item "src\examples\*" "$examplesDir\" -Recurse -Force
+
+          $windeployqt = Get-ChildItem -Path "$env:RUNNER_TEMP","$env:SystemDrive\" -Recurse -Filter "windeployqt*.exe" -ErrorAction SilentlyContinue |
+            Where-Object { $_.FullName -match "mingw64|qt5" } |
+            Select-Object -First 1 -ExpandProperty FullName
+          if ([string]::IsNullOrWhiteSpace($windeployqt)) { throw "windeployqt not found" }
+          & $windeployqt "$dllDir\SimDSP.exe"
+          if ($LASTEXITCODE -ne 0) { throw "windeployqt failed" }
+
+          $mingwBin = Split-Path -Parent $windeployqt
+          foreach ($dll in @(
+            "libqscintilla2_qt5.dll",
+            "libstdc++-6.dll",
+            "libgcc_s_seh-1.dll",
+            "libwinpthread-1.dll"
+          )) {
+            $src = Join-Path $mingwBin $dll
+            if (Test-Path $src) { Copy-Item $src "$dllDir\" -Force }
+          }
+
+          if (!(Test-Path "$dllDir\Qt5Core.dll")) { throw "Qt5Core.dll missing from package" }
+          if (!(Test-Path "$dllDir\SimDSP.exe")) { throw "SimDSP.exe missing from package" }
+
           if (Test-Path $zip) { Remove-Item $zip -Force }
           Compress-Archive -Path $out -DestinationPath $zip
 
