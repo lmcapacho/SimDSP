@@ -1,0 +1,182 @@
+name: Package
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+jobs:
+  linux-package:
+    name: Linux Package Artifact
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            qtbase5-dev \
+            qttools5-dev-tools \
+            libfftw3-dev \
+            libegl1 \
+            libqscintilla2-qt5-dev \
+            libasound2-dev \
+            libjack-dev \
+            libpulse-dev \
+            oss4-dev \
+            libmatio-dev
+
+      - name: Build
+        run: |
+          qmake SimDSP.pro
+          make -j"$(nproc)"
+
+      - name: Package
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="preview-${GITHUB_SHA::7}"
+          OUT="$RUNNER_TEMP/simdsp-$VERSION.linux.AMD64"
+          mkdir -p "$OUT/resources/lib" "$OUT/resources/include" "$OUT/resources/examples" "$OUT/resources/icons" "$OUT/resources/plugins/platforms"
+          cp -f src/build/SimDSP "$OUT/resources/lib/"
+          cp -f src/build/libsdcore.so* "$OUT/resources/lib/" || true
+          cp -f dependencies/rtaudio/libs/linux-64/librtaudio.so* "$OUT/resources/lib/" || true
+          cp -f src/include/simdsp.h src/include/sdfunctions.h "$OUT/resources/include/"
+          cp -f src/gui/resources/images/simdsp_icon.png "$OUT/resources/icons/" || true
+          cp -f README.md LICENSE "$OUT/"
+          cp -f scripts/simdsp.sh "$OUT/simdsp"
+          chmod +x "$OUT/simdsp"
+          cp -rf src/examples/. "$OUT/resources/examples/"
+
+          mapfile -t libs < <(ldd src/build/SimDSP | awk '/=> \// {print $3}' | sort -u)
+          for lib in "${libs[@]}"; do
+            name="$(basename "$lib")"
+            case "$name" in
+              libQt5*|libqscintilla2_qt5.so*|libfftw3*.so*|libmatio.so*|libhdf5*.so*|libsz.so*|libaec.so*|libz.so*|libicu*.so*|libdouble-conversion.so*|libpcre2-16.so*|libmd4c.so*|libglib-2.0.so*|libgthread-2.0.so*|libgobject-2.0.so*)
+                cp -L "$lib" "$OUT/resources/lib/"
+                ;;
+            esac
+          done
+
+          mapfile -t extra_libs < <(ldd "$OUT"/resources/lib/*.so* 2>/dev/null | awk '/=> \// {print $3}' | sort -u)
+          for lib in "${extra_libs[@]}"; do
+            name="$(basename "$lib")"
+            case "$name" in
+              libhdf5*.so*|libsz.so*|libaec.so*|libz.so*)
+                cp -L "$lib" "$OUT/resources/lib/"
+                ;;
+            esac
+          done
+
+          if [ -d /usr/lib/x86_64-linux-gnu/qt5/plugins/platforms ]; then
+            cp -a /usr/lib/x86_64-linux-gnu/qt5/plugins/platforms/. "$OUT/resources/plugins/platforms/"
+          fi
+          if [ -d /usr/lib/x86_64-linux-gnu/qt5/plugins/imageformats ]; then
+            mkdir -p "$OUT/resources/plugins/imageformats"
+            cp -a /usr/lib/x86_64-linux-gnu/qt5/plugins/imageformats/. "$OUT/resources/plugins/imageformats/"
+          fi
+          if [ -d /usr/lib/x86_64-linux-gnu/qt5/plugins/xcbglintegrations ]; then
+            mkdir -p "$OUT/resources/plugins/xcbglintegrations"
+            cp -a /usr/lib/x86_64-linux-gnu/qt5/plugins/xcbglintegrations/. "$OUT/resources/plugins/xcbglintegrations/"
+          fi
+
+          tar -cjf "$RUNNER_TEMP/simdsp-$VERSION.linux.AMD64.tar.bz2" -C "$RUNNER_TEMP" "simdsp-$VERSION.linux.AMD64"
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: simdsp-linux-package
+          path: ${{ runner.temp }}/simdsp-preview-*.linux.AMD64.tar.bz2
+          if-no-files-found: error
+
+  windows-package:
+    name: Windows Package Artifact
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >
+            base-devel
+            git
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-qt5
+            mingw-w64-x86_64-qscintilla-qt5
+
+      - name: Build
+        run: |
+          if command -v qmake-qt5 >/dev/null 2>&1; then
+            qmake-qt5 SimDSP.pro
+          elif [ -x /mingw64/qt5/bin/qmake ]; then
+            /mingw64/qt5/bin/qmake SimDSP.pro
+          else
+            echo "ERROR: Qt5 qmake not found (qmake-qt5 or /mingw64/qt5/bin/qmake)."
+            exit 1
+          fi
+          make -j
+
+      - name: Package
+        shell: pwsh
+        run: |
+          $version = "preview-${env:GITHUB_SHA}".Substring(0,15)
+          $out = Join-Path $env:RUNNER_TEMP "simdsp-$version.windows.AMD64"
+          $zip = Join-Path $env:RUNNER_TEMP "simdsp-$version.windows.AMD64.zip"
+
+          $dllDir = Join-Path $out "resources\dlls"
+          $includeDir = Join-Path $out "resources\include"
+          $examplesDir = Join-Path $out "resources\examples"
+          $iconsDir = Join-Path $out "resources\icons"
+          New-Item -ItemType Directory -Path $dllDir -Force | Out-Null
+          New-Item -ItemType Directory -Path $includeDir -Force | Out-Null
+          New-Item -ItemType Directory -Path $examplesDir -Force | Out-Null
+          New-Item -ItemType Directory -Path $iconsDir -Force | Out-Null
+
+          Copy-Item "src\build\SimDSP.exe" "$dllDir\" -Force
+          if (Test-Path "src\build\sdcore.dll") { Copy-Item "src\build\sdcore.dll" "$dllDir\" -Force }
+          if (Test-Path "dependencies\rtaudio\libs\windows-64\librtaudio-6.dll") { Copy-Item "dependencies\rtaudio\libs\windows-64\librtaudio-6.dll" "$dllDir\" -Force }
+          Copy-Item "dependencies\matio\libmatio.dll","dependencies\matio\hdf5.dll","dependencies\matio\zlib.dll" "$dllDir\" -Force
+          Copy-Item "dependencies\fftw3\libfftw3-3.dll","dependencies\fftw3\libfftw3f-3.dll","dependencies\fftw3\libfftw3l-3.dll" "$dllDir\" -Force
+          Copy-Item "src\include\simdsp.h","src\include\sdfunctions.h" "$includeDir\" -Force
+          Copy-Item "src\gui\resources\images\icons\simdsp.ico" "$iconsDir\" -Force
+          Copy-Item "scripts\simdsp.bat" "$out\" -Force
+          Copy-Item "README.md","LICENSE" "$out\" -Force
+          Copy-Item "src\examples\*" "$examplesDir\" -Recurse -Force
+
+          $windeployqt = Get-ChildItem -Path "$env:RUNNER_TEMP","$env:SystemDrive\" -Recurse -Filter "windeployqt*.exe" -ErrorAction SilentlyContinue |
+            Where-Object { $_.FullName -match "mingw64|qt5" } |
+            Select-Object -First 1 -ExpandProperty FullName
+          if ([string]::IsNullOrWhiteSpace($windeployqt)) { throw "windeployqt not found" }
+          & $windeployqt --no-angle "$dllDir\SimDSP.exe"
+          if ($LASTEXITCODE -ne 0) { throw "windeployqt failed" }
+
+          $mingwBin = Split-Path -Parent $windeployqt
+          foreach ($dll in @(
+            "libqscintilla2_qt5.dll",
+            "libstdc++-6.dll",
+            "libgcc_s_seh-1.dll",
+            "libwinpthread-1.dll",
+            "opengl32sw.dll"
+          )) {
+            $src = Join-Path $mingwBin $dll
+            if (Test-Path $src) { Copy-Item $src "$dllDir\" -Force }
+          }
+
+          Compress-Archive -Path $out -DestinationPath $zip
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: simdsp-windows-package
+          path: ${{ runner.temp }}/simdsp-preview-*.windows.AMD64.zip
+          if-no-files-found: error
