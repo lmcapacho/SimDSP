@@ -122,7 +122,7 @@ if [ -d plugins ]; then
 fi
 
 mkdir resources
-mv SimDSP resources
+mv SimDSP lib
 mv lib include icons examples resources
 if [ -d doc ]; then mv doc resources; fi
 if [ -d translations ]; then mv translations resources; fi
