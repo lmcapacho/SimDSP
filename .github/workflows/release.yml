@@ -49,15 +49,51 @@ jobs:
       - name: Package
         shell: bash
         run: |
+          set -euo pipefail
           VERSION="${{ steps.meta.outputs.version }}"
           OUT="$RUNNER_TEMP/simdsp-$VERSION.linux.AMD64"
-          mkdir -p "$OUT/resources/lib" "$OUT/resources/examples"
+          mkdir -p "$OUT/resources/lib" "$OUT/resources/include" "$OUT/resources/examples" "$OUT/resources/icons" "$OUT/resources/plugins/platforms"
           cp -f src/build/SimDSP "$OUT/resources/lib/"
           cp -f src/build/libsdcore.so* "$OUT/resources/lib/" || true
+          cp -f dependencies/rtaudio/libs/linux-64/librtaudio.so* "$OUT/resources/lib/" || true
+          cp -f src/include/simdsp.h src/include/sdfunctions.h "$OUT/resources/include/"
+          cp -f src/gui/resources/images/simdsp_icon.png "$OUT/resources/icons/" || true
           cp -f README.md LICENSE "$OUT/"
           cp -f scripts/simdsp.sh "$OUT/simdsp"
           chmod +x "$OUT/simdsp"
           cp -rf src/examples/. "$OUT/resources/examples/"
+
+          mapfile -t libs < <(ldd src/build/SimDSP | awk '/=> \// {print $3}' | sort -u)
+          for lib in "${libs[@]}"; do
+            name="$(basename "$lib")"
+            case "$name" in
+              libQt5*|libqscintilla2_qt5.so*|libfftw3*.so*|libmatio.so*|libhdf5*.so*|libz.so*|libicu*.so*|libdouble-conversion.so*|libpcre2-16.so*|libmd4c.so*|libglib-2.0.so*|libgthread-2.0.so*|libgobject-2.0.so*)
+                cp -L "$lib" "$OUT/resources/lib/"
+                ;;
+            esac
+          done
+
+          if [ -d /usr/lib/x86_64-linux-gnu/qt5/plugins/platforms ]; then
+            cp -a /usr/lib/x86_64-linux-gnu/qt5/plugins/platforms/. "$OUT/resources/plugins/platforms/"
+          fi
+          if [ -d /usr/lib/x86_64-linux-gnu/qt5/plugins/imageformats ]; then
+            mkdir -p "$OUT/resources/plugins/imageformats"
+            cp -a /usr/lib/x86_64-linux-gnu/qt5/plugins/imageformats/. "$OUT/resources/plugins/imageformats/"
+          fi
+          if [ -d /usr/lib/x86_64-linux-gnu/qt5/plugins/xcbglintegrations ]; then
+            mkdir -p "$OUT/resources/plugins/xcbglintegrations"
+            cp -a /usr/lib/x86_64-linux-gnu/qt5/plugins/xcbglintegrations/. "$OUT/resources/plugins/xcbglintegrations/"
+          fi
+
+          if [ ! -f "$OUT/resources/lib/SimDSP" ]; then
+            echo "SimDSP binary missing from package"
+            exit 1
+          fi
+          if [ ! -f "$OUT/resources/plugins/platforms/libqxcb.so" ]; then
+            echo "Qt xcb platform plugin missing from package"
+            exit 1
+          fi
+
           tar -cjf "$RUNNER_TEMP/simdsp-$VERSION.linux.AMD64.tar.bz2" -C "$RUNNER_TEMP" "simdsp-$VERSION.linux.AMD64"
 
       - name: Upload Linux release asset

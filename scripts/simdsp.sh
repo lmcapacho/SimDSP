@@ -19,6 +19,11 @@ LD_LIBRARY_PATH="${dirname}/lib"
 export LD_LIBRARY_PATH
 export LIBRARY_PATH
 
+QT_PLUGIN_PATH="${dirname}/plugins"
+QT_QPA_PLATFORM_PLUGIN_PATH="${dirname}/plugins/platforms"
+export QT_PLUGIN_PATH
+export QT_QPA_PLATFORM_PLUGIN_PATH
+
 CPATH="${dirname}/include"
 export CPATH
 
