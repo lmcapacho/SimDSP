@@ -139,15 +139,30 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "windeployqt failed" }
 
           $mingwBin = Split-Path -Parent $windeployqt
-          foreach ($dll in @(
-            "libqscintilla2_qt5.dll",
-            "libstdc++-6.dll",
-            "libgcc_s_seh-1.dll",
-            "libwinpthread-1.dll",
-            "opengl32sw.dll"
-          )) {
-            $src = Join-Path $mingwBin $dll
-            if (Test-Path $src) { Copy-Item $src "$dllDir\" -Force }
+          $objdump = Join-Path $mingwBin "objdump.exe"
+          if (!(Test-Path $objdump)) { throw "objdump.exe not found next to Qt/MinGW binaries" }
+          $copied = New-Object System.Collections.Generic.HashSet[string] ([System.StringComparer]::OrdinalIgnoreCase)
+          Get-ChildItem $dllDir -Filter *.dll | ForEach-Object { [void]$copied.Add($_.Name) }
+          Get-ChildItem $dllDir -Filter *.exe | ForEach-Object { [void]$copied.Add($_.Name) }
+
+          $changed = $true
+          while ($changed) {
+            $changed = $false
+            $binaries = Get-ChildItem $dllDir -File | Where-Object { $_.Extension -in @(".exe", ".dll") }
+            foreach ($binary in $binaries) {
+              $imports = & $objdump -p $binary.FullName | Select-String "DLL Name:" | ForEach-Object {
+                ($_ -replace '.*DLL Name:\s*', '').Trim()
+              }
+              foreach ($dll in $imports) {
+                if ($copied.Contains($dll)) { continue }
+                $src = Join-Path $mingwBin $dll
+                if (Test-Path $src) {
+                  Copy-Item $src "$dllDir\" -Force
+                  [void]$copied.Add($dll)
+                  $changed = $true
+                }
+              }
+            }
           }
 
           if (!(Test-Path "$dllDir\Qt5Core.dll")) { throw "Qt5Core.dll missing from package" }
