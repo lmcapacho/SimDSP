@@ -52,7 +52,7 @@ jobs:
           set -euo pipefail
           VERSION="${{ steps.meta.outputs.version }}"
           OUT="$RUNNER_TEMP/simdsp-$VERSION.linux.AMD64"
-          mkdir -p "$OUT/resources/lib" "$OUT/resources/include" "$OUT/resources/examples" "$OUT/resources/icons" "$OUT/resources/plugins/platforms"
+          mkdir -p "$OUT/resources/lib" "$OUT/resources/lib/platforms" "$OUT/resources/include" "$OUT/resources/examples" "$OUT/resources/icons"
           cp -f src/build/SimDSP "$OUT/resources/lib/"
           cp -f src/build/libsdcore.so* "$OUT/resources/lib/" || true
           cp -f dependencies/rtaudio/libs/linux-64/librtaudio.so* "$OUT/resources/lib/" || true
@@ -84,33 +84,33 @@ jobs:
           done
 
           if [ -d /usr/lib/x86_64-linux-gnu/qt5/plugins/platforms ]; then
-            cp -a /usr/lib/x86_64-linux-gnu/qt5/plugins/platforms/. "$OUT/resources/plugins/platforms/"
+            cp -a /usr/lib/x86_64-linux-gnu/qt5/plugins/platforms/. "$OUT/resources/lib/platforms/"
+          fi
+          if [ -d /usr/lib/x86_64-linux-gnu/qt5/plugins/audio ]; then
+            mkdir -p "$OUT/resources/lib/audio"
+            cp -a /usr/lib/x86_64-linux-gnu/qt5/plugins/audio/. "$OUT/resources/lib/audio/"
           fi
           if [ -d /usr/lib/x86_64-linux-gnu/qt5/plugins/imageformats ]; then
-            mkdir -p "$OUT/resources/plugins/imageformats"
-            cp -a /usr/lib/x86_64-linux-gnu/qt5/plugins/imageformats/. "$OUT/resources/plugins/imageformats/"
-          fi
-          if [ -d /usr/lib/x86_64-linux-gnu/qt5/plugins/xcbglintegrations ]; then
-            mkdir -p "$OUT/resources/plugins/xcbglintegrations"
-            cp -a /usr/lib/x86_64-linux-gnu/qt5/plugins/xcbglintegrations/. "$OUT/resources/plugins/xcbglintegrations/"
+            mkdir -p "$OUT/resources/lib/imageformats"
+            cp -a /usr/lib/x86_64-linux-gnu/qt5/plugins/imageformats/. "$OUT/resources/lib/imageformats/"
           fi
 
           if [ ! -f "$OUT/resources/lib/SimDSP" ]; then
             echo "SimDSP binary missing from package"
             exit 1
           fi
-          if [ ! -f "$OUT/resources/plugins/platforms/libqxcb.so" ]; then
+          if [ ! -f "$OUT/resources/lib/platforms/libqxcb.so" ]; then
             echo "Qt xcb platform plugin missing from package"
             exit 1
           fi
 
-          tar -cjf "$RUNNER_TEMP/simdsp-$VERSION.linux.AMD64.tar.bz2" -C "$RUNNER_TEMP" "simdsp-$VERSION.linux.AMD64"
+          tar -czf "$RUNNER_TEMP/simdsp-$VERSION.linux.AMD64.tar.gz" -C "$RUNNER_TEMP" "simdsp-$VERSION.linux.AMD64"
 
       - name: Upload Linux release asset
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            ${{ runner.temp }}/simdsp-${{ steps.meta.outputs.version }}.linux.AMD64.tar.bz2
+            ${{ runner.temp }}/simdsp-${{ steps.meta.outputs.version }}.linux.AMD64.tar.gz
           fail_on_unmatched_files: true
 
   windows-release:

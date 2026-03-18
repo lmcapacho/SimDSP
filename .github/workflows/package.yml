@@ -40,7 +40,7 @@ jobs:
           set -euo pipefail
           VERSION="preview-${GITHUB_SHA::7}"
           OUT="$RUNNER_TEMP/simdsp-$VERSION.linux.AMD64"
-          mkdir -p "$OUT/resources/lib" "$OUT/resources/include" "$OUT/resources/examples" "$OUT/resources/icons" "$OUT/resources/plugins/platforms"
+          mkdir -p "$OUT/resources/lib" "$OUT/resources/lib/platforms" "$OUT/resources/include" "$OUT/resources/examples" "$OUT/resources/icons"
           cp -f src/build/SimDSP "$OUT/resources/lib/"
           cp -f src/build/libsdcore.so* "$OUT/resources/lib/" || true
           cp -f dependencies/rtaudio/libs/linux-64/librtaudio.so* "$OUT/resources/lib/" || true
@@ -72,24 +72,24 @@ jobs:
           done
 
           if [ -d /usr/lib/x86_64-linux-gnu/qt5/plugins/platforms ]; then
-            cp -a /usr/lib/x86_64-linux-gnu/qt5/plugins/platforms/. "$OUT/resources/plugins/platforms/"
+            cp -a /usr/lib/x86_64-linux-gnu/qt5/plugins/platforms/. "$OUT/resources/lib/platforms/"
+          fi
+          if [ -d /usr/lib/x86_64-linux-gnu/qt5/plugins/audio ]; then
+            mkdir -p "$OUT/resources/lib/audio"
+            cp -a /usr/lib/x86_64-linux-gnu/qt5/plugins/audio/. "$OUT/resources/lib/audio/"
           fi
           if [ -d /usr/lib/x86_64-linux-gnu/qt5/plugins/imageformats ]; then
-            mkdir -p "$OUT/resources/plugins/imageformats"
-            cp -a /usr/lib/x86_64-linux-gnu/qt5/plugins/imageformats/. "$OUT/resources/plugins/imageformats/"
-          fi
-          if [ -d /usr/lib/x86_64-linux-gnu/qt5/plugins/xcbglintegrations ]; then
-            mkdir -p "$OUT/resources/plugins/xcbglintegrations"
-            cp -a /usr/lib/x86_64-linux-gnu/qt5/plugins/xcbglintegrations/. "$OUT/resources/plugins/xcbglintegrations/"
+            mkdir -p "$OUT/resources/lib/imageformats"
+            cp -a /usr/lib/x86_64-linux-gnu/qt5/plugins/imageformats/. "$OUT/resources/lib/imageformats/"
           fi
 
-          tar -cjf "$RUNNER_TEMP/simdsp-$VERSION.linux.AMD64.tar.bz2" -C "$RUNNER_TEMP" "simdsp-$VERSION.linux.AMD64"
+          tar -czf "$RUNNER_TEMP/simdsp-$VERSION.linux.AMD64.tar.gz" -C "$RUNNER_TEMP" "simdsp-$VERSION.linux.AMD64"
 
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
         with:
           name: simdsp-linux-package
-          path: ${{ runner.temp }}/simdsp-preview-*.linux.AMD64.tar.bz2
+          path: ${{ runner.temp }}/simdsp-preview-*.linux.AMD64.tar.gz
           if-no-files-found: error
 
   windows-package:
