@@ -84,83 +84,37 @@ jobs:
         shell: pwsh
         run: |
           $version = "preview-${env:GITHUB_SHA}".Substring(0,15)
-          $out = Join-Path $env:RUNNER_TEMP "simdsp-$version.windows.AMD64"
-          $zip = Join-Path $env:RUNNER_TEMP "simdsp-$version.windows.AMD64.zip"
-
-          $dllDir = Join-Path $out "resources\dlls"
-          $includeDir = Join-Path $out "resources\include"
-          $examplesDir = Join-Path $out "resources\examples"
-          $iconsDir = Join-Path $out "resources\icons"
-          New-Item -ItemType Directory -Path $dllDir -Force | Out-Null
-          New-Item -ItemType Directory -Path $includeDir -Force | Out-Null
-          New-Item -ItemType Directory -Path $examplesDir -Force | Out-Null
-          New-Item -ItemType Directory -Path $iconsDir -Force | Out-Null
-
-          Copy-Item "src\build\SimDSP.exe" "$dllDir\" -Force
-          if (Test-Path "src\build\sdcore.dll") { Copy-Item "src\build\sdcore.dll" "$dllDir\" -Force }
-          if (Test-Path "src\build\libsdcore.a") { Copy-Item "src\build\libsdcore.a" "$dllDir\" -Force }
-          if (Test-Path "dependencies\rtaudio\libs\windows-64\librtaudio-6.dll") { Copy-Item "dependencies\rtaudio\libs\windows-64\librtaudio-6.dll" "$dllDir\" -Force }
-          if (Test-Path "dependencies\rtaudio\libs\windows-64\librtaudio.dll.a") { Copy-Item "dependencies\rtaudio\libs\windows-64\librtaudio.dll.a" "$dllDir\" -Force }
-          if (Test-Path "dependencies\rtaudio\libs\windows-64\librtaudio.a") { Copy-Item "dependencies\rtaudio\libs\windows-64\librtaudio.a" "$dllDir\" -Force }
-          Copy-Item "dependencies\matio\libmatio.dll","dependencies\matio\hdf5.dll","dependencies\matio\zlib.dll" "$dllDir\" -Force
-          Copy-Item "dependencies\fftw3\libfftw3-3.dll","dependencies\fftw3\libfftw3f-3.dll","dependencies\fftw3\libfftw3l-3.dll" "$dllDir\" -Force
-          Copy-Item "src\include\simdsp.h","src\include\sdfunctions.h" "$includeDir\" -Force
-          Copy-Item "src\gui\resources\images\icons\simdsp.ico" "$iconsDir\" -Force
-          Copy-Item "scripts\simdsp.bat" "$out\" -Force
-          Copy-Item "README.md","LICENSE" "$out\" -Force
-          Copy-Item "src\examples\*" "$examplesDir\" -Recurse -Force
-
-          $windeployqt = Get-ChildItem -Path "$env:RUNNER_TEMP","$env:SystemDrive\" -Recurse -Filter "windeployqt*.exe" -ErrorAction SilentlyContinue |
-            Where-Object { $_.FullName -match "mingw64|qt5" } |
+          $qmake = Get-ChildItem -Path "$env:RUNNER_TEMP","$env:SystemDrive\" -Recurse -Filter "qmake-qt5.exe" -ErrorAction SilentlyContinue |
             Select-Object -First 1 -ExpandProperty FullName
-          if ([string]::IsNullOrWhiteSpace($windeployqt)) { throw "windeployqt not found" }
-          & $windeployqt --no-angle "$dllDir\SimDSP.exe"
-          if ($LASTEXITCODE -ne 0) { throw "windeployqt failed" }
-
-          $mingwBin = Split-Path -Parent $windeployqt
-          $mingwRoot = Split-Path -Parent $mingwBin
-          $objdump = Join-Path $mingwBin "objdump.exe"
-          if (!(Test-Path $objdump)) { throw "objdump.exe not found next to Qt/MinGW binaries" }
-          $copied = New-Object System.Collections.Generic.HashSet[string] ([System.StringComparer]::OrdinalIgnoreCase)
-          Get-ChildItem $dllDir -Filter *.dll | ForEach-Object { [void]$copied.Add($_.Name) }
-          Get-ChildItem $dllDir -Filter *.exe | ForEach-Object { [void]$copied.Add($_.Name) }
-
-          $changed = $true
-          while ($changed) {
-            $changed = $false
-            $binaries = Get-ChildItem $dllDir -File | Where-Object { $_.Extension -in @(".exe", ".dll") }
-            foreach ($binary in $binaries) {
-              $imports = & $objdump -p $binary.FullName | Select-String "DLL Name:" | ForEach-Object {
-                ($_ -replace '.*DLL Name:\s*', '').Trim()
-              }
-              foreach ($dll in $imports) {
-                if ($copied.Contains($dll)) { continue }
-                $src = Join-Path $mingwBin $dll
-                if (Test-Path $src) {
-                  Copy-Item $src "$dllDir\" -Force
-                  [void]$copied.Add($dll)
-                  $changed = $true
-                }
-              }
-            }
+          if ([string]::IsNullOrWhiteSpace($qmake)) {
+            $qmake = Get-ChildItem -Path "$env:RUNNER_TEMP","$env:SystemDrive\" -Recurse -Filter "qmake.exe" -ErrorAction SilentlyContinue |
+              Where-Object { $_.FullName -match "mingw64" } |
+              Select-Object -First 1 -ExpandProperty FullName
           }
+          if ([string]::IsNullOrWhiteSpace($qmake)) { throw "Qt5 qmake not found" }
+          $qtHome = Split-Path (Split-Path $qmake -Parent) -Parent
+          $mingwMake = Get-ChildItem -Path "$env:RUNNER_TEMP","$env:SystemDrive\" -Recurse -Filter "mingw32-make.exe" -ErrorAction SilentlyContinue |
+            Select-Object -First 1 -ExpandProperty FullName
+          if ([string]::IsNullOrWhiteSpace($mingwMake)) { throw "mingw32-make.exe not found" }
+          $mingwRoot = Split-Path (Split-Path $mingwMake -Parent) -Parent
+          New-Item -ItemType Directory -Path "$env:RUNNER_TEMP\release_build" -Force | Out-Null
+          Push-Location "$env:RUNNER_TEMP\release_build"
+          & cmd /c "`"$env:GITHUB_WORKSPACE\tools\release.bat`" $version `"$qtHome`" `"$mingwRoot`""
+          if ($LASTEXITCODE -ne 0) { throw "release.bat failed" }
+          Pop-Location
 
-          New-Item -ItemType Directory -Path "$out\MinGW" -Force | Out-Null
-          Copy-Item "$mingwRoot\bin" "$out\MinGW\" -Recurse -Force
-          Copy-Item "$mingwRoot\include" "$out\MinGW\" -Recurse -Force
-          if (Test-Path "$mingwRoot\x86_64-w64-mingw32") { Copy-Item "$mingwRoot\x86_64-w64-mingw32" "$out\MinGW\" -Recurse -Force }
-          New-Item -ItemType Directory -Path "$out\MinGW\lib" -Force | Out-Null
-          if (Test-Path "$mingwRoot\lib\gcc") { Copy-Item "$mingwRoot\lib\gcc" "$out\MinGW\lib\" -Recurse -Force }
-          if (Test-Path "$mingwRoot\libexec\gcc") {
-            New-Item -ItemType Directory -Path "$out\MinGW\libexec" -Force | Out-Null
-            Copy-Item "$mingwRoot\libexec\gcc" "$out\MinGW\libexec\" -Recurse -Force
-          }
-
+      - name: Zip Windows package
+        shell: pwsh
+        run: |
+          $version = "preview-${env:GITHUB_SHA}".Substring(0,15)
+          $out = Join-Path $env:RUNNER_TEMP "release_build\simdsp-$version.windows.AMD64"
+          $zip = Join-Path $env:RUNNER_TEMP "release_build\simdsp-$version.windows.AMD64.zip"
+          if (Test-Path $zip) { Remove-Item $zip -Force }
           Compress-Archive -Path $out -DestinationPath $zip
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
           name: simdsp-windows-package
-          path: ${{ runner.temp }}/simdsp-preview-*.windows.AMD64.zip
+          path: ${{ runner.temp }}/release_build/simdsp-preview-*.windows.AMD64.zip
           if-no-files-found: error

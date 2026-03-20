@@ -1,126 +1,129 @@
 @echo off
-
-cls
+setlocal EnableExtensions EnableDelayedExpansion
 
 echo.
 echo NOTE: Execute this script from outside the SimDSP folder
 echo.
 
 set argc=0
-for %%x in (%*) do Set /A argc+=1
+for %%x in (%*) do set /A argc+=1
 
-IF /I "%argc%" NEQ "3" (
+if /I "%argc%" NEQ "3" (
   call :usage
-  echo.
-  exit
+  exit /b 1
 )
 
-set RELNAME=%1
-set QT_HOME=%2
-set MINGW_PATH=%3
+set "RELNAME=%~1"
+set "QT_HOME=%~2"
+set "MINGW_PATH=%~3"
+if "%RELNAME%"=="" set "RELNAME=dev"
 
-echo.
-
-reg Query "HKLM\Hardware\Description\System\CentralProcessor\0" | find /i "x86" > NUL && set arch_aux="i386" || set arch_aux="x86_64"
-
-set script_folder=%~dp0%
-
-echo script_folder %script_folder%
-set current_dir=%cd%
-
-IF %arch_aux%=="x86_64" (
-  set arch=AMD64
-) ELSE (
-  set arch=i386
+set "PATH=%MINGW_PATH%\bin;%QT_HOME%\bin;%PATH%"
+set "QMAKE_BIN=%QT_HOME%\bin\qmake.exe"
+if not exist "%QMAKE_BIN%" set "QMAKE_BIN=%QT_HOME%\bin\qmake-qt5.exe"
+if not exist "%QMAKE_BIN%" (
+  echo ERROR: qmake not found in %QT_HOME%\bin
+  exit /b 1
 )
 
-set app_folder=%script_folder%..\
-set sdcore_folder=%app_folder%sdcore
+set "arch=AMD64"
+if /I "%PROCESSOR_ARCHITECTURE%"=="x86" set "arch=i386"
 
-echo.
-echo appfolder %app_folder%
-echo sdcorefolder %sdcore_folder%
+set "script_folder=%~dp0"
+set "current_dir=%cd%"
+set "app_folder=%script_folder%..\"
+set "sdcore_folder=%app_folder%src\sdcore"
+set "build_folder=%app_folder%src\build"
+set "include_folder=%app_folder%src\include"
+set "gui_folder=%app_folder%src\gui"
 
-echo.
-cd %sdcore_folder%
+cd /d "%sdcore_folder%"
 echo Compiling SimDSP core...
-%QT_HOME%\bin\qmake.exe -config release
-%MINGW_PATH%\bin\mingw32-make.exe
+"%QMAKE_BIN%" -config release
+mingw32-make.exe
+if errorlevel 1 exit /b 1
 
-echo.
-cd %app_folder%
+cd /d "%app_folder%"
 echo Compiling SimDSP app...
-%QT_HOME%\bin\qmake -config release
-%MINGW_PATH%\bin\mingw32-make.exe
+"%QMAKE_BIN%" -config release
+mingw32-make.exe
+if errorlevel 1 exit /b 1
 
-echo.
-set release_name=simdsp-%RELNAME%.windows.%arch%
-set release_folder=%current_dir%\%release_name%
-echo making release folder: %release_folder%
-if not exist %release_folder% mkdir %release_folder%
+set "release_name=simdsp-%RELNAME%.windows.%arch%"
+set "release_folder=%current_dir%\%release_name%"
+if exist "%release_folder%" rmdir /s /q "%release_folder%"
+mkdir "%release_folder%"
+mkdir "%release_folder%\resources\dlls"
+mkdir "%release_folder%\resources\include"
+mkdir "%release_folder%\resources\examples"
+mkdir "%release_folder%\resources\icons"
 
-echo.
-echo copying release files
-copy simdsp.bat %release_folder%
-copy README.md %release_folder%
-copy LICENSE %release_folder%
+copy "%app_folder%scripts\simdsp.bat" "%release_folder%\" >nul
+copy "%app_folder%README.md" "%release_folder%\" >nul
+copy "%app_folder%LICENSE" "%release_folder%\" >nul
+copy "%gui_folder%\resources\images\icons\simdsp.ico" "%release_folder%\resources\icons\" >nul
+copy "%build_folder%\SimDSP.exe" "%release_folder%\resources\dlls\" >nul
+if errorlevel 1 (
+  echo ERROR: SimDSP.exe not found in %build_folder%
+  exit /b 1
+)
 
-if not exist %release_folder%\icons mkdir %release_folder%\icons
-copy resources\images\icons\simdsp.ico %release_folder%\icons
-copy SimDSP.exe %release_folder%
+if exist "%build_folder%\sdcore.dll" copy "%build_folder%\sdcore.dll" "%release_folder%\resources\dlls\" >nul
+if exist "%build_folder%\libsdcore.a" copy "%build_folder%\libsdcore.a" "%release_folder%\resources\dlls\" >nul
+if exist "%app_folder%dependencies\rtaudio\libs\windows-64\librtaudio-6.dll" copy "%app_folder%dependencies\rtaudio\libs\windows-64\librtaudio-6.dll" "%release_folder%\resources\dlls\" >nul
+if exist "%app_folder%dependencies\rtaudio\libs\windows-64\librtaudio.dll.a" copy "%app_folder%dependencies\rtaudio\libs\windows-64\librtaudio.dll.a" "%release_folder%\resources\dlls\" >nul
+if exist "%app_folder%dependencies\rtaudio\libs\windows-64\librtaudio.a" copy "%app_folder%dependencies\rtaudio\libs\windows-64\librtaudio.a" "%release_folder%\resources\dlls\" >nul
 
-echo.
-cd %release_folder%
-echo making include folder
-if not exist include mkdir include
+copy "%app_folder%dependencies\matio\libmatio.dll" "%release_folder%\resources\dlls\" >nul
+copy "%app_folder%dependencies\matio\hdf5.dll" "%release_folder%\resources\dlls\" >nul
+copy "%app_folder%dependencies\matio\zlib.dll" "%release_folder%\resources\dlls\" >nul
+copy "%app_folder%dependencies\fftw3\libfftw3-3.dll" "%release_folder%\resources\dlls\" >nul
+copy "%app_folder%dependencies\fftw3\libfftw3f-3.dll" "%release_folder%\resources\dlls\" >nul
+copy "%app_folder%dependencies\fftw3\libfftw3l-3.dll" "%release_folder%\resources\dlls\" >nul
 
-echo.
-echo copying headers files
-copy %sdcore_folder%\simdsp.h include
-copy %sdcore_folder%\sdfunctions.h include
+copy "%include_folder%\simdsp.h" "%release_folder%\resources\include\" >nul
+copy "%include_folder%\sdfunctions.h" "%release_folder%\resources\include\" >nul
+xcopy /s /e /i "%app_folder%src\examples" "%release_folder%\resources\examples" >nul
 
-echo.
-if not exist examples mkdir examples
-echo copying examples
-xcopy /s/e %app_folder%\examples examples
+cd /d "%release_folder%\resources\dlls"
+windeployqt.exe --no-angle SimDSP.exe
+if errorlevel 1 exit /b 1
 
-echo.
-echo making libraries folder
-if not exist dlls mkdir dlls
-copy SimDSP.exe dlls
+if exist "%MINGW_PATH%\bin\objdump.exe" (
+  call :copy_imports "%MINGW_PATH%\bin\objdump.exe" "%MINGW_PATH%\bin" "%release_folder%\resources\dlls"
+)
 
-echo.
-cd dlls
-echo copying libraries
-%QT_HOME%\bin\windeployqt.exe SimDSP.exe
-del SimDSP.exe
+mkdir "%release_folder%\MinGW"
+xcopy /s /e /i "%MINGW_PATH%\bin" "%release_folder%\MinGW\bin" >nul
+xcopy /s /e /i "%MINGW_PATH%\include" "%release_folder%\MinGW\include" >nul
+if exist "%MINGW_PATH%\x86_64-w64-mingw32" xcopy /s /e /i "%MINGW_PATH%\x86_64-w64-mingw32" "%release_folder%\MinGW\x86_64-w64-mingw32" >nul
+if exist "%MINGW_PATH%\lib\gcc" xcopy /s /e /i "%MINGW_PATH%\lib\gcc" "%release_folder%\MinGW\lib\gcc" >nul
+if exist "%MINGW_PATH%\libexec\gcc" xcopy /s /e /i "%MINGW_PATH%\libexec\gcc" "%release_folder%\MinGW\libexec\gcc" >nul
 
-echo.
-echo copying sdcore libraries
-copy %sdcore_folder%\build\sdcore.dll
-copy %sdcore_folder%\build\libsdcore.a
-copy %app_folder%\resources\dependencies\fftw3\libfftw3-3.dll
+if not exist "%release_folder%\resources\dlls\Qt5Core.dll" (
+  echo ERROR: Qt5Core.dll missing from package
+  exit /b 1
+)
 
-echo.
-cd %release_folder%
-if not exist resources mkdir resources
-move SimDSP.exe dlls
-move include resources
-move dlls\platforms resources
-move dlls resources
-move examples resources
-move icons resources
+echo Package created: %release_folder%
+exit /b 0
 
-%script_folder%\Bat_To_Exe_Converter\Bat_To_Exe_Converter_x64.exe /bat simdsp.bat /exe SimDSP.exe /icon resources\icons\simdsp.ico
-del simdsp.bat
+:copy_imports
+set "OBJDUMP=%~1"
+set "SRCBIN=%~2"
+set "DSTBIN=%~3"
 
-if not exist MinGW mkdir MinGW
-xcopy /s/e %MINGW_PATH% MinGW
-
-echo done!
-
-exit
+for %%F in ("%DSTBIN%\*.exe" "%DSTBIN%\*.dll") do (
+  if exist "%%~F" (
+    for /f "tokens=3" %%D in ('"%OBJDUMP%" -p "%%~F" ^| findstr /c:"DLL Name:"') do (
+      if not exist "%DSTBIN%\%%D" (
+        if exist "%SRCBIN%\%%D" copy "%SRCBIN%\%%D" "%DSTBIN%\" >nul
+      )
+    )
+  )
+)
+exit /b 0
 
 :usage
 echo Usage : release.bat version qt_path mingw_path
-EXIT /B 0
+exit /b 0
