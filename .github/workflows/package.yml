@@ -98,7 +98,10 @@ jobs:
 
           Copy-Item "src\build\SimDSP.exe" "$dllDir\" -Force
           if (Test-Path "src\build\sdcore.dll") { Copy-Item "src\build\sdcore.dll" "$dllDir\" -Force }
+          if (Test-Path "src\build\libsdcore.a") { Copy-Item "src\build\libsdcore.a" "$dllDir\" -Force }
           if (Test-Path "dependencies\rtaudio\libs\windows-64\librtaudio-6.dll") { Copy-Item "dependencies\rtaudio\libs\windows-64\librtaudio-6.dll" "$dllDir\" -Force }
+          if (Test-Path "dependencies\rtaudio\libs\windows-64\librtaudio.dll.a") { Copy-Item "dependencies\rtaudio\libs\windows-64\librtaudio.dll.a" "$dllDir\" -Force }
+          if (Test-Path "dependencies\rtaudio\libs\windows-64\librtaudio.a") { Copy-Item "dependencies\rtaudio\libs\windows-64\librtaudio.a" "$dllDir\" -Force }
           Copy-Item "dependencies\matio\libmatio.dll","dependencies\matio\hdf5.dll","dependencies\matio\zlib.dll" "$dllDir\" -Force
           Copy-Item "dependencies\fftw3\libfftw3-3.dll","dependencies\fftw3\libfftw3f-3.dll","dependencies\fftw3\libfftw3l-3.dll" "$dllDir\" -Force
           Copy-Item "src\include\simdsp.h","src\include\sdfunctions.h" "$includeDir\" -Force
@@ -115,6 +118,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "windeployqt failed" }
 
           $mingwBin = Split-Path -Parent $windeployqt
+          $mingwRoot = Split-Path -Parent $mingwBin
           $objdump = Join-Path $mingwBin "objdump.exe"
           if (!(Test-Path $objdump)) { throw "objdump.exe not found next to Qt/MinGW binaries" }
           $copied = New-Object System.Collections.Generic.HashSet[string] ([System.StringComparer]::OrdinalIgnoreCase)
@@ -140,6 +144,12 @@ jobs:
               }
             }
           }
+
+          New-Item -ItemType Directory -Path "$out\MinGW" -Force | Out-Null
+          Copy-Item "$mingwRoot\bin" "$out\MinGW\" -Recurse -Force
+          Copy-Item "$mingwRoot\include" "$out\MinGW\" -Recurse -Force
+          Copy-Item "$mingwRoot\lib" "$out\MinGW\" -Recurse -Force
+          Copy-Item "$mingwRoot\libexec" "$out\MinGW\" -Recurse -Force
 
           Compress-Archive -Path $out -DestinationPath $zip
 
