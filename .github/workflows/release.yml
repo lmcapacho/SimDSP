@@ -174,8 +174,13 @@ jobs:
           New-Item -ItemType Directory -Path "$out\MinGW" -Force | Out-Null
           Copy-Item "$mingwRoot\bin" "$out\MinGW\" -Recurse -Force
           Copy-Item "$mingwRoot\include" "$out\MinGW\" -Recurse -Force
-          Copy-Item "$mingwRoot\lib" "$out\MinGW\" -Recurse -Force
-          if (Test-Path "$mingwRoot\libexec") { Copy-Item "$mingwRoot\libexec" "$out\MinGW\" -Recurse -Force }
+          if (Test-Path "$mingwRoot\x86_64-w64-mingw32") { Copy-Item "$mingwRoot\x86_64-w64-mingw32" "$out\MinGW\" -Recurse -Force }
+          New-Item -ItemType Directory -Path "$out\MinGW\lib" -Force | Out-Null
+          if (Test-Path "$mingwRoot\lib\gcc") { Copy-Item "$mingwRoot\lib\gcc" "$out\MinGW\lib\" -Recurse -Force }
+          if (Test-Path "$mingwRoot\libexec\gcc") {
+            New-Item -ItemType Directory -Path "$out\MinGW\libexec" -Force | Out-Null
+            Copy-Item "$mingwRoot\libexec\gcc" "$out\MinGW\libexec\" -Recurse -Force
+          }
 
           if (Test-Path $zip) { Remove-Item $zip -Force }
           Compress-Archive -Path $out -DestinationPath $zip
