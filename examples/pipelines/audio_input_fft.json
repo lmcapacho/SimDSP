@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "sample_rate": 48000,
+  "block_size": 512,
+  "channels": 1,
+  "nodes": [
+    {"id": "mic", "type": "AudioInput", "params": {}},
+    {"id": "scope", "type": "ScopeTap", "params": {}},
+    {"id": "fft", "type": "FFTMag", "params": {}}
+  ],
+  "edges": [
+    {"from": "mic", "to": "scope"},
+    {"from": "mic", "to": "fft"}
+  ]
+}

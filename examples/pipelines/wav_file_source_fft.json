@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "sample_rate": 48000,
+  "block_size": 512,
+  "channels": 1,
+  "nodes": [
+    {"id": "src", "type": "WavFileSource", "params": {"path": "../assets/tone_1k.wav", "loop": true}},
+    {"id": "scope", "type": "ScopeTap", "params": {}},
+    {"id": "fft", "type": "FFTMag", "params": {}}
+  ],
+  "edges": [
+    {"from": "src", "to": "scope"},
+    {"from": "src", "to": "fft"}
+  ]
+}

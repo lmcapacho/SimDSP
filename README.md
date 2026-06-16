@@ -79,6 +79,22 @@ simdsp-desktop --pipeline examples/pipelines/python_user_gain.json
 The example block source lives in `examples/user_blocks/gain_block.py`.
 This keeps the original SimDSP spirit: the user can write algorithm code and run it inside the DSP engine.
 
+## Source Blocks
+
+SimDSP 2.0 now includes source blocks closer to the original workflow:
+
+- `WavFileSource`: read PCM WAV files as streaming test inputs.
+- `AudioInput`: capture microphone or sound-card input as a live source.
+
+Example pipelines:
+
+```bash
+simdsp-desktop --pipeline examples/pipelines/wav_file_source_fft.json
+simdsp-desktop --pipeline examples/pipelines/audio_input_fft.json
+```
+
+This keeps audio-style experiments separate from the future Matlab/Octave-style data import path.
+
 ## Credits
 
 The project is led by Luis Miguel Capacho Valbuena.  
