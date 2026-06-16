@@ -9,7 +9,10 @@ class ScopeTap(Block):
         implementation="python",
         inputs=1,
         outputs=1,
+        category="analysis",
+        display_name="Scope Tap",
         description="Pass-through tap for time-domain visualization.",
+        tags=("scope", "visualization", "tap"),
     )
 
     def process(self, inputs):

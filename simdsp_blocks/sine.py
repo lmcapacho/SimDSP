@@ -11,7 +11,10 @@ class Sine(Block):
         implementation="python",
         inputs=0,
         outputs=1,
+        category="generator",
+        display_name="Sine",
         description="Sine wave generator.",
+        tags=("signal", "tone", "legacy"),
         params=(
             ParamSpec("freq", "float", 1000.0, "Tone frequency in Hz."),
             ParamSpec("amp", "float", 0.7, "Peak amplitude."),

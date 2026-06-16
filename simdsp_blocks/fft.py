@@ -11,7 +11,10 @@ class FFTMag(Block):
         implementation="python",
         inputs=1,
         outputs=1,
+        category="analysis",
+        display_name="FFT Magnitude",
         description="FFT magnitude in dB.",
+        tags=("spectrum", "visualization", "analysis"),
         params=(ParamSpec("window", "str", "hann", "Window function name."),),
     )
 

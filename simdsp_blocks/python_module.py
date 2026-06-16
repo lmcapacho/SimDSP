@@ -15,7 +15,10 @@ class PythonModuleBlock(Block):
         implementation="python-loader",
         inputs=None,
         outputs=1,
+        category="user",
+        display_name="Python Module Block",
         description="Load a user-defined DSP block from a Python module or file.",
+        tags=("python", "user", "extensible"),
         params=(
             ParamSpec("path", "str|null", None, "Path to a Python file containing the block class."),
             ParamSpec("module", "str|null", None, "Importable Python module name containing the block class."),

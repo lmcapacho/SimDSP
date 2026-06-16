@@ -14,7 +14,10 @@ class MatFileSink(Block):
         implementation="python",
         inputs=1,
         outputs=1,
+        category="sink",
+        display_name="MAT File Sink",
         description="Capture a signal stream and export it to a Matlab/Octave MAT file.",
+        tags=("matlab", "octave", "file", "export"),
         params=(
             ParamSpec("path", "str", "", "Path to the output MAT file."),
             ParamSpec("variable", "str", "signal", "Variable name stored in the MAT file."),

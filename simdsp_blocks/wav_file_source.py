@@ -14,7 +14,10 @@ class WavFileSource(Block):
         implementation="python",
         inputs=0,
         outputs=1,
+        category="source",
+        display_name="WAV File Source",
         description="Read PCM WAV audio from a file as a streaming source.",
+        tags=("audio", "file", "wav", "legacy"),
         params=(
             ParamSpec("path", "str", "", "Path to a WAV file."),
             ParamSpec("loop", "bool", False, "Loop the file when the end is reached."),

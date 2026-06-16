@@ -11,7 +11,10 @@ class AWGN(Block):
         implementation="python",
         inputs=1,
         outputs=1,
+        category="effect",
+        display_name="AWGN",
         description="Additive white Gaussian noise.",
+        tags=("noise", "channel", "legacy"),
         params=(
             ParamSpec("snr_db", "float", 40.0, "Signal-to-noise ratio in dB."),
             ParamSpec("seed", "int|null", None, "Optional RNG seed."),

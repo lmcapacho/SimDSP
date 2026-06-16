@@ -12,7 +12,10 @@ NATIVE_GAIN_SPEC = BlockSpec(
     implementation="native-cpp",
     inputs=1,
     outputs=1,
+    category="native",
+    display_name="Native Gain",
     description="Native C++ gain block loaded through a shared library.",
+    tags=("c++", "native", "gain"),
     params=(ParamSpec("gain", "float", 1.0, "Linear gain factor."),),
 )
 

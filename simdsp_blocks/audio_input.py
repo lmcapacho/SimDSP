@@ -13,7 +13,10 @@ class AudioInput(Block):
         implementation="python",
         inputs=0,
         outputs=1,
+        category="source",
+        display_name="Audio Input",
         description="Capture audio from the system input device as a streaming source.",
+        tags=("audio", "microphone", "live", "legacy"),
         params=(
             ParamSpec("device", "str|int|null", None, "Input device identifier."),
             ParamSpec("latency", "str|float", "low", "Requested input latency."),

@@ -20,7 +20,10 @@ class BlockSpec:
     implementation: str
     inputs: int | None
     outputs: int
+    category: str = "misc"
+    display_name: str = ""
     description: str = ""
+    tags: tuple[str, ...] = field(default_factory=tuple)
     params: tuple[ParamSpec, ...] = field(default_factory=tuple)
 
 
@@ -30,7 +33,10 @@ class Block:
         implementation="python",
         inputs=None,
         outputs=1,
+        category="misc",
+        display_name="Block",
         description="Base DSP block.",
+        tags=("base",),
     )
 
     def __init__(self, **params: Any) -> None:

@@ -14,7 +14,10 @@ class MatFileSource(Block):
         implementation="python",
         inputs=0,
         outputs=1,
+        category="source",
+        display_name="MAT File Source",
         description="Read a signal matrix from a Matlab/Octave MAT file.",
+        tags=("matlab", "octave", "file", "legacy"),
         params=(
             ParamSpec("path", "str", "", "Path to a MAT file."),
             ParamSpec("variable", "str", "signal", "Variable name inside the MAT file."),

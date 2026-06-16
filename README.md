@@ -66,6 +66,8 @@ Current desktop UI capabilities:
 - Save As to create new reproducible pipeline files.
 - Reload the built-in default scope/FFT demo pipeline.
 
+The block catalog now carries metadata for the next GUI stage: category, display name, tags, and parameter descriptions.
+
 ## User-Defined Python Blocks
 
 SimDSP 2.0 can now load DSP blocks written by the user in Python, without modifying the core application.
@@ -83,6 +85,7 @@ This keeps the original SimDSP spirit: the user can write algorithm code and run
 
 SimDSP 2.0 now includes source blocks closer to the original workflow:
 
+- `Sine`, `Square`, `Triangle`: built-in generated test signals.
 - `WavFileSource`: read PCM WAV files as streaming test inputs.
 - `AudioInput`: capture microphone or sound-card input as a live source.
 
