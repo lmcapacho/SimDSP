@@ -65,7 +65,7 @@ class SimDSPWindow:
             self.current_pipeline = load_pipeline(pipeline_path)
             self.current_pipeline_path = Path(pipeline_path)
 
-        self.engine = engine_from_pipeline(self.current_pipeline)
+        self.engine = engine_from_pipeline(self.current_pipeline, self.current_pipeline_path)
         self._running = False
 
         root = QWidget()
@@ -234,7 +234,7 @@ class SimDSPWindow:
         was_running = self._running
         self.stop_engine()
         try:
-            self.engine = engine_from_pipeline(pipeline)
+            self.engine = engine_from_pipeline(pipeline, path)
         except Exception as exc:
             self._QMessageBox.critical(self.window, "Pipeline Error", str(exc))
             if was_running:

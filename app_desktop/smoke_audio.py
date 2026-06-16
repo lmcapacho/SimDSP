@@ -26,7 +26,11 @@ def run_smoke(
         raise ValueError("seconds must be > 0")
 
     pipeline = load_pipeline(pipeline_path)
-    engine = pipeline_to_engine(pipeline, create_block)
+    engine = pipeline_to_engine(
+        pipeline,
+        create_block,
+        context={"pipeline_path": pipeline_path, "pipeline_dir": str(__import__("pathlib").Path(pipeline_path).resolve().parent)},
+    )
 
     if dry_run:
         num_blocks = max(1, int(round(seconds * engine.sr / engine.bs)))

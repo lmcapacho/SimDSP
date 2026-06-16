@@ -66,6 +66,19 @@ Current desktop UI capabilities:
 - Save As to create new reproducible pipeline files.
 - Reload the built-in default scope/FFT demo pipeline.
 
+## User-Defined Python Blocks
+
+SimDSP 2.0 can now load DSP blocks written by the user in Python, without modifying the core application.
+
+Example pipeline:
+
+```bash
+simdsp-desktop --pipeline examples/pipelines/python_user_gain.json
+```
+
+The example block source lives in `examples/user_blocks/gain_block.py`.
+This keeps the original SimDSP spirit: the user can write algorithm code and run it inside the DSP engine.
+
 ## Credits
 
 The project is led by Luis Miguel Capacho Valbuena.  

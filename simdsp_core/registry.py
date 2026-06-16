@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from dataclasses import replace
 from typing import Callable
+import inspect
 
 from simdsp_core.block_api import BlockSpec
 
 
-BlockFactory = Callable[[dict], object]
+BlockFactory = Callable[..., object]
 
 
 class BlockRegistry:
@@ -26,12 +27,22 @@ class BlockRegistry:
             raise ValueError(f"Block class '{block_cls.__name__}' does not define SPEC.")
         if type_name and type_name != spec.type_name:
             spec = replace(spec, type_name=type_name)
-        self.register(spec, lambda params: block_cls(**params), replace_existing=replace_existing)
+        def _factory(params, context=None):
+            ctor_params = inspect.signature(block_cls.__init__).parameters
+            if "context" in ctor_params:
+                return block_cls(context=context, **params)
+            return block_cls(**params)
 
-    def create(self, type_name: str, params: dict | None = None):
+        self.register(spec, _factory, replace_existing=replace_existing)
+
+    def create(self, type_name: str, params: dict | None = None, context: dict | None = None):
         if type_name not in self._factories:
             raise ValueError(f"Unknown block type '{type_name}'.")
-        return self._factories[type_name](dict(params or {}))
+        factory = self._factories[type_name]
+        factory_params = dict(params or {})
+        if len(inspect.signature(factory).parameters) >= 2:
+            return factory(factory_params, dict(context or {}))
+        return factory(factory_params)
 
     def spec(self, type_name: str) -> BlockSpec:
         if type_name not in self._specs:

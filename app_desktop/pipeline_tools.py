@@ -11,8 +11,8 @@ from simdsp_io import PIPELINE_SCHEMA_VERSION, load_pipeline, pipeline_to_engine
 DEFAULT_BLOCK_REGISTRY = register_builtin_blocks(BlockRegistry())
 
 
-def create_block(block_type: str, params: dict[str, Any]) -> object:
-    return DEFAULT_BLOCK_REGISTRY.create(block_type, params)
+def create_block(block_type: str, params: dict[str, Any], context: dict[str, Any] | None = None) -> object:
+    return DEFAULT_BLOCK_REGISTRY.create(block_type, params, context)
 
 
 def list_block_specs():
@@ -43,12 +43,16 @@ def default_pipeline(
     }
 
 
-def engine_from_pipeline(pipeline: dict[str, Any]):
-    return pipeline_to_engine(pipeline, create_block)
+def engine_from_pipeline(pipeline: dict[str, Any], pipeline_path: str | Path | None = None):
+    context = {}
+    if pipeline_path is not None:
+        resolved = Path(pipeline_path).resolve()
+        context = {"pipeline_path": str(resolved), "pipeline_dir": str(resolved.parent)}
+    return pipeline_to_engine(pipeline, create_block, context=context)
 
 
 def engine_from_pipeline_path(path: str | Path):
-    return engine_from_pipeline(load_pipeline(path))
+    return engine_from_pipeline(load_pipeline(path), pipeline_path=path)
 
 
 def sync_pipeline_from_engine(pipeline: dict[str, Any], engine) -> dict[str, Any]:

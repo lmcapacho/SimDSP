@@ -4,6 +4,7 @@ from copy import deepcopy
 import json
 from pathlib import Path
 from typing import Callable, Dict, List, Any
+import inspect
 
 from simdsp_core.engine import Engine
 
@@ -68,6 +69,7 @@ def load_pipeline(path: str | Path) -> Dict[str, Any]:
 def pipeline_to_engine(
     pipeline: Dict[str, Any],
     block_factory: Callable[[str, Dict[str, Any]], object],
+    context: Dict[str, Any] | None = None,
 ) -> Engine:
     _validate_pipeline_dict(pipeline)
     inputs_by_node = _inputs_from_pipeline(pipeline)
@@ -78,9 +80,14 @@ def pipeline_to_engine(
         channels=int(pipeline["channels"]),
     )
 
+    factory_context = dict(context or {})
+
     for node in pipeline["nodes"]:
         params = deepcopy(node.get("params", {}))
-        block = block_factory(node["type"], params)
+        if len(inspect.signature(block_factory).parameters) >= 3:
+            block = block_factory(node["type"], params, factory_context)
+        else:
+            block = block_factory(node["type"], params)
         engine.add_node(node["id"], block, inputs_by_node[node["id"]])
 
     engine.init()
