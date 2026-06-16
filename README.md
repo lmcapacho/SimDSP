@@ -110,6 +110,20 @@ simdsp-desktop --pipeline examples/pipelines/mat_file_source_fft.json
 
 The capture example `examples/pipelines/mat_roundtrip_capture.json` is intended for scripted runs and regression checks.
 
+## Native C++ Block
+
+SimDSP 2.0 now includes a first real native C++ block wired into the same pipeline contract:
+
+- `NativeGain`: gain block executed inside a compiled shared library loaded from Python.
+
+Example pipeline:
+
+```bash
+simdsp-desktop --pipeline examples/pipelines/native_gain_demo.json
+```
+
+The native source lives in `simdsp_native/src/native_gain.cpp` and is auto-built on supported systems the first time it is used.
+
 ## Credits
 
 The project is led by Luis Miguel Capacho Valbuena.  

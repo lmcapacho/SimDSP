@@ -4,13 +4,13 @@ import numpy as np
 
 from app_desktop.pipeline_tools import DEFAULT_BLOCK_REGISTRY
 from simdsp_core import BlockRegistry
-from simdsp_native import GAIN_NATIVE_SPEC, GainBackend, NativeBlockAdapter
+from simdsp_native import NATIVE_GAIN_SPEC, NativeGainBackend, NativeBlockAdapter
 
 
 def test_default_registry_contains_builtin_blocks():
     specs = {spec.type_name: spec for spec in DEFAULT_BLOCK_REGISTRY.list_specs()}
 
-    assert {"Sine", "AWGN", "FFTMag", "ScopeTap"}.issubset(specs.keys())
+    assert {"Sine", "AWGN", "FFTMag", "ScopeTap", "NativeGain"}.issubset(specs.keys())
     assert specs["Sine"].implementation == "python"
     assert specs["FFTMag"].inputs == 1
 
@@ -18,8 +18,8 @@ def test_default_registry_contains_builtin_blocks():
 def test_registry_can_register_native_adapter_block():
     registry = BlockRegistry()
     registry.register(
-        GAIN_NATIVE_SPEC,
-        lambda params: NativeBlockAdapter(GainBackend, GAIN_NATIVE_SPEC, **params),
+        NATIVE_GAIN_SPEC,
+        lambda params: NativeBlockAdapter(NativeGainBackend, NATIVE_GAIN_SPEC, **params),
     )
 
     block = registry.create("NativeGain", {"gain": 0.5})
