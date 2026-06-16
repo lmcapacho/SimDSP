@@ -95,6 +95,21 @@ simdsp-desktop --pipeline examples/pipelines/audio_input_fft.json
 
 This keeps audio-style experiments separate from the future Matlab/Octave-style data import path.
 
+## Matlab/Octave Data Blocks
+
+SimDSP 2.0 now also supports Matlab/Octave-style data exchange:
+
+- `MatFileSource`: import a signal matrix from a `.mat` file.
+- `MatFileSink`: capture a signal stream and export it to a `.mat` file.
+
+Example pipelines:
+
+```bash
+simdsp-desktop --pipeline examples/pipelines/mat_file_source_fft.json
+```
+
+The capture example `examples/pipelines/mat_roundtrip_capture.json` is intended for scripted runs and regression checks.
+
 ## Credits
 
 The project is led by Luis Miguel Capacho Valbuena.  

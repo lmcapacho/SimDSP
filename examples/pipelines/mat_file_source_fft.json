@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "sample_rate": 48000,
+  "block_size": 256,
+  "channels": 1,
+  "nodes": [
+    {"id": "src", "type": "MatFileSource", "params": {"path": "../assets/sine_750.mat", "variable": "signal", "loop": true}},
+    {"id": "scope", "type": "ScopeTap", "params": {}},
+    {"id": "fft", "type": "FFTMag", "params": {}}
+  ],
+  "edges": [
+    {"from": "src", "to": "scope"},
+    {"from": "src", "to": "fft"}
+  ]
+}

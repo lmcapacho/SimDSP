@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "sample_rate": 48000,
+  "block_size": 256,
+  "channels": 1,
+  "nodes": [
+    {"id": "gen", "type": "Sine", "params": {"freq": 500, "amp": 0.5}},
+    {"id": "sink", "type": "MatFileSink", "params": {"path": "../assets/captured_signal.mat", "variable": "captured"}},
+    {"id": "scope", "type": "ScopeTap", "params": {}}
+  ],
+  "edges": [
+    {"from": "gen", "to": "sink"},
+    {"from": "sink", "to": "scope"}
+  ]
+}
