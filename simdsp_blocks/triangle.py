@@ -16,8 +16,8 @@ class Triangle(Block):
         description="Triangle wave generator.",
         tags=("signal", "tone", "legacy"),
         params=(
-            ParamSpec("freq", "float", 1000.0, "Tone frequency in Hz."),
-            ParamSpec("amp", "float", 0.7, "Peak amplitude."),
+            ParamSpec("freq", "float", 1000.0, "Tone frequency in Hz.", min_value=0.0, max_value=96_000.0, step=1.0, unit="Hz"),
+            ParamSpec("amp", "float", 0.7, "Peak amplitude.", min_value=0.0, max_value=1.0, step=0.01),
         ),
     )
 

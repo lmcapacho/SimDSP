@@ -16,7 +16,7 @@ class AWGN(Block):
         description="Additive white Gaussian noise.",
         tags=("noise", "channel", "legacy"),
         params=(
-            ParamSpec("snr_db", "float", 40.0, "Signal-to-noise ratio in dB."),
+            ParamSpec("snr_db", "float", 40.0, "Signal-to-noise ratio in dB.", min_value=-20.0, max_value=120.0, step=0.5, unit="dB"),
             ParamSpec("seed", "int|null", None, "Optional RNG seed."),
         ),
     )

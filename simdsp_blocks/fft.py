@@ -15,7 +15,7 @@ class FFTMag(Block):
         display_name="FFT Magnitude",
         description="FFT magnitude in dB.",
         tags=("spectrum", "visualization", "analysis"),
-        params=(ParamSpec("window", "str", "hann", "Window function name."),),
+        params=(ParamSpec("window", "str", "hann", "Window function name.", choices=("hann", "rect")),),
     )
 
     def __init__(self, window="hann"):

@@ -66,7 +66,7 @@ Current desktop UI capabilities:
 - Save As to create new reproducible pipeline files.
 - Reload the built-in default scope/FFT demo pipeline.
 
-The block catalog now carries metadata for the next GUI stage: category, display name, tags, and parameter descriptions.
+The block catalog now carries metadata for the next GUI stage: category, display name, tags, parameter descriptions, numeric ranges, units, steps, and discrete choices.
 
 ## User-Defined Python Blocks
 

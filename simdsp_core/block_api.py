@@ -12,6 +12,11 @@ class ParamSpec:
     param_type: str
     default: Any
     description: str = ""
+    min_value: float | None = None
+    max_value: float | None = None
+    step: float | None = None
+    unit: str = ""
+    choices: tuple[Any, ...] = field(default_factory=tuple)
 
 
 @dataclass(frozen=True)
