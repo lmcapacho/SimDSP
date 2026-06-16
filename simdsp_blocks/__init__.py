@@ -7,6 +7,8 @@ from simdsp_blocks.wav_file_source import WavFileSource
 from simdsp_blocks.python_module import PythonModuleBlock
 from simdsp_blocks.registry import register_builtin_blocks
 from simdsp_blocks.scope import ScopeTap
+from simdsp_blocks.square import Square
+from simdsp_blocks.triangle import Triangle
 from simdsp_blocks.sine import Sine
 
-__all__ = ["AudioInput", "AWGN", "FFTMag", "MatFileSink", "MatFileSource", "PythonModuleBlock", "ScopeTap", "Sine", "WavFileSource", "register_builtin_blocks"]
+__all__ = ["AudioInput", "AWGN", "FFTMag", "MatFileSink", "MatFileSource", "PythonModuleBlock", "ScopeTap", "Sine", "Square", "Triangle", "WavFileSource", "register_builtin_blocks"]

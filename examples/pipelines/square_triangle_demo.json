@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "sample_rate": 48000,
+  "block_size": 512,
+  "channels": 1,
+  "nodes": [
+    {"id": "square", "type": "Square", "params": {"freq": 500, "amp": 0.8, "duty": 0.5}},
+    {"id": "triangle", "type": "Triangle", "params": {"freq": 500, "amp": 0.6}},
+    {"id": "scope", "type": "ScopeTap", "params": {}},
+    {"id": "fft", "type": "FFTMag", "params": {}}
+  ],
+  "edges": [
+    {"from": "triangle", "to": "scope"},
+    {"from": "square", "to": "fft"}
+  ]
+}

@@ -8,12 +8,14 @@ from simdsp_blocks.mat_file_source import MatFileSource
 from simdsp_blocks.wav_file_source import WavFileSource
 from simdsp_blocks.python_module import PythonModuleBlock
 from simdsp_blocks.scope import ScopeTap
+from simdsp_blocks.square import Square
+from simdsp_blocks.triangle import Triangle
 from simdsp_blocks.sine import Sine
 from simdsp_core.registry import BlockRegistry
 from simdsp_native import NATIVE_GAIN_SPEC, NativeGainBackend, NativeBlockAdapter
 
 
-BUILTIN_BLOCKS = (Sine, AWGN, FFTMag, ScopeTap, WavFileSource, AudioInput, MatFileSource, MatFileSink, PythonModuleBlock)
+BUILTIN_BLOCKS = (Sine, Square, Triangle, AWGN, FFTMag, ScopeTap, WavFileSource, AudioInput, MatFileSource, MatFileSink, PythonModuleBlock)
 
 
 def register_builtin_blocks(registry: BlockRegistry | None = None) -> BlockRegistry:
