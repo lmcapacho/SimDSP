@@ -47,11 +47,24 @@ Run a minimal real-time desktop UI:
 simdsp-desktop --sample-rate 48000 --block-size 1024 --channels 1
 ```
 
+Open a saved JSON pipeline directly:
+
+```bash
+simdsp-desktop --pipeline examples/pipelines/smoke_sine_awgn_512.json
+```
+
 Alternative invocation:
 
 ```bash
 python -m app_desktop.live_ui --sample-rate 48000 --block-size 1024 --channels 1
 ```
+
+Current desktop UI capabilities:
+
+- Open an existing pipeline JSON file.
+- Save the current pipeline state back to JSON.
+- Save As to create new reproducible pipeline files.
+- Reload the built-in default scope/FFT demo pipeline.
 
 ## Credits
 

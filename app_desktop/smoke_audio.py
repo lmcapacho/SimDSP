@@ -4,23 +4,8 @@ import argparse
 import time
 from typing import Sequence
 
-from simdsp_blocks.awgn import AWGN
-from simdsp_blocks.fft import FFTMag
-from simdsp_blocks.scope import ScopeTap
-from simdsp_blocks.sine import Sine
+from app_desktop.pipeline_tools import create_block
 from simdsp_io import AudioEngineStream, load_pipeline, pipeline_to_engine
-
-
-def _block_factory(block_type: str, params: dict):
-    registry = {
-        "Sine": Sine,
-        "AWGN": AWGN,
-        "FFTMag": FFTMag,
-        "ScopeTap": ScopeTap,
-    }
-    if block_type not in registry:
-        raise ValueError(f"Unknown block type '{block_type}'.")
-    return registry[block_type](**params)
 
 
 def _teardown_engine(engine) -> None:
@@ -41,7 +26,7 @@ def run_smoke(
         raise ValueError("seconds must be > 0")
 
     pipeline = load_pipeline(pipeline_path)
-    engine = pipeline_to_engine(pipeline, _block_factory)
+    engine = pipeline_to_engine(pipeline, create_block)
 
     if dry_run:
         num_blocks = max(1, int(round(seconds * engine.sr / engine.bs)))
