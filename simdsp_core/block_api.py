@@ -1,27 +1,59 @@
-"""
-Base interface for DSP blocks.
-"""
-from typing import Any, List
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Any, Protocol
+
 import numpy as np
 
+
+@dataclass(frozen=True)
+class ParamSpec:
+    name: str
+    param_type: str
+    default: Any
+    description: str = ""
+
+
+@dataclass(frozen=True)
+class BlockSpec:
+    type_name: str
+    implementation: str
+    inputs: int | None
+    outputs: int
+    description: str = ""
+    params: tuple[ParamSpec, ...] = field(default_factory=tuple)
+
+
 class Block:
-    """Base interface for DSP blocks."""
+    SPEC = BlockSpec(
+        type_name="Block",
+        implementation="python",
+        inputs=None,
+        outputs=1,
+        description="Base DSP block.",
+    )
+
     def __init__(self, **params: Any) -> None:
-        self.params = params
+        self.params = dict(params)
         self.sr = 0.0
         self.bs = 0
         self.ch = 0
 
     def init(self, sample_rate: float, block_size: int, channels: int) -> None:
-        """Allocate buffers and initialize internal state."""
         self.sr = float(sample_rate)
         self.bs = int(block_size)
         self.ch = int(channels)
 
-    def process(self, inputs: List[np.ndarray]) -> List[np.ndarray]:
-        """Core processing. inputs: list of float32 arrays, shape (N, C)."""
+    def process(self, inputs: list[np.ndarray]) -> list[np.ndarray]:
         raise NotImplementedError
 
     def teardown(self) -> None:
-        """Release resources (streams, files, threads, native handles)."""
         return
+
+
+class NativeBlockBackend(Protocol):
+    def init(self, sample_rate: float, block_size: int, channels: int) -> None: ...
+
+    def process(self, inputs: list[np.ndarray]) -> list[np.ndarray]: ...
+
+    def teardown(self) -> None: ...

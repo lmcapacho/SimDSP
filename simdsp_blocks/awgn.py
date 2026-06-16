@@ -1,15 +1,30 @@
+from __future__ import annotations
+
 import numpy as np
 
+from simdsp_core.block_api import Block, BlockSpec, ParamSpec
 
-class AWGN:
+
+class AWGN(Block):
+    SPEC = BlockSpec(
+        type_name="AWGN",
+        implementation="python",
+        inputs=1,
+        outputs=1,
+        description="Additive white Gaussian noise.",
+        params=(
+            ParamSpec("snr_db", "float", 40.0, "Signal-to-noise ratio in dB."),
+            ParamSpec("seed", "int|null", None, "Optional RNG seed."),
+        ),
+    )
+
     def __init__(self, snr_db=40.0, seed=None):
+        super().__init__(snr_db=snr_db, seed=seed)
         self.snr_db = float(snr_db)
         self.seed = seed
 
     def init(self, sample_rate, block_size, channels):
-        self.sr = float(sample_rate)
-        self.bs = int(block_size)
-        self.ch = int(channels)
+        super().init(sample_rate, block_size, channels)
         self._rng = np.random.default_rng(self.seed)
 
     def process(self, inputs):
@@ -22,6 +37,3 @@ class AWGN:
         noise = self._rng.normal(0.0, np.sqrt(noise_power), size=x.shape).astype(np.float32)
         y = np.clip(x + noise, -1.0, 1.0)
         return [y]
-
-    def teardown(self):
-        pass

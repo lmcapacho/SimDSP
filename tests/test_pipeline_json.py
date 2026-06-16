@@ -3,26 +3,13 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from simdsp_blocks.awgn import AWGN
-from simdsp_blocks.fft import FFTMag
-from simdsp_blocks.scope import ScopeTap
-from simdsp_blocks.sine import Sine
+from app_desktop.pipeline_tools import create_block
 from simdsp_io.pipeline_json import (
     PIPELINE_SCHEMA_VERSION,
     load_pipeline,
     pipeline_to_engine,
     save_pipeline,
 )
-
-
-def _factory(block_type: str, params: dict):
-    registry = {
-        "Sine": Sine,
-        "AWGN": AWGN,
-        "FFTMag": FFTMag,
-        "ScopeTap": ScopeTap,
-    }
-    return registry[block_type](**params)
 
 
 def test_pipeline_json_roundtrip(tmp_path):
@@ -66,7 +53,7 @@ def test_pipeline_to_engine_runs_chain_sine_awgn_fft():
         ],
     }
 
-    engine = pipeline_to_engine(pipeline, _factory)
+    engine = pipeline_to_engine(pipeline, create_block)
     buffers = engine.run_once()
 
     mag = buffers["fft"][0][:, 0]
@@ -93,4 +80,4 @@ def test_pipeline_to_engine_rejects_cycles():
     }
 
     with pytest.raises(ValueError, match="Cycle detected"):
-        pipeline_to_engine(pipeline, _factory)
+        pipeline_to_engine(pipeline, create_block)

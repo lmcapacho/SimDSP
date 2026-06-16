@@ -4,21 +4,19 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
-from simdsp_blocks import AWGN, FFTMag, ScopeTap, Sine
+from simdsp_blocks import register_builtin_blocks
+from simdsp_core.registry import BlockRegistry
 from simdsp_io import PIPELINE_SCHEMA_VERSION, load_pipeline, pipeline_to_engine
 
-BLOCK_REGISTRY = {
-    "Sine": Sine,
-    "AWGN": AWGN,
-    "FFTMag": FFTMag,
-    "ScopeTap": ScopeTap,
-}
+DEFAULT_BLOCK_REGISTRY = register_builtin_blocks(BlockRegistry())
 
 
 def create_block(block_type: str, params: dict[str, Any]) -> object:
-    if block_type not in BLOCK_REGISTRY:
-        raise ValueError(f"Unknown block type '{block_type}'.")
-    return BLOCK_REGISTRY[block_type](**params)
+    return DEFAULT_BLOCK_REGISTRY.create(block_type, params)
+
+
+def list_block_specs():
+    return DEFAULT_BLOCK_REGISTRY.list_specs()
 
 
 def default_pipeline(
