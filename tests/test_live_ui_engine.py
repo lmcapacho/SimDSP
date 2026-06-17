@@ -121,3 +121,52 @@ def test_change_selected_node_type_replaces_params_with_spec_defaults():
     assert node['type'] == 'Square'
     assert node['params']['freq'] == 1000.0
     assert node['params']['duty'] == 0.5
+
+
+def test_make_unique_node_id_appends_suffix_when_needed():
+    fake = type('FakeWindow', (), {})()
+    fake.current_pipeline = {'nodes': [{'id': 'sine'}, {'id': 'sine2'}]}
+
+    assert SimDSPWindow._make_unique_node_id(fake, 'Sine') == 'sine3'
+
+
+def test_add_selected_block_as_node_uses_spec_defaults():
+    specs = {spec.type_name: spec for spec in list_block_specs()}
+    fake = type('FakeWindow', (), {})()
+    fake._selected_spec = specs['Triangle']
+    fake.current_pipeline_path = None
+    fake.current_pipeline = default_pipeline(sample_rate=48_000, block_size=512, channels=1)
+    fake._make_unique_node_id = lambda type_name: 'triangle2'
+    captured = {}
+
+    def _replace_pipeline(pipeline, path):
+        captured['pipeline'] = pipeline
+
+    fake._replace_pipeline = _replace_pipeline
+
+    SimDSPWindow.add_selected_block_as_node(fake)
+
+    node = next(node for node in captured['pipeline']['nodes'] if node['id'] == 'triangle2')
+    assert node['type'] == 'Triangle'
+    assert node['params']['amp'] == 0.7
+
+
+def test_delete_selected_node_removes_node_and_related_edges():
+    fake = type('FakeWindow', (), {})()
+    fake._selected_node_id = 'awgn'
+    fake.window = None
+    fake._QMessageBox = type('Msg', (), {'warning': staticmethod(lambda *args, **kwargs: None)})
+    fake.current_pipeline_path = None
+    fake.current_pipeline = default_pipeline(sample_rate=48_000, block_size=512, channels=1)
+    captured = {}
+
+    def _replace_pipeline(pipeline, path):
+        captured['pipeline'] = pipeline
+
+    fake._replace_pipeline = _replace_pipeline
+
+    SimDSPWindow.delete_selected_node(fake)
+
+    ids = {node['id'] for node in captured['pipeline']['nodes']}
+    assert 'awgn' not in ids
+    assert all(edge['from'] != 'awgn' and edge['to'] != 'awgn' for edge in captured['pipeline']['edges'])

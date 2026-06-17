@@ -99,6 +99,10 @@ class SimDSPWindow:
         self.apply_btn.setEnabled(False)
         self.change_type_btn = QPushButton("Use Selected Block Type")
         self.change_type_btn.setEnabled(False)
+        self.add_node_btn = QPushButton("Add Node")
+        self.add_node_btn.setEnabled(False)
+        self.delete_node_btn = QPushButton("Delete Node")
+        self.delete_node_btn.setEnabled(False)
         self.pipeline_label = QLabel()
 
         for widget in (
@@ -110,6 +114,8 @@ class SimDSPWindow:
             self.default_btn,
             self.apply_btn,
             self.change_type_btn,
+            self.add_node_btn,
+            self.delete_node_btn,
         ):
             controls.addWidget(widget)
         controls.addSpacing(16)
@@ -179,6 +185,8 @@ class SimDSPWindow:
         self.default_btn.clicked.connect(self.load_default_pipeline)
         self.apply_btn.clicked.connect(self.apply_selected_node_params)
         self.change_type_btn.clicked.connect(self.change_selected_node_type)
+        self.add_node_btn.clicked.connect(self.add_selected_block_as_node)
+        self.delete_node_btn.clicked.connect(self.delete_selected_node)
         self.catalog_list.currentRowChanged.connect(self._on_catalog_selected)
         self.node_list.currentRowChanged.connect(self._on_node_selected)
 
@@ -337,20 +345,24 @@ class SimDSPWindow:
             self._selected_spec = None
             self.inspector.clear()
             self.change_type_btn.setEnabled(False)
+            self.add_node_btn.setEnabled(False)
             return
         self._selected_spec = self._block_specs[row]
         self.inspector.setPlainText(self._format_block_spec(self._selected_spec))
         self.change_type_btn.setEnabled(self._selected_node_id is not None)
+        self.add_node_btn.setEnabled(True)
 
     def _on_node_selected(self, row: int) -> None:
         if row < 0 or row >= len(self.current_pipeline.get("nodes", [])):
             self._selected_node_id = None
             self.change_type_btn.setEnabled(False)
+            self.delete_node_btn.setEnabled(False)
             self._clear_param_form()
             return
         node = self.current_pipeline["nodes"][row]
         self._selected_node_id = node['id']
         self.change_type_btn.setEnabled(self._selected_spec is not None)
+        self.delete_node_btn.setEnabled(True)
         spec = self._spec_by_type.get(node['type'])
         self._build_param_form(node, spec)
 
@@ -372,6 +384,8 @@ class SimDSPWindow:
             self.param_form.addRow(label, editor)
 
         self.apply_btn.setEnabled(bool(spec.params))
+        self.change_type_btn.setEnabled(self._selected_spec is not None)
+        self.delete_node_btn.setEnabled(self._selected_node_id is not None)
 
     def _create_param_editor(self, param, value):
         if param.choices:
@@ -399,6 +413,45 @@ class SimDSPWindow:
 
         editor = self._QLineEdit(str(value) if value is not None else '')
         return editor
+
+    def add_selected_block_as_node(self) -> None:
+        if self._selected_spec is None:
+            return
+        updated_pipeline = deepcopy(self.current_pipeline)
+        node_id = self._make_unique_node_id(self._selected_spec.type_name)
+        updated_pipeline.setdefault('nodes', []).append({
+            'id': node_id,
+            'type': self._selected_spec.type_name,
+            'params': {param.name: deepcopy(param.default) for param in self._selected_spec.params},
+        })
+        self._replace_pipeline(updated_pipeline, self.current_pipeline_path)
+
+    def delete_selected_node(self) -> None:
+        if self._selected_node_id is None:
+            return
+        node_ids = {node['id'] for node in self.current_pipeline.get('nodes', [])}
+        if len(node_ids) <= 1:
+            self._QMessageBox.warning(self.window, 'Delete Node', 'The pipeline must keep at least one node.')
+            return
+
+        updated_pipeline = deepcopy(self.current_pipeline)
+        updated_pipeline['nodes'] = [node for node in updated_pipeline.get('nodes', []) if node['id'] != self._selected_node_id]
+        updated_pipeline['edges'] = [
+            edge for edge in updated_pipeline.get('edges', [])
+            if edge.get('from') != self._selected_node_id and edge.get('to') != self._selected_node_id
+        ]
+        self._selected_node_id = None
+        self._replace_pipeline(updated_pipeline, self.current_pipeline_path)
+
+    def _make_unique_node_id(self, type_name: str) -> str:
+        base = type_name[:1].lower() + type_name[1:]
+        existing = {node['id'] for node in self.current_pipeline.get('nodes', [])}
+        if base not in existing:
+            return base
+        suffix = 2
+        while f'{base}{suffix}' in existing:
+            suffix += 1
+        return f'{base}{suffix}'
 
     def change_selected_node_type(self) -> None:
         if self._selected_node_id is None or self._selected_spec is None:
@@ -455,6 +508,7 @@ class SimDSPWindow:
         self.param_title.setText("Select a node from the current pipeline to edit its parameters.")
         self.apply_btn.setEnabled(False)
         self.change_type_btn.setEnabled(False)
+        self.delete_node_btn.setEnabled(False)
 
     def _format_block_spec(self, spec) -> str:
         lines = [
