@@ -98,3 +98,26 @@ def test_read_editor_value_respects_param_types():
     audio = next(spec for spec in list_block_specs() if spec.type_name == "AudioInput")
     fake._current_param_spec_by_name = {param.name: param for param in audio.params}
     assert SimDSPWindow._read_editor_value(fake, 'device', _FakeLine('hw:0')) == 'hw:0'
+
+
+def test_change_selected_node_type_replaces_params_with_spec_defaults():
+    specs = {spec.type_name: spec for spec in list_block_specs()}
+    fake = type('FakeWindow', (), {})()
+    fake._selected_node_id = 'gen'
+    fake._selected_spec = specs['Square']
+    fake.current_pipeline_path = None
+    fake.current_pipeline = default_pipeline(sample_rate=48_000, block_size=512, channels=1)
+    captured = {}
+
+    def _replace_pipeline(pipeline, path):
+        captured['pipeline'] = pipeline
+        captured['path'] = path
+
+    fake._replace_pipeline = _replace_pipeline
+
+    SimDSPWindow.change_selected_node_type(fake)
+
+    node = next(node for node in captured['pipeline']['nodes'] if node['id'] == 'gen')
+    assert node['type'] == 'Square'
+    assert node['params']['freq'] == 1000.0
+    assert node['params']['duty'] == 0.5
