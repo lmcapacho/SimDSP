@@ -170,3 +170,47 @@ def test_delete_selected_node_removes_node_and_related_edges():
     ids = {node['id'] for node in captured['pipeline']['nodes']}
     assert 'awgn' not in ids
     assert all(edge['from'] != 'awgn' and edge['to'] != 'awgn' for edge in captured['pipeline']['edges'])
+
+
+def test_add_edge_from_selected_nodes_appends_new_edge():
+    fake = type('FakeWindow', (), {})()
+    fake.window = None
+    fake._QMessageBox = type('Msg', (), {'warning': staticmethod(lambda *args, **kwargs: None)})
+    fake.current_pipeline_path = None
+    fake.current_pipeline = default_pipeline(sample_rate=48_000, block_size=512, channels=1)
+    captured = {}
+
+    class _Idx:
+        def __init__(self, row):
+            self._row = row
+        def row(self):
+            return self._row
+
+    fake.node_list = type('NodeList', (), {'selectedIndexes': lambda self: [_Idx(0), _Idx(1)]})()
+
+    def _replace_pipeline(pipeline, path):
+        captured['pipeline'] = pipeline
+
+    fake._replace_pipeline = _replace_pipeline
+
+    SimDSPWindow.add_edge_from_selected_nodes(fake)
+
+    assert {'from': 'gen', 'to': 'awgn'} in captured['pipeline']['edges']
+
+
+def test_delete_selected_edge_removes_edge_by_index():
+    fake = type('FakeWindow', (), {})()
+    fake._selected_edge_index = 0
+    fake.current_pipeline_path = None
+    fake.current_pipeline = default_pipeline(sample_rate=48_000, block_size=512, channels=1)
+    captured = {}
+
+    def _replace_pipeline(pipeline, path):
+        captured['pipeline'] = pipeline
+
+    fake._replace_pipeline = _replace_pipeline
+
+    SimDSPWindow.delete_selected_edge(fake)
+
+    assert len(captured['pipeline']['edges']) == 2
+    assert {'from': 'gen', 'to': 'awgn'} not in captured['pipeline']['edges']

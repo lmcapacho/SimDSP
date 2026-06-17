@@ -31,8 +31,9 @@ class SimDSPWindow:
         pipeline_path: str | None = None,
     ) -> None:
         import pyqtgraph as pg
-        from PySide6.QtCore import QTimer, Qt
+        from PySide6.QtCore import QTimer
         from PySide6.QtWidgets import (
+            QAbstractItemView,
             QCheckBox,
             QComboBox,
             QFileDialog,
@@ -63,10 +64,9 @@ class SimDSPWindow:
         self._QCheckBox = QCheckBox
         self._QComboBox = QComboBox
         self._QDoubleSpinBox = QDoubleSpinBox
-        self._Qt = Qt
 
         self.window = QMainWindow()
-        self.window.resize(1480, 860)
+        self.window.resize(1560, 900)
 
         self.current_pipeline_path: Path | None = None
         self.current_pipeline = default_pipeline(sample_rate, block_size, channels)
@@ -80,6 +80,7 @@ class SimDSPWindow:
         self._spec_by_type = {spec.type_name: spec for spec in self._block_specs}
         self._selected_spec = None
         self._selected_node_id: str | None = None
+        self._selected_edge_index: int | None = None
         self._param_editors: dict[str, object] = {}
         self._current_param_spec_by_name: dict[str, object] = {}
 
@@ -135,13 +136,38 @@ class SimDSPWindow:
         self.inspector = QTextEdit()
         self.inspector.setReadOnly(True)
         left_layout.addWidget(self.inspector, stretch=2)
-        left_layout.addWidget(QLabel("Pipeline Nodes"))
-        self.node_list = QListWidget()
-        left_layout.addWidget(self.node_list, stretch=2)
         splitter.addWidget(left_panel)
 
         center_panel = QWidget()
         center_layout = QVBoxLayout(center_panel)
+
+        graph_group = QGroupBox("Pipeline Structure")
+        graph_layout = QHBoxLayout(graph_group)
+
+        nodes_panel = QWidget()
+        nodes_layout = QVBoxLayout(nodes_panel)
+        nodes_layout.addWidget(QLabel("Pipeline Nodes"))
+        self.node_list = QListWidget()
+        self.node_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        nodes_layout.addWidget(self.node_list, stretch=2)
+        graph_layout.addWidget(nodes_panel)
+
+        edges_panel = QWidget()
+        edges_layout = QVBoxLayout(edges_panel)
+        edges_layout.addWidget(QLabel("Pipeline Edges"))
+        self.edge_list = QListWidget()
+        edges_layout.addWidget(self.edge_list, stretch=2)
+        edge_btns = QHBoxLayout()
+        self.add_edge_btn = QPushButton("Add Edge")
+        self.add_edge_btn.setEnabled(False)
+        self.delete_edge_btn = QPushButton("Delete Edge")
+        self.delete_edge_btn.setEnabled(False)
+        edge_btns.addWidget(self.add_edge_btn)
+        edge_btns.addWidget(self.delete_edge_btn)
+        edges_layout.addLayout(edge_btns)
+        graph_layout.addWidget(edges_panel)
+
+        center_layout.addWidget(graph_group, stretch=1)
 
         self.param_group = QGroupBox("Block Parameters")
         param_layout = QVBoxLayout(self.param_group)
@@ -187,11 +213,15 @@ class SimDSPWindow:
         self.change_type_btn.clicked.connect(self.change_selected_node_type)
         self.add_node_btn.clicked.connect(self.add_selected_block_as_node)
         self.delete_node_btn.clicked.connect(self.delete_selected_node)
+        self.add_edge_btn.clicked.connect(self.add_edge_from_selected_nodes)
+        self.delete_edge_btn.clicked.connect(self.delete_selected_edge)
         self.catalog_list.currentRowChanged.connect(self._on_catalog_selected)
         self.node_list.currentRowChanged.connect(self._on_node_selected)
+        self.edge_list.currentRowChanged.connect(self._on_edge_selected)
 
         self._populate_catalog()
         self._populate_node_list()
+        self._populate_edge_list()
         self._update_window_state()
         self._select_first_catalog_item()
 
@@ -292,6 +322,7 @@ class SimDSPWindow:
     def _replace_pipeline(self, pipeline: dict, path: str | Path | None) -> None:
         was_running = self._running
         selected_node = self._selected_node_id
+        selected_edge = self._selected_edge_index
         self.stop_engine()
         try:
             self.engine = engine_from_pipeline(pipeline, path)
@@ -304,6 +335,7 @@ class SimDSPWindow:
         self.current_pipeline = deepcopy(pipeline)
         self.current_pipeline_path = Path(path) if path else None
         self._populate_node_list(selected_node)
+        self._populate_edge_list(selected_edge)
         self._update_window_state()
         if was_running:
             self.start_engine()
@@ -335,6 +367,23 @@ class SimDSPWindow:
             self.node_list.setCurrentRow(min(selected_row, self.node_list.count() - 1))
         else:
             self._clear_param_form()
+            self._selected_node_id = None
+            self.delete_node_btn.setEnabled(False)
+            self.change_type_btn.setEnabled(False)
+            self.add_edge_btn.setEnabled(False)
+
+    def _populate_edge_list(self, selected_edge_index: int | None = None) -> None:
+        self.edge_list.clear()
+        edges = self.current_pipeline.get('edges', [])
+        for idx, edge in enumerate(edges):
+            item = self._QListWidgetItem(f"{edge['from']} -> {edge['to']}")
+            item.setData(256, idx)
+            self.edge_list.addItem(item)
+        if self.edge_list.count() > 0 and selected_edge_index is not None and selected_edge_index < self.edge_list.count():
+            self.edge_list.setCurrentRow(selected_edge_index)
+        else:
+            self._selected_edge_index = None
+            self.delete_edge_btn.setEnabled(False)
 
     def _select_first_catalog_item(self) -> None:
         if self.catalog_list.count() > 0:
@@ -357,14 +406,24 @@ class SimDSPWindow:
             self._selected_node_id = None
             self.change_type_btn.setEnabled(False)
             self.delete_node_btn.setEnabled(False)
+            self.add_edge_btn.setEnabled(False)
             self._clear_param_form()
             return
         node = self.current_pipeline["nodes"][row]
         self._selected_node_id = node['id']
         self.change_type_btn.setEnabled(self._selected_spec is not None)
         self.delete_node_btn.setEnabled(True)
+        self.add_edge_btn.setEnabled(self.node_list.count() >= 2)
         spec = self._spec_by_type.get(node['type'])
         self._build_param_form(node, spec)
+
+    def _on_edge_selected(self, row: int) -> None:
+        if row < 0 or row >= len(self.current_pipeline.get('edges', [])):
+            self._selected_edge_index = None
+            self.delete_edge_btn.setEnabled(False)
+            return
+        self._selected_edge_index = row
+        self.delete_edge_btn.setEnabled(True)
 
     def _build_param_form(self, node: dict, spec) -> None:
         self._clear_param_form()
@@ -441,6 +500,33 @@ class SimDSPWindow:
             if edge.get('from') != self._selected_node_id and edge.get('to') != self._selected_node_id
         ]
         self._selected_node_id = None
+        self._replace_pipeline(updated_pipeline, self.current_pipeline_path)
+
+    def add_edge_from_selected_nodes(self) -> None:
+        selected_rows = self.node_list.selectedIndexes()
+        if len(selected_rows) != 2:
+            self._QMessageBox.warning(self.window, 'Add Edge', 'Select exactly two nodes: source first, then destination.')
+            return
+        from_node = self.current_pipeline['nodes'][selected_rows[0].row()]['id']
+        to_node = self.current_pipeline['nodes'][selected_rows[1].row()]['id']
+        if from_node == to_node:
+            self._QMessageBox.warning(self.window, 'Add Edge', 'Cannot connect a node to itself.')
+            return
+        updated_pipeline = deepcopy(self.current_pipeline)
+        edges = updated_pipeline.setdefault('edges', [])
+        edge = {'from': from_node, 'to': to_node}
+        if edge not in edges:
+            edges.append(edge)
+        self._replace_pipeline(updated_pipeline, self.current_pipeline_path)
+
+    def delete_selected_edge(self) -> None:
+        if self._selected_edge_index is None:
+            return
+        updated_pipeline = deepcopy(self.current_pipeline)
+        edges = updated_pipeline.get('edges', [])
+        if 0 <= self._selected_edge_index < len(edges):
+            del edges[self._selected_edge_index]
+        self._selected_edge_index = None
         self._replace_pipeline(updated_pipeline, self.current_pipeline_path)
 
     def _make_unique_node_id(self, type_name: str) -> str:
