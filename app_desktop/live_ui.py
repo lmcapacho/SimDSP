@@ -9,7 +9,7 @@ from typing import Sequence
 
 import numpy as np
 
-from app_desktop.pipeline_tools import default_pipeline, engine_from_pipeline, sync_pipeline_from_engine
+from app_desktop.pipeline_tools import default_pipeline, engine_from_pipeline, list_block_specs, sync_pipeline_from_engine
 from simdsp_core.engine import Engine
 from simdsp_io import load_pipeline, save_pipeline
 
@@ -31,33 +31,42 @@ class SimDSPWindow:
         pipeline_path: str | None = None,
     ) -> None:
         import pyqtgraph as pg
-        from PySide6.QtCore import QTimer
+        from PySide6.QtCore import QTimer, Qt
         from PySide6.QtWidgets import (
+            QCheckBox,
+            QComboBox,
             QFileDialog,
+            QDoubleSpinBox,
+            QFormLayout,
+            QGroupBox,
             QHBoxLayout,
             QLabel,
+            QLineEdit,
+            QListWidget,
+            QListWidgetItem,
             QMainWindow,
             QMessageBox,
             QPushButton,
-            QSpinBox,
+            QScrollArea,
+            QSplitter,
+            QTextEdit,
             QVBoxLayout,
             QWidget,
         )
 
         self._pg = pg
-        self._QMainWindow = QMainWindow
         self._QTimer = QTimer
-        self._QWidget = QWidget
-        self._QVBoxLayout = QVBoxLayout
-        self._QHBoxLayout = QHBoxLayout
-        self._QPushButton = QPushButton
         self._QFileDialog = QFileDialog
-        self._QLabel = QLabel
         self._QMessageBox = QMessageBox
-        self._QSpinBox = QSpinBox
+        self._QListWidgetItem = QListWidgetItem
+        self._QLineEdit = QLineEdit
+        self._QCheckBox = QCheckBox
+        self._QComboBox = QComboBox
+        self._QDoubleSpinBox = QDoubleSpinBox
+        self._Qt = Qt
 
         self.window = QMainWindow()
-        self.window.resize(1200, 750)
+        self.window.resize(1480, 860)
 
         self.current_pipeline_path: Path | None = None
         self.current_pipeline = default_pipeline(sample_rate, block_size, channels)
@@ -67,36 +76,75 @@ class SimDSPWindow:
 
         self.engine = engine_from_pipeline(self.current_pipeline, self.current_pipeline_path)
         self._running = False
+        self._block_specs = list_block_specs()
+        self._spec_by_type = {spec.type_name: spec for spec in self._block_specs}
+        self._selected_spec = None
+        self._selected_node_id: str | None = None
+        self._param_editors: dict[str, object] = {}
+        self._current_param_spec_by_name: dict[str, object] = {}
 
         root = QWidget()
         self.window.setCentralWidget(root)
-        main_layout = QVBoxLayout(root)
+        outer = QVBoxLayout(root)
 
         controls = QHBoxLayout()
         self.start_btn = QPushButton("Start")
         self.stop_btn = QPushButton("Stop")
         self.stop_btn.setEnabled(False)
-        controls.addWidget(self.start_btn)
-        controls.addWidget(self.stop_btn)
-        controls.addSpacing(12)
         self.open_btn = QPushButton("Open")
         self.save_btn = QPushButton("Save")
         self.save_as_btn = QPushButton("Save As")
         self.default_btn = QPushButton("Default")
-        controls.addWidget(self.open_btn)
-        controls.addWidget(self.save_btn)
-        controls.addWidget(self.save_as_btn)
-        controls.addWidget(self.default_btn)
-        controls.addSpacing(20)
-        controls.addWidget(QLabel("Sine Freq (Hz):"))
-        self.freq_spin = QSpinBox()
-        self.freq_spin.setRange(10, int(self.engine.sr // 2))
-        controls.addWidget(self.freq_spin)
+        self.apply_btn = QPushButton("Apply Params")
+        self.apply_btn.setEnabled(False)
         self.pipeline_label = QLabel()
-        controls.addSpacing(20)
+
+        for widget in (
+            self.start_btn,
+            self.stop_btn,
+            self.open_btn,
+            self.save_btn,
+            self.save_as_btn,
+            self.default_btn,
+            self.apply_btn,
+        ):
+            controls.addWidget(widget)
+        controls.addSpacing(16)
         controls.addWidget(self.pipeline_label)
         controls.addStretch(1)
-        main_layout.addLayout(controls)
+        outer.addLayout(controls)
+
+        splitter = QSplitter()
+        outer.addWidget(splitter, stretch=1)
+
+        left_panel = QWidget()
+        left_layout = QVBoxLayout(left_panel)
+        left_layout.addWidget(QLabel("Block Catalog"))
+        self.catalog_list = QListWidget()
+        left_layout.addWidget(self.catalog_list, stretch=2)
+        left_layout.addWidget(QLabel("Block Inspector"))
+        self.inspector = QTextEdit()
+        self.inspector.setReadOnly(True)
+        left_layout.addWidget(self.inspector, stretch=2)
+        left_layout.addWidget(QLabel("Pipeline Nodes"))
+        self.node_list = QListWidget()
+        left_layout.addWidget(self.node_list, stretch=2)
+        splitter.addWidget(left_panel)
+
+        center_panel = QWidget()
+        center_layout = QVBoxLayout(center_panel)
+
+        self.param_group = QGroupBox("Block Parameters")
+        param_layout = QVBoxLayout(self.param_group)
+        self.param_title = QLabel("Select a node from the current pipeline to edit its parameters.")
+        param_layout.addWidget(self.param_title)
+        self.param_scroll = QScrollArea()
+        self.param_scroll.setWidgetResizable(True)
+        self.param_container = QWidget()
+        self.param_form = QFormLayout(self.param_container)
+        self.param_scroll.setWidget(self.param_container)
+        param_layout.addWidget(self.param_scroll)
+        center_layout.addWidget(self.param_group, stretch=1)
 
         self.scope_plot = pg.PlotWidget(title="Scope (Time Domain)")
         self.scope_plot.setLabel("left", "Amplitude")
@@ -110,8 +158,11 @@ class SimDSPWindow:
         self.fft_plot.showGrid(x=True, y=True, alpha=0.2)
         self.fft_curve = self.fft_plot.plot(pen=pg.mkPen(color="#E95D0F", width=2))
 
-        main_layout.addWidget(self.scope_plot, stretch=1)
-        main_layout.addWidget(self.fft_plot, stretch=1)
+        center_layout.addWidget(self.scope_plot, stretch=2)
+        center_layout.addWidget(self.fft_plot, stretch=2)
+        splitter.addWidget(center_panel)
+        splitter.setStretchFactor(0, 0)
+        splitter.setStretchFactor(1, 1)
 
         self.timer = QTimer(self.window)
         self.timer.setInterval(30)
@@ -123,15 +174,14 @@ class SimDSPWindow:
         self.save_btn.clicked.connect(self.save_pipeline_file)
         self.save_as_btn.clicked.connect(self.save_pipeline_as_dialog)
         self.default_btn.clicked.connect(self.load_default_pipeline)
-        self.freq_spin.valueChanged.connect(self._set_frequency)
+        self.apply_btn.clicked.connect(self.apply_selected_node_params)
+        self.catalog_list.currentRowChanged.connect(self._on_catalog_selected)
+        self.node_list.currentRowChanged.connect(self._on_node_selected)
 
-        self._sync_controls_from_engine()
+        self._populate_catalog()
+        self._populate_node_list()
         self._update_window_state()
-
-    def _set_frequency(self, value: int) -> None:
-        gen = self.engine.nodes.get("gen")
-        if gen is not None and hasattr(gen.block, "freq"):
-            gen.block.freq = float(value)
+        self._select_first_catalog_item()
 
     def start_engine(self) -> None:
         if self._running:
@@ -190,10 +240,7 @@ class SimDSPWindow:
         self.window.show()
 
     def load_default_pipeline(self) -> None:
-        self._replace_pipeline(
-            default_pipeline(self.engine.sr, self.engine.bs, self.engine.ch),
-            path=None,
-        )
+        self._replace_pipeline(default_pipeline(self.engine.sr, self.engine.bs, self.engine.ch), path=None)
 
     def open_pipeline_dialog(self) -> None:
         selected, _ = self._QFileDialog.getOpenFileName(
@@ -232,6 +279,7 @@ class SimDSPWindow:
 
     def _replace_pipeline(self, pipeline: dict, path: str | Path | None) -> None:
         was_running = self._running
+        selected_node = self._selected_node_id
         self.stop_engine()
         try:
             self.engine = engine_from_pipeline(pipeline, path)
@@ -243,27 +291,178 @@ class SimDSPWindow:
 
         self.current_pipeline = deepcopy(pipeline)
         self.current_pipeline_path = Path(path) if path else None
-        self._sync_controls_from_engine()
+        self._populate_node_list(selected_node)
         self._update_window_state()
         if was_running:
             self.start_engine()
-
-    def _sync_controls_from_engine(self) -> None:
-        gen = self.engine.nodes.get("gen")
-        has_freq = gen is not None and hasattr(gen.block, "freq")
-        self.freq_spin.blockSignals(True)
-        self.freq_spin.setEnabled(has_freq)
-        self.freq_spin.setRange(10, max(10, int(self.engine.sr // 2)))
-        if has_freq:
-            self.freq_spin.setValue(int(round(float(gen.block.freq))))
-        else:
-            self.freq_spin.setValue(10)
-        self.freq_spin.blockSignals(False)
 
     def _update_window_state(self) -> None:
         name = self.current_pipeline_path.name if self.current_pipeline_path else "unsaved default pipeline"
         self.pipeline_label.setText(name)
         self.window.setWindowTitle(f"SimDSP 2.0 - Live Scope/FFT - {name}")
+
+    def _populate_catalog(self) -> None:
+        self.catalog_list.clear()
+        for spec in self._block_specs:
+            label = f"[{spec.category}] {spec.display_name or spec.type_name}"
+            item = self._QListWidgetItem(label)
+            item.setData(256, spec.type_name)
+            self.catalog_list.addItem(item)
+
+    def _populate_node_list(self, selected_node_id: str | None = None) -> None:
+        self.node_list.clear()
+        selected_row = 0
+        for idx, node in enumerate(self.current_pipeline.get("nodes", [])):
+            label = f"{node['id']} [{node['type']}]"
+            item = self._QListWidgetItem(label)
+            item.setData(256, node['id'])
+            self.node_list.addItem(item)
+            if selected_node_id is not None and node['id'] == selected_node_id:
+                selected_row = idx
+        if self.node_list.count() > 0:
+            self.node_list.setCurrentRow(min(selected_row, self.node_list.count() - 1))
+        else:
+            self._clear_param_form()
+
+    def _select_first_catalog_item(self) -> None:
+        if self.catalog_list.count() > 0:
+            self.catalog_list.setCurrentRow(0)
+
+    def _on_catalog_selected(self, row: int) -> None:
+        if row < 0 or row >= len(self._block_specs):
+            self._selected_spec = None
+            self.inspector.clear()
+            return
+        self._selected_spec = self._block_specs[row]
+        self.inspector.setPlainText(self._format_block_spec(self._selected_spec))
+
+    def _on_node_selected(self, row: int) -> None:
+        if row < 0 or row >= len(self.current_pipeline.get("nodes", [])):
+            self._selected_node_id = None
+            self._clear_param_form()
+            return
+        node = self.current_pipeline["nodes"][row]
+        self._selected_node_id = node['id']
+        spec = self._spec_by_type.get(node['type'])
+        self._build_param_form(node, spec)
+
+    def _build_param_form(self, node: dict, spec) -> None:
+        self._clear_param_form()
+        if spec is None:
+            self.param_title.setText(f"No metadata available for node '{node['id']}'.")
+            self.apply_btn.setEnabled(False)
+            return
+
+        self.param_title.setText(f"Editing node: {node['id']} [{spec.display_name or spec.type_name}]")
+        params = node.setdefault('params', {})
+        self._current_param_spec_by_name = {param.name: param for param in spec.params}
+
+        for param in spec.params:
+            editor = self._create_param_editor(param, params.get(param.name, param.default))
+            self._param_editors[param.name] = editor
+            label = param.name if not param.unit else f"{param.name} ({param.unit})"
+            self.param_form.addRow(label, editor)
+
+        self.apply_btn.setEnabled(bool(spec.params))
+
+    def _create_param_editor(self, param, value):
+        if param.choices:
+            editor = self._QComboBox()
+            for choice in param.choices:
+                editor.addItem(str(choice), choice)
+            idx = editor.findData(value)
+            if idx >= 0:
+                editor.setCurrentIndex(idx)
+            return editor
+
+        if param.param_type == 'bool':
+            editor = self._QCheckBox()
+            editor.setChecked(bool(value))
+            return editor
+
+        if param.param_type in {'float', 'int'}:
+            editor = self._QDoubleSpinBox()
+            editor.setDecimals(6 if param.param_type == 'float' else 0)
+            editor.setMinimum(param.min_value if param.min_value is not None else -1e12)
+            editor.setMaximum(param.max_value if param.max_value is not None else 1e12)
+            editor.setSingleStep(param.step if param.step is not None else (1.0 if param.param_type == 'int' else 0.1))
+            editor.setValue(float(value))
+            return editor
+
+        editor = self._QLineEdit(str(value) if value is not None else '')
+        return editor
+
+    def apply_selected_node_params(self) -> None:
+        if self._selected_node_id is None:
+            return
+        row = next((idx for idx, node in enumerate(self.current_pipeline.get('nodes', [])) if node['id'] == self._selected_node_id), None)
+        if row is None:
+            return
+
+        node = deepcopy(self.current_pipeline['nodes'][row])
+        params = node.setdefault('params', {})
+        for name, editor in self._param_editors.items():
+            params[name] = self._read_editor_value(name, editor)
+        updated_pipeline = deepcopy(self.current_pipeline)
+        updated_pipeline['nodes'][row] = node
+        self._replace_pipeline(updated_pipeline, self.current_pipeline_path)
+
+    def _read_editor_value(self, name: str, editor):
+        param = self._current_param_spec_by_name[name]
+        if param.choices:
+            return editor.currentData()
+        if param.param_type == 'bool':
+            return bool(editor.isChecked())
+        if param.param_type == 'int':
+            return int(round(editor.value()))
+        if param.param_type == 'float':
+            return float(editor.value())
+        text = editor.text()
+        if param.param_type.endswith('|null') and text == '':
+            return None
+        return text
+
+    def _clear_param_form(self) -> None:
+        while self.param_form.count():
+            item = self.param_form.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+        self._param_editors = {}
+        self._current_param_spec_by_name = {}
+        self.param_title.setText("Select a node from the current pipeline to edit its parameters.")
+        self.apply_btn.setEnabled(False)
+
+    def _format_block_spec(self, spec) -> str:
+        lines = [
+            f"Name: {spec.display_name or spec.type_name}",
+            f"Type: {spec.type_name}",
+            f"Category: {spec.category}",
+            f"Implementation: {spec.implementation}",
+            f"Inputs: {spec.inputs}",
+            f"Outputs: {spec.outputs}",
+            f"Tags: {', '.join(spec.tags) if spec.tags else '-'}",
+            "",
+            spec.description or "",
+            "",
+            "Parameters:",
+        ]
+        if not spec.params:
+            lines.append("  - None")
+        else:
+            for param in spec.params:
+                details = [f"type={param.param_type}", f"default={param.default}"]
+                if param.unit:
+                    details.append(f"unit={param.unit}")
+                if param.min_value is not None or param.max_value is not None:
+                    details.append(f"range={param.min_value}..{param.max_value}")
+                if param.step is not None:
+                    details.append(f"step={param.step}")
+                if param.choices:
+                    details.append(f"choices={list(param.choices)}")
+                lines.append(f"  - {param.name}: {param.description}")
+                lines.append(f"    {' | '.join(details)}")
+        return "\n".join(lines)
 
     def install_close_hook(self) -> None:
         original_close = self.window.closeEvent

@@ -1,5 +1,37 @@
-from app_desktop.live_ui import build_default_engine
-from app_desktop.pipeline_tools import default_pipeline, sync_pipeline_from_engine
+from app_desktop.live_ui import SimDSPWindow, build_default_engine
+from app_desktop.pipeline_tools import default_pipeline, list_block_specs, sync_pipeline_from_engine
+
+
+class _FakeCombo:
+    def __init__(self, data):
+        self._data = data
+
+    def currentData(self):
+        return self._data
+
+
+class _FakeCheck:
+    def __init__(self, checked):
+        self._checked = checked
+
+    def isChecked(self):
+        return self._checked
+
+
+class _FakeSpin:
+    def __init__(self, value):
+        self._value = value
+
+    def value(self):
+        return self._value
+
+
+class _FakeLine:
+    def __init__(self, text):
+        self._text = text
+
+    def text(self):
+        return self._text
 
 
 def test_build_default_engine_graph_contains_scope_and_fft_nodes():
@@ -31,3 +63,38 @@ def test_sync_pipeline_from_engine_updates_runtime_params():
 
     gen = next(node for node in snapshot["nodes"] if node["id"] == "gen")
     assert gen["params"]["freq"] == 1750.0
+
+
+def test_block_catalog_exposes_metadata_for_gui():
+    specs = list_block_specs()
+    names = {spec.type_name for spec in specs}
+
+    assert "Sine" in names
+    assert "AudioInput" in names
+    assert "NativeGain" in names
+
+
+def test_block_spec_formatter_contains_category_and_params():
+    spec = next(spec for spec in list_block_specs() if spec.type_name == "Sine")
+    formatted = SimDSPWindow._format_block_spec(None, spec)
+
+    assert "Category: generator" in formatted
+    assert "freq" in formatted
+    assert "unit=Hz" in formatted
+
+
+def test_read_editor_value_respects_param_types():
+    spec = next(spec for spec in list_block_specs() if spec.type_name == "Square")
+    params = {param.name: param for param in spec.params}
+    fake = type('FakeWindow', (), {'_current_param_spec_by_name': params})()
+
+    assert SimDSPWindow._read_editor_value(fake, 'duty', _FakeSpin(0.25)) == 0.25
+    assert SimDSPWindow._read_editor_value(fake, 'freq', _FakeSpin(1234.0)) == 1234.0
+
+    fft = next(spec for spec in list_block_specs() if spec.type_name == "FFTMag")
+    fake._current_param_spec_by_name = {param.name: param for param in fft.params}
+    assert SimDSPWindow._read_editor_value(fake, 'window', _FakeCombo('rect')) == 'rect'
+
+    audio = next(spec for spec in list_block_specs() if spec.type_name == "AudioInput")
+    fake._current_param_spec_by_name = {param.name: param for param in audio.params}
+    assert SimDSPWindow._read_editor_value(fake, 'device', _FakeLine('hw:0')) == 'hw:0'
