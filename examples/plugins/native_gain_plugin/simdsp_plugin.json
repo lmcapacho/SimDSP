@@ -1,0 +1,30 @@
+{
+  "plugin_id": "example.native_gain",
+  "name": "Example Native Gain Plugin",
+  "version": "0.1.0",
+  "blocks": [
+    {
+      "kind": "native-python",
+      "path": "native_gain_backend.py",
+      "backend_class": "PluginNativeGainBackend",
+      "spec": {
+        "type_name": "PluginNativeGain",
+        "implementation": "native-plugin",
+        "inputs": 1,
+        "outputs": 1,
+        "category": "native",
+        "display_name": "Plugin Native Gain",
+        "description": "Example native-style plugin block.",
+        "tags": ["plugin", "native", "gain"],
+        "params": [
+          {
+            "name": "gain",
+            "param_type": "float",
+            "default": 1.0,
+            "description": "Linear gain factor."
+          }
+        ]
+      }
+    }
+  ]
+}

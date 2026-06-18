@@ -113,6 +113,31 @@ simdsp-desktop --pipeline examples/pipelines/mat_file_source_fft.json
 
 The capture example `examples/pipelines/mat_roundtrip_capture.json` is intended for scripted runs and regression checks.
 
+## Plugin Discovery
+
+SimDSP 2.0 now has a formal plugin discovery/loading layer based on `simdsp_plugin.json` manifests.
+
+Supported plugin block kinds:
+
+- `python-file`: loads a Python block class that already defines `SPEC`
+- `native-python`: loads a backend class under the native adapter contract plus explicit `BlockSpec` metadata in the manifest
+
+Example plugin folders:
+
+- `examples/plugins/python_gain_plugin`
+- `examples/plugins/native_gain_plugin`
+
+Programmatic loading example:
+
+```python
+from app_desktop.pipeline_tools import create_registry
+
+registry = create_registry(plugin_dirs=["examples/plugins"])
+block = registry.create("PluginGain", {"gain": 0.5})
+```
+
+This keeps third-party growth out of the core repository and prepares the path for future plugin-aware tooling.
+
 ## Laboratory Presets
 
 SimDSP 2.0 now includes a reproducible laboratory preset catalog on top of JSON pipelines.

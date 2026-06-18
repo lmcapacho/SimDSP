@@ -7,13 +7,23 @@ from typing import Any
 from simdsp_blocks import register_builtin_blocks
 from simdsp_core.registry import BlockRegistry
 from simdsp_io import PIPELINE_SCHEMA_VERSION, load_pipeline, pipeline_to_engine
+from simdsp_plugins import register_plugins_from_dirs
 
-DEFAULT_BLOCK_REGISTRY = register_builtin_blocks(BlockRegistry())
 SOURCE_ROLE = "source"
 NOISE_ROLE = "noise"
 GAIN_ROLE = "gain"
 SCOPE_ROLE = "scope"
 FFT_ROLE = "fft"
+
+
+def create_registry(plugin_dirs: list[str | Path] | None = None) -> BlockRegistry:
+    registry = register_builtin_blocks(BlockRegistry())
+    if plugin_dirs:
+        register_plugins_from_dirs(plugin_dirs, registry)
+    return registry
+
+
+DEFAULT_BLOCK_REGISTRY = create_registry()
 
 
 def create_block(block_type: str, params: dict[str, Any], context: dict[str, Any] | None = None) -> object:

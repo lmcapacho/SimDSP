@@ -39,6 +39,8 @@ include = [
   "simdsp_io.*",
   "simdsp_native",
   "simdsp_native.*",
+  "simdsp_plugins",
+  "simdsp_plugins.*",
 ]
 exclude = [
   "legacy",

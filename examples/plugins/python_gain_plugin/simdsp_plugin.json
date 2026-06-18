@@ -1,0 +1,12 @@
+{
+  "plugin_id": "example.python_gain",
+  "name": "Example Python Gain Plugin",
+  "version": "0.1.0",
+  "blocks": [
+    {
+      "kind": "python-file",
+      "path": "plugin_gain.py",
+      "class_name": "PluginGain"
+    }
+  ]
+}
