@@ -16,6 +16,9 @@ def test_block_specs_expose_gui_ready_metadata():
     assert specs['MatFileSink'].category == 'sink'
     assert 'export' in specs['MatFileSink'].tags
 
+    assert specs['Gain'].category == 'effect'
+    assert 'gain' in specs['Gain'].tags
+
     assert specs['NativeGain'].category == 'native'
     assert specs['NativeGain'].display_name == 'Native Gain'
 

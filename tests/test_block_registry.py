@@ -10,7 +10,7 @@ from simdsp_native import NATIVE_GAIN_SPEC, NativeGainBackend, NativeBlockAdapte
 def test_default_registry_contains_builtin_blocks():
     specs = {spec.type_name: spec for spec in DEFAULT_BLOCK_REGISTRY.list_specs()}
 
-    assert {"Sine", "Square", "Triangle", "AWGN", "FFTMag", "ScopeTap", "NativeGain"}.issubset(specs.keys())
+    assert {"Sine", "Square", "Triangle", "AWGN", "Gain", "FFTMag", "ScopeTap", "NativeGain"}.issubset(specs.keys())
     assert specs["Sine"].implementation == "python"
     assert specs["FFTMag"].inputs == 1
 

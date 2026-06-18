@@ -9,6 +9,11 @@ from simdsp_core.registry import BlockRegistry
 from simdsp_io import PIPELINE_SCHEMA_VERSION, load_pipeline, pipeline_to_engine
 
 DEFAULT_BLOCK_REGISTRY = register_builtin_blocks(BlockRegistry())
+SOURCE_ROLE = "source"
+NOISE_ROLE = "noise"
+GAIN_ROLE = "gain"
+SCOPE_ROLE = "scope"
+FFT_ROLE = "fft"
 
 
 def create_block(block_type: str, params: dict[str, Any], context: dict[str, Any] | None = None) -> object:
@@ -30,17 +35,63 @@ def default_pipeline(
         "block_size": int(block_size),
         "channels": int(channels),
         "nodes": [
-            {"id": "gen", "type": "Sine", "params": {"freq": 1000.0, "amp": 0.8}},
-            {"id": "awgn", "type": "AWGN", "params": {"snr_db": 30.0, "seed": 1}},
-            {"id": "scope", "type": "ScopeTap", "params": {}},
-            {"id": "fft", "type": "FFTMag", "params": {"window": "hann"}},
+            {"id": "gen", "role": SOURCE_ROLE, "type": "Sine", "params": {"freq": 1000.0, "amp": 0.8}},
+            {"id": "awgn", "role": NOISE_ROLE, "type": "AWGN", "params": {"snr_db": 30.0, "seed": 1}},
+            {"id": "gain", "role": GAIN_ROLE, "type": "Gain", "params": {"gain": 1.0}},
+            {"id": "scope", "role": SCOPE_ROLE, "type": "ScopeTap", "params": {}},
+            {"id": "fft", "role": FFT_ROLE, "type": "FFTMag", "params": {"window": "hann"}},
         ],
         "edges": [
             {"from": "gen", "to": "awgn"},
-            {"from": "awgn", "to": "scope"},
-            {"from": "awgn", "to": "fft"},
+            {"from": "awgn", "to": "gain"},
+            {"from": "gain", "to": "scope"},
+            {"from": "gain", "to": "fft"},
         ],
     }
+
+
+def block_defaults(type_name: str) -> dict[str, Any]:
+    spec = DEFAULT_BLOCK_REGISTRY.spec(type_name)
+    return {param.name: deepcopy(param.default) for param in spec.params}
+
+
+def find_node_by_role(pipeline: dict[str, Any], role: str) -> dict[str, Any] | None:
+    for node in pipeline.get("nodes", []):
+        if node.get("role") == role:
+            return node
+    return None
+
+
+def apply_quick_experiment(
+    pipeline: dict[str, Any],
+    *,
+    source_type: str,
+    source_params: dict[str, Any] | None = None,
+    snr_db: float | None = None,
+    gain: float | None = None,
+) -> dict[str, Any]:
+    updated = deepcopy(pipeline)
+
+    source_node = find_node_by_role(updated, SOURCE_ROLE)
+    noise_node = find_node_by_role(updated, NOISE_ROLE)
+    gain_node = find_node_by_role(updated, GAIN_ROLE)
+
+    if source_node is None or noise_node is None or gain_node is None:
+        raise ValueError("Quick experiment requires source, noise, and gain roles in the pipeline.")
+
+    source_node["type"] = source_type
+    source_node["params"] = block_defaults(source_type)
+    source_node["params"].update(source_params or {})
+
+    if snr_db is not None:
+        noise_node.setdefault("params", {})
+        noise_node["params"]["snr_db"] = float(snr_db)
+
+    if gain is not None:
+        gain_node["type"] = "Gain"
+        gain_node["params"] = {"gain": float(gain)}
+
+    return updated
 
 
 def engine_from_pipeline(pipeline: dict[str, Any], pipeline_path: str | Path | None = None):

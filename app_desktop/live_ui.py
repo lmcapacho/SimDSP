@@ -9,7 +9,14 @@ from typing import Sequence
 
 import numpy as np
 
-from app_desktop.pipeline_tools import default_pipeline, engine_from_pipeline, list_block_specs, sync_pipeline_from_engine
+from app_desktop.pipeline_tools import (
+    apply_quick_experiment,
+    default_pipeline,
+    engine_from_pipeline,
+    find_node_by_role,
+    list_block_specs,
+    sync_pipeline_from_engine,
+)
 from simdsp_core.engine import Engine
 from simdsp_io import load_pipeline, save_pipeline
 
@@ -83,6 +90,7 @@ class SimDSPWindow:
         self._selected_edge_index: int | None = None
         self._param_editors: dict[str, object] = {}
         self._current_param_spec_by_name: dict[str, object] = {}
+        self._quick_source_types = ["Sine", "Square", "Triangle", "AudioInput", "WavFileSource", "MatFileSource"]
 
         root = QWidget()
         self.window.setCentralWidget(root)
@@ -136,6 +144,38 @@ class SimDSPWindow:
         self.inspector = QTextEdit()
         self.inspector.setReadOnly(True)
         left_layout.addWidget(self.inspector, stretch=2)
+
+        self.quick_group = QGroupBox("Quick Experiment")
+        quick_layout = QFormLayout(self.quick_group)
+        self.quick_source_combo = QComboBox()
+        for block_type in self._quick_source_types:
+            self.quick_source_combo.addItem(block_type, block_type)
+        self.quick_freq_spin = QDoubleSpinBox()
+        self.quick_freq_spin.setDecimals(3)
+        self.quick_freq_spin.setRange(0.0, 96000.0)
+        self.quick_freq_spin.setSingleStep(10.0)
+        self.quick_amp_spin = QDoubleSpinBox()
+        self.quick_amp_spin.setDecimals(3)
+        self.quick_amp_spin.setRange(0.0, 1.0)
+        self.quick_amp_spin.setSingleStep(0.05)
+        self.quick_snr_spin = QDoubleSpinBox()
+        self.quick_snr_spin.setDecimals(2)
+        self.quick_snr_spin.setRange(-20.0, 120.0)
+        self.quick_snr_spin.setSingleStep(0.5)
+        self.quick_gain_spin = QDoubleSpinBox()
+        self.quick_gain_spin.setDecimals(3)
+        self.quick_gain_spin.setRange(0.0, 100.0)
+        self.quick_gain_spin.setSingleStep(0.1)
+        self.quick_path_edit = QLineEdit()
+        self.quick_apply_btn = QPushButton("Apply Quick Setup")
+        quick_layout.addRow("Source", self.quick_source_combo)
+        quick_layout.addRow("Freq (Hz)", self.quick_freq_spin)
+        quick_layout.addRow("Amplitude", self.quick_amp_spin)
+        quick_layout.addRow("SNR (dB)", self.quick_snr_spin)
+        quick_layout.addRow("Gain", self.quick_gain_spin)
+        quick_layout.addRow("File/Mat Path", self.quick_path_edit)
+        quick_layout.addRow(self.quick_apply_btn)
+        left_layout.addWidget(self.quick_group, stretch=0)
         splitter.addWidget(left_panel)
 
         center_panel = QWidget()
@@ -215,6 +255,8 @@ class SimDSPWindow:
         self.delete_node_btn.clicked.connect(self.delete_selected_node)
         self.add_edge_btn.clicked.connect(self.add_edge_from_selected_nodes)
         self.delete_edge_btn.clicked.connect(self.delete_selected_edge)
+        self.quick_apply_btn.clicked.connect(self.apply_quick_experiment_controls)
+        self.quick_source_combo.currentIndexChanged.connect(self._update_quick_control_state)
         self.catalog_list.currentRowChanged.connect(self._on_catalog_selected)
         self.node_list.currentRowChanged.connect(self._on_node_selected)
         self.edge_list.currentRowChanged.connect(self._on_edge_selected)
@@ -222,6 +264,8 @@ class SimDSPWindow:
         self._populate_catalog()
         self._populate_node_list()
         self._populate_edge_list()
+        self._sync_quick_controls()
+        self._update_quick_control_state()
         self._update_window_state()
         self._select_first_catalog_item()
 
@@ -336,6 +380,8 @@ class SimDSPWindow:
         self.current_pipeline_path = Path(path) if path else None
         self._populate_node_list(selected_node)
         self._populate_edge_list(selected_edge)
+        self._sync_quick_controls()
+        self._update_quick_control_state()
         self._update_window_state()
         if was_running:
             self.start_engine()
@@ -344,6 +390,50 @@ class SimDSPWindow:
         name = self.current_pipeline_path.name if self.current_pipeline_path else "unsaved default pipeline"
         self.pipeline_label.setText(name)
         self.window.setWindowTitle(f"SimDSP 2.0 - Live Scope/FFT - {name}")
+
+    def _sync_quick_controls(self) -> None:
+        source_node = find_node_by_role(self.current_pipeline, "source")
+        noise_node = find_node_by_role(self.current_pipeline, "noise")
+        gain_node = find_node_by_role(self.current_pipeline, "gain")
+        if source_node is not None:
+            idx = self.quick_source_combo.findData(source_node["type"])
+            if idx >= 0:
+                self.quick_source_combo.setCurrentIndex(idx)
+            params = source_node.get("params", {})
+            self.quick_freq_spin.setValue(float(params.get("freq", 1000.0) or 0.0))
+            self.quick_amp_spin.setValue(float(params.get("amp", 0.7) or 0.0))
+            self.quick_path_edit.setText(str(params.get("path", "") or ""))
+        if noise_node is not None:
+            self.quick_snr_spin.setValue(float(noise_node.get("params", {}).get("snr_db", 30.0)))
+        if gain_node is not None:
+            self.quick_gain_spin.setValue(float(gain_node.get("params", {}).get("gain", 1.0)))
+
+    def _update_quick_control_state(self) -> None:
+        source_type = self.quick_source_combo.currentData()
+        generator_source = source_type in {"Sine", "Square", "Triangle"}
+        file_source = source_type in {"WavFileSource", "MatFileSource"}
+        self.quick_freq_spin.setEnabled(generator_source)
+        self.quick_amp_spin.setEnabled(generator_source)
+        self.quick_path_edit.setEnabled(file_source)
+
+    def apply_quick_experiment_controls(self) -> None:
+        source_type = self.quick_source_combo.currentData()
+        source_params = {}
+        if source_type in {"Sine", "Square", "Triangle"}:
+            source_params["freq"] = float(self.quick_freq_spin.value())
+            source_params["amp"] = float(self.quick_amp_spin.value())
+        if source_type == "WavFileSource":
+            source_params["path"] = self.quick_path_edit.text().strip()
+        if source_type == "MatFileSource":
+            source_params["path"] = self.quick_path_edit.text().strip()
+        updated_pipeline = apply_quick_experiment(
+            self.current_pipeline,
+            source_type=source_type,
+            source_params=source_params,
+            snr_db=float(self.quick_snr_spin.value()),
+            gain=float(self.quick_gain_spin.value()),
+        )
+        self._replace_pipeline(updated_pipeline, self.current_pipeline_path)
 
     def _populate_catalog(self) -> None:
         self.catalog_list.clear()

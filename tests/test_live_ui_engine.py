@@ -1,5 +1,5 @@
 from app_desktop.live_ui import SimDSPWindow, build_default_engine
-from app_desktop.pipeline_tools import default_pipeline, list_block_specs, sync_pipeline_from_engine
+from app_desktop.pipeline_tools import apply_quick_experiment, default_pipeline, find_node_by_role, list_block_specs, sync_pipeline_from_engine
 
 
 class _FakeCombo:
@@ -39,10 +39,12 @@ def test_build_default_engine_graph_contains_scope_and_fft_nodes():
 
     assert "gen" in eng.nodes
     assert "awgn" in eng.nodes
+    assert "gain" in eng.nodes
     assert "scope" in eng.nodes
     assert "fft" in eng.nodes
-    assert eng.nodes["scope"].inputs == ["awgn"]
-    assert eng.nodes["fft"].inputs == ["awgn"]
+    assert eng.nodes["gain"].inputs == ["awgn"]
+    assert eng.nodes["scope"].inputs == ["gain"]
+    assert eng.nodes["fft"].inputs == ["gain"]
 
 
 def test_default_pipeline_contains_expected_nodes():
@@ -51,7 +53,9 @@ def test_default_pipeline_contains_expected_nodes():
     assert pipeline["sample_rate"] == 44_100.0
     assert pipeline["block_size"] == 256
     assert pipeline["channels"] == 1
-    assert [node["id"] for node in pipeline["nodes"]] == ["gen", "awgn", "scope", "fft"]
+    assert [node["id"] for node in pipeline["nodes"]] == ["gen", "awgn", "gain", "scope", "fft"]
+    assert find_node_by_role(pipeline, "source")["id"] == "gen"
+    assert find_node_by_role(pipeline, "gain")["type"] == "Gain"
 
 
 def test_sync_pipeline_from_engine_updates_runtime_params():
@@ -212,5 +216,43 @@ def test_delete_selected_edge_removes_edge_by_index():
 
     SimDSPWindow.delete_selected_edge(fake)
 
-    assert len(captured['pipeline']['edges']) == 2
+    assert len(captured['pipeline']['edges']) == 3
     assert {'from': 'gen', 'to': 'awgn'} not in captured['pipeline']['edges']
+
+
+def test_apply_quick_experiment_swaps_source_and_updates_noise_gain():
+    pipeline = default_pipeline(sample_rate=48_000, block_size=512, channels=1)
+
+    updated = apply_quick_experiment(
+        pipeline,
+        source_type='Triangle',
+        source_params={'freq': 750.0, 'amp': 0.4},
+        snr_db=12.5,
+        gain=2.0,
+    )
+
+    source = find_node_by_role(updated, 'source')
+    noise = find_node_by_role(updated, 'noise')
+    gain = find_node_by_role(updated, 'gain')
+    assert source['type'] == 'Triangle'
+    assert source['params']['freq'] == 750.0
+    assert source['params']['amp'] == 0.4
+    assert noise['params']['snr_db'] == 12.5
+    assert gain['params']['gain'] == 2.0
+
+
+def test_apply_quick_experiment_sets_file_source_path():
+    pipeline = default_pipeline(sample_rate=48_000, block_size=512, channels=1)
+
+    updated = apply_quick_experiment(
+        pipeline,
+        source_type='WavFileSource',
+        source_params={'path': 'examples/assets/tone_1k.wav'},
+        snr_db=30.0,
+        gain=1.0,
+    )
+
+    source = find_node_by_role(updated, 'source')
+    assert source['type'] == 'WavFileSource'
+    assert source['params']['path'] == 'examples/assets/tone_1k.wav'
+    assert source['params']['loop'] is False
