@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from simdsp_core.block_api import BlockSpec, ParamSpec
+from simdsp_core.block_api import BlockSpec, NativeBlockCapabilities, ParamSpec
 
 
 GAIN_NATIVE_SPEC = BlockSpec(
@@ -14,8 +14,19 @@ GAIN_NATIVE_SPEC = BlockSpec(
     params=(ParamSpec("gain", "float", 1.0, "Linear gain factor."),),
 )
 
+GAIN_NATIVE_CAPABILITIES = NativeBlockCapabilities(
+    backend_name="mock_native_gain",
+    language="python-mock",
+    supported_platforms=("linux", "darwin", "win32"),
+    requires_compiler=False,
+    auto_build=False,
+    notes="Testing backend that mimics a native adapter without loading a shared library.",
+)
+
 
 class GainBackend:
+    CAPABILITIES = GAIN_NATIVE_CAPABILITIES
+
     def __init__(self, params: dict):
         self.gain = float(params.get("gain", 1.0))
 

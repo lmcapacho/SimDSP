@@ -3,8 +3,8 @@ from __future__ import annotations
 import ctypes
 import numpy as np
 
-from simdsp_core.block_api import BlockSpec, ParamSpec
-from simdsp_native.build import build_native_gain
+from simdsp_core.block_api import BlockSpec, NativeBlockCapabilities, ParamSpec
+from simdsp_native.build import build_native_gain, native_gain_library_path
 
 
 NATIVE_GAIN_SPEC = BlockSpec(
@@ -19,8 +19,20 @@ NATIVE_GAIN_SPEC = BlockSpec(
     params=(ParamSpec("gain", "float", 1.0, "Linear gain factor."),),
 )
 
+NATIVE_GAIN_CAPABILITIES = NativeBlockCapabilities(
+    backend_name="simdsp_native_gain",
+    language="c++17",
+    supported_platforms=("linux", "darwin", "win32"),
+    requires_compiler=True,
+    auto_build=True,
+    shared_library_name=native_gain_library_path().name,
+    notes="Auto-build currently works on Linux and macOS. Windows requires a prebuilt DLL.",
+)
+
 
 class NativeGainBackend:
+    CAPABILITIES = NATIVE_GAIN_CAPABILITIES
+
     def __init__(self, params: dict):
         self.gain = float(params.get("gain", 1.0))
         self._lib = None

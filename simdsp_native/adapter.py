@@ -4,7 +4,7 @@ from typing import Callable
 
 import numpy as np
 
-from simdsp_core.block_api import Block, BlockSpec, NativeBlockBackend
+from simdsp_core.block_api import Block, BlockSpec, NativeBlockBackend, NativeBlockCapabilities
 
 
 class NativeBlockAdapter(Block):
@@ -13,6 +13,7 @@ class NativeBlockAdapter(Block):
         self._backend_factory = backend_factory
         self._backend: NativeBlockBackend | None = None
         self._spec = spec
+        self._capabilities = getattr(backend_factory, 'CAPABILITIES', None)
         for name, value in params.items():
             setattr(self, name, value)
 
@@ -20,9 +21,14 @@ class NativeBlockAdapter(Block):
     def spec(self) -> BlockSpec:
         return self._spec
 
+    @property
+    def capabilities(self) -> NativeBlockCapabilities | None:
+        return self._capabilities
+
     def init(self, sample_rate, block_size, channels):
         super().init(sample_rate, block_size, channels)
         self._backend = self._backend_factory(dict(self.params))
+        self._capabilities = getattr(self._backend, 'CAPABILITIES', self._capabilities)
         try:
             self._backend.init(self.sr, self.bs, self.ch)
         except Exception as exc:

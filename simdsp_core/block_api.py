@@ -33,6 +33,17 @@ class BlockSpec:
     accepts_extra_params: bool = False
 
 
+@dataclass(frozen=True)
+class NativeBlockCapabilities:
+    backend_name: str
+    language: str
+    supported_platforms: tuple[str, ...] = field(default_factory=tuple)
+    requires_compiler: bool = False
+    auto_build: bool = False
+    shared_library_name: str | None = None
+    notes: str = ""
+
+
 class Block:
     SPEC = BlockSpec(
         type_name="Block",
@@ -65,6 +76,8 @@ class Block:
 
 
 class NativeBlockBackend(Protocol):
+    CAPABILITIES: NativeBlockCapabilities | None
+
     def init(self, sample_rate: float, block_size: int, channels: int) -> None: ...
 
     def process(self, inputs: list[np.ndarray]) -> list[np.ndarray]: ...
