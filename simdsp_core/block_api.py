@@ -30,6 +30,7 @@ class BlockSpec:
     description: str = ""
     tags: tuple[str, ...] = field(default_factory=tuple)
     params: tuple[ParamSpec, ...] = field(default_factory=tuple)
+    accepts_extra_params: bool = False
 
 
 class Block:
@@ -42,6 +43,7 @@ class Block:
         display_name="Block",
         description="Base DSP block.",
         tags=("base",),
+        accepts_extra_params=True,
     )
 
     def __init__(self, **params: Any) -> None:

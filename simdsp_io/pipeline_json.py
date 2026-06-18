@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Callable, Dict, List, Any
 import inspect
 
-from simdsp_core.block_api import BlockSpec
+from simdsp_core.block_api import BlockSpec, ParamSpec
 from simdsp_core.engine import Engine
 
 PIPELINE_SCHEMA_VERSION = 1
@@ -80,6 +80,67 @@ def _role_matches_spec(role: str, spec: BlockSpec) -> bool:
     return True
 
 
+def _matches_param_type(value: Any, declared_type: str) -> bool:
+    variants = declared_type.split("|")
+    for variant in variants:
+        kind = variant.strip()
+        if kind == "null" and value is None:
+            return True
+        if kind == "bool" and isinstance(value, bool):
+            return True
+        if kind == "int" and isinstance(value, int) and not isinstance(value, bool):
+            return True
+        if kind == "float" and isinstance(value, (int, float)) and not isinstance(value, bool):
+            return True
+        if kind == "str" and isinstance(value, str):
+            return True
+    return False
+
+
+def _validate_param_value(node_id: str, spec: BlockSpec, param: ParamSpec, value: Any) -> None:
+    if not _matches_param_type(value, param.param_type):
+        raise ValueError(
+            f"Node '{node_id}' parameter '{param.name}' for block '{spec.type_name}' must match type '{param.param_type}'."
+        )
+    if value is None:
+        return
+    if param.choices and value not in param.choices:
+        raise ValueError(
+            f"Node '{node_id}' parameter '{param.name}' for block '{spec.type_name}' must be one of {list(param.choices)}."
+        )
+    if isinstance(value, bool):
+        return
+    if isinstance(value, (int, float)):
+        if param.min_value is not None and value < param.min_value:
+            raise ValueError(
+                f"Node '{node_id}' parameter '{param.name}' for block '{spec.type_name}' must be >= {param.min_value}."
+            )
+        if param.max_value is not None and value > param.max_value:
+            raise ValueError(
+                f"Node '{node_id}' parameter '{param.name}' for block '{spec.type_name}' must be <= {param.max_value}."
+            )
+
+
+def _validate_params(node: Dict[str, Any], spec: BlockSpec) -> None:
+    params = node.get("params", {})
+    if not isinstance(params, dict):
+        raise ValueError(f"Node '{node['id']}' params must be an object.")
+
+    allowed = {param.name: param for param in spec.params}
+    if not spec.accepts_extra_params:
+        unknown = sorted(set(params.keys()) - set(allowed.keys()))
+        if unknown:
+            raise ValueError(
+                f"Node '{node['id']}' of type '{spec.type_name}' received unknown parameter(s): {', '.join(unknown)}."
+            )
+
+    for name, value in params.items():
+        param_spec = allowed.get(name)
+        if param_spec is None:
+            continue
+        _validate_param_value(node["id"], spec, param_spec, value)
+
+
 def validate_pipeline(
     pipeline: Dict[str, Any],
     spec_lookup: Callable[[str], BlockSpec] | None = None,
@@ -98,6 +159,7 @@ def validate_pipeline(
             continue
 
         spec = spec_lookup(node["type"])
+        _validate_params(node, spec)
         actual_inputs = len(inputs_by_node.get(node_id, []))
         if spec.inputs is not None and actual_inputs != spec.inputs:
             raise ValueError(
