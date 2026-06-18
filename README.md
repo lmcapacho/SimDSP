@@ -30,6 +30,11 @@ The original Qt/C++ version is preserved in:
 > Instructions will be provided once the first Python release is available.  
 For now, clone the repo and switch to the `simdsp2` branch.
 
+## Architecture
+
+See `docs/architecture.md` for the current internal architecture, module boundaries, pipeline flow, preset layer, plugin layer, and native block contract.
+
+
 ## Audio Smoke Defaults (current)
 
 - Current recommended `block_size` default for smoke tests: `512` (balanced latency/CPU tradeoff).
