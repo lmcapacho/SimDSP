@@ -113,6 +113,39 @@ simdsp-desktop --pipeline examples/pipelines/mat_file_source_fft.json
 
 The capture example `examples/pipelines/mat_roundtrip_capture.json` is intended for scripted runs and regression checks.
 
+## Laboratory Presets
+
+SimDSP 2.0 now includes a reproducible laboratory preset catalog on top of JSON pipelines.
+
+Available preset ids:
+
+- `tone_clean`
+- `tone_awgn`
+- `tone_awgn_gain`
+- `audio_input_fft`
+- `wav_fft`
+- `mat_fft`
+
+The preset API lives in `simdsp_io.lab_presets` and supports:
+
+- listing presets
+- loading a preset pipeline
+- overriding only explicitly exposed experiment parameters
+
+Example:
+
+```python
+from simdsp_io import load_lab_preset
+
+pipeline = load_lab_preset("tone_awgn_gain", overrides={
+    "freq": 750.0,
+    "snr_db": 18.0,
+    "gain": 1.5,
+})
+```
+
+This is the base layer for recovering the original SimDSP workflow of switching quickly between common DSP experiments without rebuilding the pipeline by hand.
+
 ## Native C++ Block
 
 SimDSP 2.0 now includes a first real native C++ block wired into the same pipeline contract:

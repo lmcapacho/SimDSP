@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "sample_rate": 48000,
+  "block_size": 512,
+  "channels": 1,
+  "nodes": [
+    {"id": "gen", "role": "source", "type": "Sine", "params": {"freq": 1000.0, "amp": 0.8}},
+    {"id": "awgn", "role": "noise", "type": "AWGN", "params": {"snr_db": 30.0, "seed": 1}},
+    {"id": "gain", "role": "gain", "type": "Gain", "params": {"gain": 1.0}},
+    {"id": "scope", "role": "scope", "type": "ScopeTap", "params": {}},
+    {"id": "fft", "role": "fft", "type": "FFTMag", "params": {"window": "hann"}}
+  ],
+  "edges": [
+    {"from": "gen", "to": "awgn"},
+    {"from": "awgn", "to": "gain"},
+    {"from": "gain", "to": "scope"},
+    {"from": "gain", "to": "fft"}
+  ]
+}
