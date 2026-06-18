@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from app_desktop.pipeline_tools import DEFAULT_BLOCK_REGISTRY
+from simdsp_blocks.catalog import DEFAULT_BLOCK_REGISTRY
 
 
 def _param_map(type_name: str):

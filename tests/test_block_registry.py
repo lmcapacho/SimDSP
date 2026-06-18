@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from app_desktop.pipeline_tools import DEFAULT_BLOCK_REGISTRY
+from simdsp_blocks.catalog import DEFAULT_BLOCK_REGISTRY
 from simdsp_core import BlockRegistry
 from simdsp_native import NATIVE_GAIN_SPEC, NativeGainBackend, NativeBlockAdapter
 

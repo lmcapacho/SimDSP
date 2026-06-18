@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from app_desktop.pipeline_tools import create_block
+from simdsp_blocks.catalog import create_block
 from simdsp_io.pipeline_json import (
     PIPELINE_SCHEMA_VERSION,
     load_pipeline,

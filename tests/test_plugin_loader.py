@@ -5,7 +5,7 @@ import json
 import numpy as np
 import pytest
 
-from app_desktop.pipeline_tools import create_registry
+from simdsp_blocks.catalog import create_registry
 from simdsp_core import Block
 from simdsp_plugins import discover_plugin_manifests, load_plugin_manifest, register_plugins_from_dirs
 

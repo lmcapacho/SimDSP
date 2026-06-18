@@ -9,14 +9,9 @@ from typing import Sequence
 
 import numpy as np
 
-from app_desktop.pipeline_tools import (
-    apply_quick_experiment,
-    default_pipeline,
-    engine_from_pipeline,
-    find_node_by_role,
-    list_block_specs,
-    sync_pipeline_from_engine,
-)
+from app_desktop.pipeline_tools import apply_quick_experiment, default_pipeline, engine_from_pipeline, sync_pipeline_from_engine
+from simdsp_blocks.catalog import list_block_specs
+from simdsp_core import find_node_by_role
 from simdsp_core.engine import Engine
 from simdsp_io import load_pipeline, save_pipeline
 

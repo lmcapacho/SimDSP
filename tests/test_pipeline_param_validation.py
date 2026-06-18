@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from app_desktop.pipeline_tools import create_block, lookup_block_spec
+from simdsp_blocks.catalog import create_block, lookup_block_spec
 from simdsp_io.pipeline_json import PIPELINE_SCHEMA_VERSION, pipeline_to_engine, validate_pipeline
 
 

@@ -6,11 +6,11 @@ from pathlib import Path
 from typing import Callable, Dict, List, Any
 import inspect
 
+from simdsp_core import RESERVED_ROLES, role_matches_spec
 from simdsp_core.block_api import BlockSpec, ParamSpec
 from simdsp_core.engine import Engine
 
 PIPELINE_SCHEMA_VERSION = 1
-RESERVED_ROLES = {"source", "noise", "gain", "scope", "fft"}
 
 
 def _validate_pipeline_dict(pipeline: Dict[str, Any]) -> None:
@@ -57,6 +57,7 @@ def _validate_pipeline_dict(pipeline: Dict[str, Any]) -> None:
         seen_edges.add(edge_key)
 
 
+
 def _inputs_from_pipeline(pipeline: Dict[str, Any]) -> Dict[str, List[str]]:
     if "edges" in pipeline:
         inputs: Dict[str, List[str]] = {node["id"]: [] for node in pipeline["nodes"]}
@@ -65,19 +66,6 @@ def _inputs_from_pipeline(pipeline: Dict[str, Any]) -> Dict[str, List[str]]:
         return inputs
     return {node["id"]: list(node.get("inputs", [])) for node in pipeline["nodes"]}
 
-
-def _role_matches_spec(role: str, spec: BlockSpec) -> bool:
-    if role == "source":
-        return spec.inputs == 0 and spec.category in {"generator", "source"}
-    if role == "noise":
-        return spec.inputs == 1 and "noise" in spec.tags
-    if role == "gain":
-        return spec.inputs == 1 and "gain" in spec.tags
-    if role == "scope":
-        return spec.type_name == "ScopeTap" or (spec.inputs == 1 and "scope" in spec.tags)
-    if role == "fft":
-        return spec.type_name == "FFTMag" or (spec.inputs == 1 and "spectrum" in spec.tags)
-    return True
 
 
 def _matches_param_type(value: Any, declared_type: str) -> bool:
@@ -95,6 +83,7 @@ def _matches_param_type(value: Any, declared_type: str) -> bool:
         if kind == "str" and isinstance(value, str):
             return True
     return False
+
 
 
 def _validate_param_value(node_id: str, spec: BlockSpec, param: ParamSpec, value: Any) -> None:
@@ -121,6 +110,7 @@ def _validate_param_value(node_id: str, spec: BlockSpec, param: ParamSpec, value
             )
 
 
+
 def _validate_params(node: Dict[str, Any], spec: BlockSpec) -> None:
     params = node.get("params", {})
     if not isinstance(params, dict):
@@ -139,6 +129,7 @@ def _validate_params(node: Dict[str, Any], spec: BlockSpec) -> None:
         if param_spec is None:
             continue
         _validate_param_value(node["id"], spec, param_spec, value)
+
 
 
 def validate_pipeline(
@@ -165,7 +156,7 @@ def validate_pipeline(
             raise ValueError(
                 f"Node '{node_id}' of type '{spec.type_name}' expects {spec.inputs} input(s) but pipeline provides {actual_inputs}."
             )
-        if role is not None and role in RESERVED_ROLES and not _role_matches_spec(role, spec):
+        if role is not None and role in RESERVED_ROLES and not role_matches_spec(role, spec):
             raise ValueError(
                 f"Node '{node_id}' of type '{spec.type_name}' is not compatible with reserved role '{role}'."
             )

@@ -4,38 +4,17 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
-from simdsp_blocks import register_builtin_blocks
-from simdsp_core.registry import BlockRegistry
+from simdsp_blocks.catalog import (
+    DEFAULT_BLOCK_REGISTRY,
+    block_defaults,
+    create_block,
+    create_registry,
+    list_block_specs,
+    lookup_block_spec,
+)
+from simdsp_core import FFT_ROLE, GAIN_ROLE, NOISE_ROLE, SCOPE_ROLE, SOURCE_ROLE, find_node_by_role
 from simdsp_io import PIPELINE_SCHEMA_VERSION, load_pipeline, pipeline_to_engine
-from simdsp_plugins import register_plugins_from_dirs
 
-SOURCE_ROLE = "source"
-NOISE_ROLE = "noise"
-GAIN_ROLE = "gain"
-SCOPE_ROLE = "scope"
-FFT_ROLE = "fft"
-
-
-def create_registry(plugin_dirs: list[str | Path] | None = None) -> BlockRegistry:
-    registry = register_builtin_blocks(BlockRegistry())
-    if plugin_dirs:
-        register_plugins_from_dirs(plugin_dirs, registry)
-    return registry
-
-
-DEFAULT_BLOCK_REGISTRY = create_registry()
-
-
-def create_block(block_type: str, params: dict[str, Any], context: dict[str, Any] | None = None) -> object:
-    return DEFAULT_BLOCK_REGISTRY.create(block_type, params, context)
-
-
-def list_block_specs():
-    return DEFAULT_BLOCK_REGISTRY.list_specs()
-
-
-def lookup_block_spec(type_name: str):
-    return DEFAULT_BLOCK_REGISTRY.spec(type_name)
 
 
 def default_pipeline(
@@ -63,17 +42,6 @@ def default_pipeline(
         ],
     }
 
-
-def block_defaults(type_name: str) -> dict[str, Any]:
-    spec = DEFAULT_BLOCK_REGISTRY.spec(type_name)
-    return {param.name: deepcopy(param.default) for param in spec.params}
-
-
-def find_node_by_role(pipeline: dict[str, Any], role: str) -> dict[str, Any] | None:
-    for node in pipeline.get("nodes", []):
-        if node.get("role") == role:
-            return node
-    return None
 
 
 def apply_quick_experiment(
@@ -108,6 +76,7 @@ def apply_quick_experiment(
     return updated
 
 
+
 def engine_from_pipeline(pipeline: dict[str, Any], pipeline_path: str | Path | None = None):
     context = {}
     if pipeline_path is not None:
@@ -116,8 +85,10 @@ def engine_from_pipeline(pipeline: dict[str, Any], pipeline_path: str | Path | N
     return pipeline_to_engine(pipeline, create_block, context=context, spec_lookup=lookup_block_spec)
 
 
+
 def engine_from_pipeline_path(path: str | Path):
     return engine_from_pipeline(load_pipeline(path), pipeline_path=path)
+
 
 
 def sync_pipeline_from_engine(pipeline: dict[str, Any], engine) -> dict[str, Any]:
