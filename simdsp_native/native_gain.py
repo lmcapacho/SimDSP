@@ -31,8 +31,16 @@ class NativeGainBackend:
         self.bs = int(block_size)
         self.ch = int(channels)
         lib_path = build_native_gain()
-        self._lib = ctypes.CDLL(str(lib_path))
-        self._process = self._lib.simdsp_native_gain_process
+        try:
+            self._lib = ctypes.CDLL(str(lib_path))
+        except OSError as exc:
+            raise RuntimeError(f"Could not load native library '{lib_path}': {exc}") from exc
+        try:
+            self._process = self._lib.simdsp_native_gain_process
+        except AttributeError as exc:
+            raise RuntimeError(
+                f"Native library '{lib_path}' does not export 'simdsp_native_gain_process'."
+            ) from exc
         self._process.argtypes = [
             ctypes.POINTER(ctypes.c_float),
             ctypes.POINTER(ctypes.c_float),
