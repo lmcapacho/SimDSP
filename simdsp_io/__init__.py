@@ -4,6 +4,7 @@ from .pipeline_json import (
     load_pipeline,
     pipeline_to_engine,
     save_pipeline,
+    validate_pipeline,
 )
 
 __all__ = [
@@ -13,4 +14,5 @@ __all__ = [
     "load_pipeline",
     "pipeline_to_engine",
     "save_pipeline",
+    "validate_pipeline",
 ]

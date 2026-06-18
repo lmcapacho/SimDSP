@@ -24,6 +24,10 @@ def list_block_specs():
     return DEFAULT_BLOCK_REGISTRY.list_specs()
 
 
+def lookup_block_spec(type_name: str):
+    return DEFAULT_BLOCK_REGISTRY.spec(type_name)
+
+
 def default_pipeline(
     sample_rate: float = 48_000.0,
     block_size: int = 1024,
@@ -99,7 +103,7 @@ def engine_from_pipeline(pipeline: dict[str, Any], pipeline_path: str | Path | N
     if pipeline_path is not None:
         resolved = Path(pipeline_path).resolve()
         context = {"pipeline_path": str(resolved), "pipeline_dir": str(resolved.parent)}
-    return pipeline_to_engine(pipeline, create_block, context=context)
+    return pipeline_to_engine(pipeline, create_block, context=context, spec_lookup=lookup_block_spec)
 
 
 def engine_from_pipeline_path(path: str | Path):
