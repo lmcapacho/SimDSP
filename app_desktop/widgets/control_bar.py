@@ -6,6 +6,7 @@ class ControlBar:
         QPushButton = widgets["QPushButton"]
         QLabel = widgets["QLabel"]
         QHBoxLayout = widgets["QHBoxLayout"]
+        QComboBox = widgets["QComboBox"]
 
         self.layout = QHBoxLayout()
         self.start_btn = QPushButton("Start")
@@ -23,6 +24,10 @@ class ControlBar:
         self.add_node_btn.setEnabled(False)
         self.delete_node_btn = QPushButton("Delete Node")
         self.delete_node_btn.setEnabled(False)
+        self.mode_label = QLabel("Mode")
+        self.mode_combo = QComboBox()
+        self.mode_combo.addItem("Lab Mode", "lab")
+        self.mode_combo.addItem("Pipeline Mode", "pipeline")
         self.pipeline_label = QLabel()
 
         for widget in (
@@ -32,6 +37,13 @@ class ControlBar:
             self.save_btn,
             self.save_as_btn,
             self.default_btn,
+        ):
+            self.layout.addWidget(widget)
+        self.layout.addSpacing(12)
+        self.layout.addWidget(self.mode_label)
+        self.layout.addWidget(self.mode_combo)
+        self.layout.addSpacing(12)
+        for widget in (
             self.apply_btn,
             self.change_type_btn,
             self.add_node_btn,

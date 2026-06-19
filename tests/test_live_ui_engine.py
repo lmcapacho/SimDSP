@@ -256,3 +256,33 @@ def test_apply_quick_experiment_sets_file_source_path():
     assert source['type'] == 'WavFileSource'
     assert source['params']['path'] == 'examples/assets/tone_1k.wav'
     assert source['params']['loop'] is False
+
+
+def test_session_state_defaults_to_lab_mode():
+    from app_desktop.viewmodels import SessionState
+
+    state = SessionState()
+
+    assert state.view_mode == 'lab'
+    assert state.running is False
+
+
+def test_mode_switch_applies_workspace_visibility():
+    fake = type('FakeWindow', (), {})()
+    calls = []
+    fake.state = type('State', (), {'view_mode': 'pipeline'})()
+    fake.workspace_panel = type('Workspace', (), {'set_mode': lambda self, mode: calls.append(mode)})()
+    fake._selected_spec = object()
+    fake._selected_node_id = 'gen'
+    fake.apply_btn = type('Btn', (), {'setVisible': lambda self, v: calls.append(('apply_visible', v))})()
+    fake.change_type_btn = type('Btn', (), {'setVisible': lambda self, v: calls.append(('change_visible', v)), 'setEnabled': lambda self, v: calls.append(('change_enabled', v))})()
+    fake.add_node_btn = type('Btn', (), {'setVisible': lambda self, v: calls.append(('add_visible', v)), 'setEnabled': lambda self, v: calls.append(('add_enabled', v))})()
+    fake.delete_node_btn = type('Btn', (), {'setVisible': lambda self, v: calls.append(('delete_visible', v)), 'setEnabled': lambda self, v: calls.append(('delete_enabled', v))})()
+
+    SimDSPWindow._apply_view_mode(fake)
+
+    assert 'pipeline' in calls
+    assert ('apply_visible', True) in calls
+    assert ('change_visible', True) in calls
+    assert ('add_visible', True) in calls
+    assert ('delete_visible', True) in calls

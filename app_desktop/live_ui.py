@@ -10,7 +10,8 @@ from typing import Sequence
 import numpy as np
 
 from app_desktop.pipeline_tools import apply_quick_experiment, default_pipeline, engine_from_pipeline, sync_pipeline_from_engine
-from app_desktop.widgets import ControlBar, LeftPanel, PipelineEditorPanel, PlotPanel
+from app_desktop.viewmodels import SessionState
+from app_desktop.widgets import ControlBar, LeftPanel, PipelineEditorPanel, PlotPanel, WorkspacePanel
 from simdsp_blocks.catalog import list_block_specs
 from simdsp_core import find_node_by_role
 from simdsp_core.engine import Engine
@@ -51,6 +52,7 @@ class SimDSPWindow:
             QMessageBox,
             QPushButton,
             QSplitter,
+            QStackedWidget,
             QVBoxLayout,
             QWidget,
         )
@@ -81,24 +83,22 @@ class SimDSPWindow:
             "QTextEdit": __import__("PySide6.QtWidgets", fromlist=["QTextEdit"]).QTextEdit,
             "QVBoxLayout": QVBoxLayout,
             "QWidget": QWidget,
+            "QStackedWidget": QStackedWidget,
         }
 
         self.window = QMainWindow()
         self.window.resize(1560, 900)
 
-        self.current_pipeline_path: Path | None = None
+        self.state = SessionState()
         self.current_pipeline = default_pipeline(sample_rate, block_size, channels)
         if pipeline_path:
             self.current_pipeline = load_pipeline(pipeline_path)
-            self.current_pipeline_path = Path(pipeline_path)
+            self.state.current_pipeline_path = Path(pipeline_path)
 
-        self.engine = engine_from_pipeline(self.current_pipeline, self.current_pipeline_path)
-        self._running = False
+        self.engine = engine_from_pipeline(self.current_pipeline, self.state.current_pipeline_path)
         self._block_specs = list_block_specs()
         self._spec_by_type = {spec.type_name: spec for spec in self._block_specs}
         self._selected_spec = None
-        self._selected_node_id: str | None = None
-        self._selected_edge_index: int | None = None
         self._param_editors: dict[str, object] = {}
         self._current_param_spec_by_name: dict[str, object] = {}
         self._quick_source_types = ["Sine", "Square", "Triangle", "AudioInput", "WavFileSource", "MatFileSource"]
@@ -120,6 +120,7 @@ class SimDSPWindow:
         self.add_node_btn = self.control_bar.add_node_btn
         self.delete_node_btn = self.control_bar.delete_node_btn
         self.pipeline_label = self.control_bar.pipeline_label
+        self.mode_combo = self.control_bar.mode_combo
 
         splitter = QSplitter()
         outer.addWidget(splitter, stretch=1)
@@ -137,11 +138,7 @@ class SimDSPWindow:
         self.quick_path_edit = self.left_panel.quick_path_edit
         self.quick_apply_btn = self.left_panel.quick_apply_btn
 
-        center_panel = QWidget()
-        center_layout = QVBoxLayout(center_panel)
-
         self.pipeline_panel = PipelineEditorPanel(widget_factory)
-        center_layout.addWidget(self.pipeline_panel.widget, stretch=1)
         self.node_list = self.pipeline_panel.node_list
         self.edge_list = self.pipeline_panel.edge_list
         self.add_edge_btn = self.pipeline_panel.add_edge_btn
@@ -151,13 +148,13 @@ class SimDSPWindow:
         self.param_form = self.pipeline_panel.param_form
 
         self.plot_panel = PlotPanel(widget_factory, pg)
-        center_layout.addWidget(self.plot_panel.widget, stretch=2)
         self.scope_plot = self.plot_panel.scope_plot
         self.scope_curve = self.plot_panel.scope_curve
         self.fft_plot = self.plot_panel.fft_plot
         self.fft_curve = self.plot_panel.fft_curve
 
-        splitter.addWidget(center_panel)
+        self.workspace_panel = WorkspacePanel(widget_factory, self.pipeline_panel, self.plot_panel)
+        splitter.addWidget(self.workspace_panel.widget)
         splitter.setStretchFactor(0, 0)
         splitter.setStretchFactor(1, 1)
 
@@ -179,6 +176,7 @@ class SimDSPWindow:
         self.delete_edge_btn.clicked.connect(self.delete_selected_edge)
         self.quick_apply_btn.clicked.connect(self.apply_quick_experiment_controls)
         self.quick_source_combo.currentIndexChanged.connect(self._update_quick_control_state)
+        self.mode_combo.currentIndexChanged.connect(self._on_mode_changed)
         self.catalog_list.currentRowChanged.connect(self._on_catalog_selected)
         self.node_list.currentRowChanged.connect(self._on_node_selected)
         self.edge_list.currentRowChanged.connect(self._on_edge_selected)
@@ -188,8 +186,41 @@ class SimDSPWindow:
         self._populate_edge_list()
         self._sync_quick_controls()
         self._update_quick_control_state()
+        self._apply_view_mode()
         self._update_window_state()
         self._select_first_catalog_item()
+
+    @property
+    def current_pipeline_path(self) -> Path | None:
+        return self.state.current_pipeline_path
+
+    @current_pipeline_path.setter
+    def current_pipeline_path(self, value: Path | None) -> None:
+        self.state.current_pipeline_path = value
+
+    @property
+    def _running(self) -> bool:
+        return self.state.running
+
+    @_running.setter
+    def _running(self, value: bool) -> None:
+        self.state.running = value
+
+    @property
+    def _selected_node_id(self) -> str | None:
+        return self.state.selected_node_id
+
+    @_selected_node_id.setter
+    def _selected_node_id(self, value: str | None) -> None:
+        self.state.selected_node_id = value
+
+    @property
+    def _selected_edge_index(self) -> int | None:
+        return self.state.selected_edge_index
+
+    @_selected_edge_index.setter
+    def _selected_edge_index(self, value: int | None) -> None:
+        self.state.selected_edge_index = value
 
     def start_engine(self) -> None:
         if self._running:
@@ -304,6 +335,7 @@ class SimDSPWindow:
         self._populate_edge_list(selected_edge)
         self._sync_quick_controls()
         self._update_quick_control_state()
+        self._apply_view_mode()
         self._update_window_state()
         if was_running:
             self.start_engine()
@@ -312,6 +344,22 @@ class SimDSPWindow:
         name = self.current_pipeline_path.name if self.current_pipeline_path else "unsaved default pipeline"
         self.pipeline_label.setText(name)
         self.window.setWindowTitle(f"SimDSP 2.0 - Live Scope/FFT - {name}")
+
+    def _apply_view_mode(self) -> None:
+        mode = self.state.view_mode
+        self.workspace_panel.set_mode(mode)
+        advanced = mode == "pipeline"
+        self.apply_btn.setVisible(advanced)
+        self.change_type_btn.setVisible(advanced)
+        self.add_node_btn.setVisible(advanced)
+        self.delete_node_btn.setVisible(advanced)
+        self.change_type_btn.setEnabled(advanced and self._selected_spec is not None and self._selected_node_id is not None)
+        self.add_node_btn.setEnabled(advanced and self._selected_spec is not None)
+        self.delete_node_btn.setEnabled(advanced and self._selected_node_id is not None)
+
+    def _on_mode_changed(self, index: int) -> None:
+        self.state.view_mode = self.mode_combo.itemData(index)
+        self._apply_view_mode()
 
     def _sync_quick_controls(self) -> None:
         source_node = find_node_by_role(self.current_pipeline, "source")
@@ -404,14 +452,16 @@ class SimDSPWindow:
     def _on_catalog_selected(self, row: int) -> None:
         if row < 0 or row >= len(self._block_specs):
             self._selected_spec = None
+            self.state.selected_block_type = None
             self.inspector.clear()
             self.change_type_btn.setEnabled(False)
             self.add_node_btn.setEnabled(False)
             return
         self._selected_spec = self._block_specs[row]
+        self.state.selected_block_type = self._selected_spec.type_name
         self.inspector.setPlainText(self._format_block_spec(self._selected_spec))
-        self.change_type_btn.setEnabled(self._selected_node_id is not None)
-        self.add_node_btn.setEnabled(True)
+        self.change_type_btn.setEnabled(self.state.view_mode == "pipeline" and self._selected_node_id is not None)
+        self.add_node_btn.setEnabled(self.state.view_mode == "pipeline")
 
     def _on_node_selected(self, row: int) -> None:
         if row < 0 or row >= len(self.current_pipeline.get("nodes", [])):
@@ -423,8 +473,8 @@ class SimDSPWindow:
             return
         node = self.current_pipeline["nodes"][row]
         self._selected_node_id = node['id']
-        self.change_type_btn.setEnabled(self._selected_spec is not None)
-        self.delete_node_btn.setEnabled(True)
+        self.change_type_btn.setEnabled(self.state.view_mode == "pipeline" and self._selected_spec is not None)
+        self.delete_node_btn.setEnabled(self.state.view_mode == "pipeline")
         self.add_edge_btn.setEnabled(self.node_list.count() >= 2)
         spec = self._spec_by_type.get(node['type'])
         self._build_param_form(node, spec)
@@ -454,9 +504,9 @@ class SimDSPWindow:
             label = param.name if not param.unit else f"{param.name} ({param.unit})"
             self.param_form.addRow(label, editor)
 
-        self.apply_btn.setEnabled(bool(spec.params))
-        self.change_type_btn.setEnabled(self._selected_spec is not None)
-        self.delete_node_btn.setEnabled(self._selected_node_id is not None)
+        self.apply_btn.setEnabled(bool(spec.params) and self.state.view_mode == "pipeline")
+        self.change_type_btn.setEnabled(self.state.view_mode == "pipeline" and self._selected_spec is not None)
+        self.delete_node_btn.setEnabled(self.state.view_mode == "pipeline" and self._selected_node_id is not None)
 
     def _create_param_editor(self, param, value):
         if param.choices:
