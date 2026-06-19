@@ -10,10 +10,12 @@ from typing import Sequence
 import numpy as np
 
 from app_desktop.pipeline_tools import apply_quick_experiment, default_pipeline, engine_from_pipeline, sync_pipeline_from_engine
+from app_desktop.widgets import ControlBar, LeftPanel, PipelineEditorPanel, PlotPanel
 from simdsp_blocks.catalog import list_block_specs
 from simdsp_core import find_node_by_role
 from simdsp_core.engine import Engine
 from simdsp_io import load_pipeline, save_pipeline
+
 
 
 def build_default_engine(
@@ -41,18 +43,14 @@ class SimDSPWindow:
             QFileDialog,
             QDoubleSpinBox,
             QFormLayout,
-            QGroupBox,
             QHBoxLayout,
             QLabel,
             QLineEdit,
-            QListWidget,
             QListWidgetItem,
             QMainWindow,
             QMessageBox,
             QPushButton,
-            QScrollArea,
             QSplitter,
-            QTextEdit,
             QVBoxLayout,
             QWidget,
         )
@@ -66,6 +64,24 @@ class SimDSPWindow:
         self._QCheckBox = QCheckBox
         self._QComboBox = QComboBox
         self._QDoubleSpinBox = QDoubleSpinBox
+
+        widget_factory = {
+            "QAbstractItemView": QAbstractItemView,
+            "QCheckBox": QCheckBox,
+            "QComboBox": QComboBox,
+            "QDoubleSpinBox": QDoubleSpinBox,
+            "QFormLayout": QFormLayout,
+            "QHBoxLayout": QHBoxLayout,
+            "QLabel": QLabel,
+            "QLineEdit": QLineEdit,
+            "QListWidget": __import__("PySide6.QtWidgets", fromlist=["QListWidget"]).QListWidget,
+            "QPushButton": QPushButton,
+            "QGroupBox": __import__("PySide6.QtWidgets", fromlist=["QGroupBox"]).QGroupBox,
+            "QScrollArea": __import__("PySide6.QtWidgets", fromlist=["QScrollArea"]).QScrollArea,
+            "QTextEdit": __import__("PySide6.QtWidgets", fromlist=["QTextEdit"]).QTextEdit,
+            "QVBoxLayout": QVBoxLayout,
+            "QWidget": QWidget,
+        }
 
         self.window = QMainWindow()
         self.window.resize(1560, 900)
@@ -91,145 +107,56 @@ class SimDSPWindow:
         self.window.setCentralWidget(root)
         outer = QVBoxLayout(root)
 
-        controls = QHBoxLayout()
-        self.start_btn = QPushButton("Start")
-        self.stop_btn = QPushButton("Stop")
-        self.stop_btn.setEnabled(False)
-        self.open_btn = QPushButton("Open")
-        self.save_btn = QPushButton("Save")
-        self.save_as_btn = QPushButton("Save As")
-        self.default_btn = QPushButton("Default")
-        self.apply_btn = QPushButton("Apply Params")
-        self.apply_btn.setEnabled(False)
-        self.change_type_btn = QPushButton("Use Selected Block Type")
-        self.change_type_btn.setEnabled(False)
-        self.add_node_btn = QPushButton("Add Node")
-        self.add_node_btn.setEnabled(False)
-        self.delete_node_btn = QPushButton("Delete Node")
-        self.delete_node_btn.setEnabled(False)
-        self.pipeline_label = QLabel()
-
-        for widget in (
-            self.start_btn,
-            self.stop_btn,
-            self.open_btn,
-            self.save_btn,
-            self.save_as_btn,
-            self.default_btn,
-            self.apply_btn,
-            self.change_type_btn,
-            self.add_node_btn,
-            self.delete_node_btn,
-        ):
-            controls.addWidget(widget)
-        controls.addSpacing(16)
-        controls.addWidget(self.pipeline_label)
-        controls.addStretch(1)
-        outer.addLayout(controls)
+        self.control_bar = ControlBar(widget_factory)
+        outer.addLayout(self.control_bar.layout)
+        self.start_btn = self.control_bar.start_btn
+        self.stop_btn = self.control_bar.stop_btn
+        self.open_btn = self.control_bar.open_btn
+        self.save_btn = self.control_bar.save_btn
+        self.save_as_btn = self.control_bar.save_as_btn
+        self.default_btn = self.control_bar.default_btn
+        self.apply_btn = self.control_bar.apply_btn
+        self.change_type_btn = self.control_bar.change_type_btn
+        self.add_node_btn = self.control_bar.add_node_btn
+        self.delete_node_btn = self.control_bar.delete_node_btn
+        self.pipeline_label = self.control_bar.pipeline_label
 
         splitter = QSplitter()
         outer.addWidget(splitter, stretch=1)
 
-        left_panel = QWidget()
-        left_layout = QVBoxLayout(left_panel)
-        left_layout.addWidget(QLabel("Block Catalog"))
-        self.catalog_list = QListWidget()
-        left_layout.addWidget(self.catalog_list, stretch=2)
-        left_layout.addWidget(QLabel("Block Inspector"))
-        self.inspector = QTextEdit()
-        self.inspector.setReadOnly(True)
-        left_layout.addWidget(self.inspector, stretch=2)
-
-        self.quick_group = QGroupBox("Quick Experiment")
-        quick_layout = QFormLayout(self.quick_group)
-        self.quick_source_combo = QComboBox()
-        for block_type in self._quick_source_types:
-            self.quick_source_combo.addItem(block_type, block_type)
-        self.quick_freq_spin = QDoubleSpinBox()
-        self.quick_freq_spin.setDecimals(3)
-        self.quick_freq_spin.setRange(0.0, 96000.0)
-        self.quick_freq_spin.setSingleStep(10.0)
-        self.quick_amp_spin = QDoubleSpinBox()
-        self.quick_amp_spin.setDecimals(3)
-        self.quick_amp_spin.setRange(0.0, 1.0)
-        self.quick_amp_spin.setSingleStep(0.05)
-        self.quick_snr_spin = QDoubleSpinBox()
-        self.quick_snr_spin.setDecimals(2)
-        self.quick_snr_spin.setRange(-20.0, 120.0)
-        self.quick_snr_spin.setSingleStep(0.5)
-        self.quick_gain_spin = QDoubleSpinBox()
-        self.quick_gain_spin.setDecimals(3)
-        self.quick_gain_spin.setRange(0.0, 100.0)
-        self.quick_gain_spin.setSingleStep(0.1)
-        self.quick_path_edit = QLineEdit()
-        self.quick_apply_btn = QPushButton("Apply Quick Setup")
-        quick_layout.addRow("Source", self.quick_source_combo)
-        quick_layout.addRow("Freq (Hz)", self.quick_freq_spin)
-        quick_layout.addRow("Amplitude", self.quick_amp_spin)
-        quick_layout.addRow("SNR (dB)", self.quick_snr_spin)
-        quick_layout.addRow("Gain", self.quick_gain_spin)
-        quick_layout.addRow("File/Mat Path", self.quick_path_edit)
-        quick_layout.addRow(self.quick_apply_btn)
-        left_layout.addWidget(self.quick_group, stretch=0)
-        splitter.addWidget(left_panel)
+        self.left_panel = LeftPanel(widget_factory, self._quick_source_types)
+        splitter.addWidget(self.left_panel.widget)
+        self.catalog_list = self.left_panel.catalog_list
+        self.inspector = self.left_panel.inspector
+        self.quick_group = self.left_panel.quick_group
+        self.quick_source_combo = self.left_panel.quick_source_combo
+        self.quick_freq_spin = self.left_panel.quick_freq_spin
+        self.quick_amp_spin = self.left_panel.quick_amp_spin
+        self.quick_snr_spin = self.left_panel.quick_snr_spin
+        self.quick_gain_spin = self.left_panel.quick_gain_spin
+        self.quick_path_edit = self.left_panel.quick_path_edit
+        self.quick_apply_btn = self.left_panel.quick_apply_btn
 
         center_panel = QWidget()
         center_layout = QVBoxLayout(center_panel)
 
-        graph_group = QGroupBox("Pipeline Structure")
-        graph_layout = QHBoxLayout(graph_group)
+        self.pipeline_panel = PipelineEditorPanel(widget_factory)
+        center_layout.addWidget(self.pipeline_panel.widget, stretch=1)
+        self.node_list = self.pipeline_panel.node_list
+        self.edge_list = self.pipeline_panel.edge_list
+        self.add_edge_btn = self.pipeline_panel.add_edge_btn
+        self.delete_edge_btn = self.pipeline_panel.delete_edge_btn
+        self.param_group = self.pipeline_panel.param_group
+        self.param_title = self.pipeline_panel.param_title
+        self.param_form = self.pipeline_panel.param_form
 
-        nodes_panel = QWidget()
-        nodes_layout = QVBoxLayout(nodes_panel)
-        nodes_layout.addWidget(QLabel("Pipeline Nodes"))
-        self.node_list = QListWidget()
-        self.node_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        nodes_layout.addWidget(self.node_list, stretch=2)
-        graph_layout.addWidget(nodes_panel)
+        self.plot_panel = PlotPanel(widget_factory, pg)
+        center_layout.addWidget(self.plot_panel.widget, stretch=2)
+        self.scope_plot = self.plot_panel.scope_plot
+        self.scope_curve = self.plot_panel.scope_curve
+        self.fft_plot = self.plot_panel.fft_plot
+        self.fft_curve = self.plot_panel.fft_curve
 
-        edges_panel = QWidget()
-        edges_layout = QVBoxLayout(edges_panel)
-        edges_layout.addWidget(QLabel("Pipeline Edges"))
-        self.edge_list = QListWidget()
-        edges_layout.addWidget(self.edge_list, stretch=2)
-        edge_btns = QHBoxLayout()
-        self.add_edge_btn = QPushButton("Add Edge")
-        self.add_edge_btn.setEnabled(False)
-        self.delete_edge_btn = QPushButton("Delete Edge")
-        self.delete_edge_btn.setEnabled(False)
-        edge_btns.addWidget(self.add_edge_btn)
-        edge_btns.addWidget(self.delete_edge_btn)
-        edges_layout.addLayout(edge_btns)
-        graph_layout.addWidget(edges_panel)
-
-        center_layout.addWidget(graph_group, stretch=1)
-
-        self.param_group = QGroupBox("Block Parameters")
-        param_layout = QVBoxLayout(self.param_group)
-        self.param_title = QLabel("Select a node from the current pipeline to edit its parameters.")
-        param_layout.addWidget(self.param_title)
-        self.param_scroll = QScrollArea()
-        self.param_scroll.setWidgetResizable(True)
-        self.param_container = QWidget()
-        self.param_form = QFormLayout(self.param_container)
-        self.param_scroll.setWidget(self.param_container)
-        param_layout.addWidget(self.param_scroll)
-        center_layout.addWidget(self.param_group, stretch=1)
-
-        self.scope_plot = pg.PlotWidget(title="Scope (Time Domain)")
-        self.scope_plot.setLabel("left", "Amplitude")
-        self.scope_plot.setLabel("bottom", "Sample")
-        self.scope_plot.showGrid(x=True, y=True, alpha=0.2)
-        self.scope_curve = self.scope_plot.plot(pen=pg.mkPen(color="#2D7FF9", width=2))
-
-        self.fft_plot = pg.PlotWidget(title="FFT Magnitude (dB)")
-        self.fft_plot.setLabel("left", "Magnitude (dB)")
-        self.fft_plot.setLabel("bottom", "Frequency (Hz)")
-        self.fft_plot.showGrid(x=True, y=True, alpha=0.2)
-        self.fft_curve = self.fft_plot.plot(pen=pg.mkPen(color="#E95D0F", width=2))
-
-        center_layout.addWidget(self.scope_plot, stretch=2)
-        center_layout.addWidget(self.fft_plot, stretch=2)
         splitter.addWidget(center_panel)
         splitter.setStretchFactor(0, 0)
         splitter.setStretchFactor(1, 1)
@@ -722,6 +649,7 @@ class SimDSPWindow:
         self.window.closeEvent = _close_event
 
 
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run SimDSP desktop live scope/FFT app.")
     parser.add_argument("--sample-rate", type=float, default=48_000.0)
@@ -729,6 +657,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--channels", type=int, default=1)
     parser.add_argument("--pipeline", default=None, help="Path to a pipeline JSON file.")
     return parser
+
 
 
 def main(argv: Sequence[str] | None = None) -> int:
